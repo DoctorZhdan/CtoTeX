@@ -75,7 +75,6 @@ const map<ErrorCode, string> errorMessages = {
 {OperatorNotSeparatedBySpaces, "Оператор должен быть окружен пробелами."}
 };
 
-
 /// @brief Структура для хранения данных об ошибке
 struct Error {
     ErrorCode code;          ///< Код ошибки из перечисления
@@ -129,4 +128,60 @@ const map<string, set<string>> allowedConfigParams = {
     {"logDiv",           {"logConverting", "withoutChanges"}}, // деление логарифмов
     {"arrSum",           {"withoutChanges", "combineInSum"}},  // сумма массива
     {"arrMul",           {"withoutChanges", "combineInMul"}}   // произведение массива
+};
+
+/// @brief Типы токенов
+enum TokenType {
+    NUMBER, VARIABLE, CONSTANT,
+    PLUS, MINUS, MUL, DIV, UMINUS,      ///< арифметика
+    POW, SQRT, CBRT,                    ///< степень и корни
+    SIN, COS, TAN, ASIN, ACOS, ATAN,    ///< тригонометрия
+    LOG, LOG10, EXP,                    ///< логарифмы и экспонента
+    ABS, FABS,                          ///< модуль
+    EQ, NEQ, LT, GT, LE, GE,            ///< сравнения
+    LAND, LOR, LNOT,                    ///< логические
+    ARRAY_INDEX,                        ///< индексация
+    UNKNOWN                             ///< неопределён (используется для корневого узла)
+};
+
+/// @brief Типы операндов
+enum OperandType {
+    ARITHMETIC, ///< арифметический операнд
+    LOGICAL     ///< логический операнд
+};
+
+/// @brief Структура токена (лексемы)
+struct Token {
+    TokenType type;          ///< тип токена
+    string value;            ///< текстовое представление токена
+    OperandType operandType; ///< тип операндов (арифметический или логический)
+};
+
+/// @brief Класс узла дерева разбора
+class Node {
+public:
+    Token token;             ///< токен узла
+    Node* left = nullptr;    ///< указатель на левый потомок (единственный для унарных операций) 
+    Node* right = nullptr;   ///< указатель на правый потомок (nullptr для унарных операций)
+
+    /// @brief Конструктор для листа (число, переменная, константа)
+    /// @param t токен
+    Node(const Token& t) : token(t) {}
+
+    /// @brief Конструктор для бинарной операции
+    /// @param t токен операции
+    /// @param l левый операнд
+    /// @param r правый операнд
+    Node(const Token& t, Node* l, Node* r) : token(t), left(l), right(r) {}
+
+    /// @brief Конструктор для унарной операции
+    /// @param t токен операции
+    /// @param l единственный операнд
+    Node(const Token& t, Node* l) : token(t), left(l) {}
+
+    /// @brief Деструктор, рекурсивно удаляющий дочерние узлы
+    ~Node() {
+        delete left;
+        delete right;
+    }
 };
