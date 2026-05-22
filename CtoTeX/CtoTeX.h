@@ -278,3 +278,58 @@ const map<TokenType, OperationTypeInfo> operationTypes = {
     {LNOT, {{{OperandType::LOGICAL}}}}
 };
 
+/// @brief —труктура с информацией об операторе
+struct OperatorInfo {
+    int precedence;   ///< уровень приоритета (чем меньше число, тем выше приоритет)
+    bool leftAssoc;   ///< ассоциативность (true Ч лева€, false Ч права€)
+    int arity;        ///< количество операндов (1 или 2)
+    string tex;       ///< TeX-представление оператора
+};
+
+/// @brief —ловарь операторов с информацией о них (приоритет, ассоциативность, арность, TeX-строка)
+const map<TokenType, OperatorInfo> operatorInfo = {
+    // индексаци€ 
+    {ARRAY_INDEX, {1, true, 2, ""}},
+
+    // функции 
+    {SIN,   {2, false, 1, "\\sin"}},
+    {COS,   {2, false, 1, "\\cos"}},
+    {TAN,   {2, false, 1, "\\tan"}},
+    {ASIN,  {2, false, 1, "\\arcsin"}},
+    {ACOS,  {2, false, 1, "\\arccos"}},
+    {ATAN,  {2, false, 1, "\\arctan"}},
+    {SQRT,  {2, false, 1, "\\sqrt"}},
+    {CBRT,  {2, false, 1, "\\sqrt[3]"}},
+    {LOG,   {2, false, 1, "\\log"}},
+    {LOG10, {2, false, 1, "\\log_{10}"}},
+    {EXP,   {2, false, 1, "\\exp"}},
+    {ABS,   {2, false, 1, "\\left|"}},
+    {FABS,  {2, false, 1, "\\left|"}},
+
+    // унарные
+    {UMINUS, {3, false, 1, "-"}},
+    {LNOT,   {3, false, 1, "\\lnot"}},
+
+    // степень 
+    {POW, {4, false, 2, "^"}},
+
+    // умножение / деление 
+    {MUL, {5, true, 2, "\\cdot"}},
+    {DIV, {5, true, 2, "/"}},
+
+    // сложение / вычитание 
+    {PLUS,  {6, true, 2, "+"}},
+    {MINUS, {6, true, 2, "-"}},
+
+    // сравнени€ 
+    {LT,  {7, true, 2, "<"}},
+    {GT,  {7, true, 2, ">"}},
+    {LE,  {7, true, 2, "\\le"}},
+    {GE,  {7, true, 2, "\\ge"}},
+    {EQ,  {7, true, 2, "="}},
+    {NEQ, {7, true, 2, "\\neq"}},
+
+    // логические
+    {LAND, {8, true, 2, "\\land"}},
+    {LOR,  {9, true, 2, "\\lor"}}
+};
