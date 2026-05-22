@@ -117,6 +117,48 @@ bool validateConfigFile(const string& filename, Config& config, vector<Error>& e
     return false;
 }
 
+bool readInputFiles(const string& exprFilename, const string& configFilename, string& expression, Config& config, vector<Error>& errors) {
+    // 1. Открыть файл с выражением
+    ifstream exprFile(exprFilename);
+
+    // 2. Добавить  ошибку InputFileNotExist в вектор ошибок, если не удалось открыть файл с выражением 
+    if (!exprFile.is_open())
+    {
+        Error err;
+        err.code = InputFileNotExist;
+        err.line = exprFilename;
+        errors.push_back(err);
+        return false;
+    }
+
+    // Проверка, что в файле больше одной строки
+    vector<string> lines;
+    string line;
+    while (getline(exprFile, line))
+    {
+        lines.push_back(line);
+    }
+    exprFile.close();
+
+    //Добавить ошибку MultipleLinesInTreeFile в вектор ошибок, если в файле больше одной строки 
+    if (lines.size() != 1) {
+        Error err;
+        err.code = MultipleLinesInTreeFile;
+        errors.push_back(err);
+        return false;
+    }
+
+    // 3. Сохранить выражение
+    expression = lines[0];
+
+    // 4. Открыть файл конфигурации и сохранить настройки конфигурации 
+    if (!validateConfigFile(configFilename, config, errors)) {
+        return false;
+    }
+
+    // 5. Вернуть успех, если ошибок нет
+    return errors.empty();
+}
 
 int main()
 {

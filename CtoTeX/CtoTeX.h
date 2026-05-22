@@ -342,4 +342,12 @@ const map<TokenType, OperatorInfo> operatorInfo = {
 /// @return true при успешной валидации, false при наличии ошибок
 bool validateConfigFile(const string& filename, Config& config, vector<Error>& errors);
 
+/// @brief Функция чтения входных файлов (выражения и конфигурации)
+/// @param exprFilename путь к файлу с выражением
+/// @param configFilename путь к файлу конфигурации
+/// @param expression строка для сохранения прочитанного выражения
+/// @param config объект для сохранения параметров отображения
+/// @param errors вектор для сбора ошибок
+/// @return true при успешном чтении, false при наличии ошибок
+bool readInputFiles(const string& exprFilename, const string& configFilename, string& expression, Config& config, vector<Error>& errors);
 
