@@ -6,6 +6,7 @@ using namespace std;
 #include <vector>
 
 
+
 /// @brief Коды ошибок программы
 enum ErrorCode {
     // файловые ошибки
@@ -333,3 +334,12 @@ const map<TokenType, OperatorInfo> operatorInfo = {
     {LAND, {8, true, 2, "\\land"}},
     {LOR,  {9, true, 2, "\\lor"}}
 };
+
+/// @brief Функция валидации файла конфигурации с параметрами отображения
+/// @param filename путь к файлу с параметрами отображения
+/// @param config структура для сохранения параметров и их значений
+/// @param errors вектор для сбора ошибок
+/// @return true при успешной валидации, false при наличии ошибок
+bool validateConfigFile(const string& filename, Config& config, vector<Error>& errors);
+
+
