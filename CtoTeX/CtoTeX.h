@@ -3,6 +3,7 @@ using namespace std;
 #include <string>  
 #include <map>
 #include <set>
+#include <vector>
 
 
 /// @brief Коды ошибок программы
@@ -185,3 +186,95 @@ public:
         delete right;
     }
 };
+
+/// @brief Структура параметров отображения
+struct Config {
+    map<string, string> paramMap; ///< словарь параметров и их значений
+
+    /// @brief Конструктор, инициализирующий параметры значениями по умолчанию
+    Config() {
+        paramMap["mulIdenVar"] = "withoutChanges";
+        paramMap["trigFunNoNegPow"] = "powAfterVar";
+        paramMap["trigFunNegPow"] = "negPow";
+        paramMap["trigFunMinusOnePow"] = "negPow";
+        paramMap["zeroPointFivePow"] = "withoutChanges";
+        paramMap["oneDivNPow"] = "withoutChanges";
+        paramMap["abPow"] = "withoutChanges";
+        paramMap["squareRoot"] = "withoutChanges";
+        paramMap["logDiv"] = "logConverting";
+        paramMap["arrSum"] = "withoutChanges";
+        paramMap["arrMul"] = "withoutChanges";
+    }
+};
+
+/// @brief Множество допустимых операций
+const set<string> allowedOperations = {
+    "+", "-", "*", "/", "-_",      // арифметика
+    "#pow", "#sqrt", "#cbrt",      // степень и корни
+    "a[i]",                         // индексы
+    "#sin", "#cos", "#tan", "#asin", "#acos", "#atan", // тригонометрия
+    "#log", "#log10", "#exp",      // логарифмы и экспонента
+    "#abs", "#fabs",                // модуль
+    "==", "!=", "<", ">", "<=", ">=", // сравнения
+    "&&", "||", "!"                 // логические
+};
+
+/// @brief Множество допустимых констант
+const set<string> allowedConstants = {
+    "pi", "e", "phi", "i", "true", "false"
+};
+
+/// @brief Структура для хранения информации о допустимых типах операндов для операции
+struct OperationTypeInfo {
+    vector<vector<OperandType>> allowedSignatures; ///< список допустимых сигнатур
+};
+
+/// @brief Словарь допустимых типов операндов для каждой операции
+const map<TokenType, OperationTypeInfo> operationTypes = {
+    // Арифметика
+    {PLUS,  {{{OperandType::ARITHMETIC, OperandType::ARITHMETIC}}}},
+    {MINUS, {{{OperandType::ARITHMETIC, OperandType::ARITHMETIC}}}},
+    {MUL,   {{{OperandType::ARITHMETIC, OperandType::ARITHMETIC}}}},
+    {DIV,   {{{OperandType::ARITHMETIC, OperandType::ARITHMETIC}}}},
+    {UMINUS, {{{OperandType::ARITHMETIC}}}},
+
+    // Степень и корни
+    {POW,  {{{OperandType::ARITHMETIC, OperandType::ARITHMETIC}}}},
+    {SQRT, {{{OperandType::ARITHMETIC}}}},
+    {CBRT, {{{OperandType::ARITHMETIC}}}},
+
+    // Тригонометрия
+    {SIN,  {{{OperandType::ARITHMETIC}}}},
+    {COS,  {{{OperandType::ARITHMETIC}}}},
+    {TAN,  {{{OperandType::ARITHMETIC}}}},
+    {ASIN, {{{OperandType::ARITHMETIC}}}},
+    {ACOS, {{{OperandType::ARITHMETIC}}}},
+    {ATAN, {{{OperandType::ARITHMETIC}}}},
+
+    // Логарифмы и экспонента
+    {LOG,   {{{OperandType::ARITHMETIC}}}},
+    {LOG10, {{{OperandType::ARITHMETIC}}}},
+    {EXP,   {{{OperandType::ARITHMETIC}}}},
+
+    // Модуль
+    {ABS,  {{{OperandType::ARITHMETIC}}}},
+    {FABS, {{{OperandType::ARITHMETIC}}}},
+
+    // Сравнения
+    {EQ,  {{{OperandType::ARITHMETIC, OperandType::ARITHMETIC},
+            {OperandType::LOGICAL, OperandType::LOGICAL}}}},
+
+    {NEQ, {{{OperandType::ARITHMETIC, OperandType::ARITHMETIC},
+            {OperandType::LOGICAL, OperandType::LOGICAL}}}},
+
+    {LT,  {{{OperandType::ARITHMETIC, OperandType::ARITHMETIC}}}},
+    {GT,  {{{OperandType::ARITHMETIC, OperandType::ARITHMETIC}}}},
+    {LE,  {{{OperandType::ARITHMETIC, OperandType::ARITHMETIC}}}},
+    {GE,  {{{OperandType::ARITHMETIC, OperandType::ARITHMETIC}}}},
+
+    // Логические
+    {LAND, {{{OperandType::LOGICAL, OperandType::LOGICAL}}}},
+    {LOR,  {{{OperandType::LOGICAL, OperandType::LOGICAL}}}},
+    {LNOT, {{{OperandType::LOGICAL}}}}
+};
+
