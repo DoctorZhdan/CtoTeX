@@ -160,6 +160,26 @@ bool readInputFiles(const string& exprFilename, const string& configFilename, st
     return errors.empty();
 }
 
+void printErrors(const vector<Error>& errors) {
+    // 1. Если вектор ошибок пуст
+    if (errors.empty()) {
+        // 1.1. Завершить выполнение
+        return;
+    }
+
+    // 2. Для каждой ошибки из вектора ошибок
+    for (const auto& err : errors) {
+        // 2.1. Сгенерировать сообщение об ошибке (generateErrorMessage)
+        string msg = err.generateErrorMessage();
+
+        // 2.2. Вывести сообщение в консоль
+        cout << msg;
+
+        // 2.3. Вывести символ перевода строки
+        cout << endl;
+    }
+}
+
 int main()
 {
     

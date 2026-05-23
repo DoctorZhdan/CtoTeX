@@ -351,3 +351,6 @@ bool validateConfigFile(const string& filename, Config& config, vector<Error>& e
 /// @return true при успешном чтении, false при наличии ошибок
 bool readInputFiles(const string& exprFilename, const string& configFilename, string& expression, Config& config, vector<Error>& errors);
 
+/// @brief Функция вывода ошибок из вектора в консоль
+/// @param errors вектор с ошибками
+void printErrors(const vector<Error>& errors);
