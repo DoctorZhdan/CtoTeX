@@ -354,3 +354,10 @@ bool readInputFiles(const string& exprFilename, const string& configFilename, st
 /// @brief Функция вывода ошибок из вектора в консоль
 /// @param errors вектор с ошибками
 void printErrors(const vector<Error>& errors);
+
+/// @brief Функция разбиения строки выражения на токены
+/// @param expression строка с выражением в обратной польской записи
+/// @param tokens вектор для заполнения токенами
+/// @param errors вектор для сбора ошибок
+/// @return true при успешной токенизации, false при наличии ошибок
+bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<Error>& errors);
