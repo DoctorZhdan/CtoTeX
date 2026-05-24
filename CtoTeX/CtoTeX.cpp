@@ -446,6 +446,202 @@ bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<
     }
 }
 
+bool buildTree(const string& expression, Node*& root, const map<TokenType, OperatorInfo>& operatorInfo, vector<Error>& errors) {
+    // 1. Разбить строку на токены (tokenizeExpression)
+    vector<Token> tokens;
+    if (!tokenizeExpression(expression, tokens, errors)) {
+        return false;
+    }
+
+    // 2. Создать пустой стек узлов nodeStack
+    stack<Node*> nodeStack;
+
+    // 3. Установить nodeCount = 0
+    int nodeCount = 0;
+
+    // 4. Для каждого токена token из вектора токенов tokens:
+    for (const Token& token : tokens) {
+
+        // 4.1. Если токен имеет тип NUMBER или VARIABLE или CONSTANT (токен является операндом):
+        if (token.type == NUMBER || token.type == VARIABLE || token.type == CONSTANT) {
+
+            // 4.1.1. Создать новый узел Node с этим токеном
+            Node* newNode = new Node(token);
+
+            // 4.1.2. Положить узел в nodeStack
+            nodeStack.push(newNode);
+
+            // 4.1.3. Увеличить nodeCount на 1
+            nodeCount++;
+
+            // 4.1.4. Если nodeCount > 1000
+            if (nodeCount > 1000) {
+                // 4.1.4.1. Добавить ошибку TooManyNodes в вектор ошибок
+                Error err;
+                err.code = TooManyNodes;
+                errors.push_back(err);
+            }
+        }
+
+        // 4.2. Если токен имеет тип какого-либо оператора (токен является оператором):
+        else {
+
+            // 4.2.1. Получить арность оператора из operatorInfo
+            auto it = operatorInfo.find(token.type);
+
+            int arity = 0;
+            bool operatorFound = (it != operatorInfo.end());
+
+            if (operatorFound) {
+                arity = it->second.arity;
+            }
+            else {
+                Error err;
+                err.code = InvalidSymbol;
+                err.line = expression;
+                errors.push_back(err);
+            }
+
+            Node* newNode = nullptr;
+
+            // 4.2.2. Если арность равна 2:
+            if (operatorFound && arity == 2) {
+
+                // 4.2.2.1. Если в nodeStack меньше 2 узлов
+                if (nodeStack.size() < 2) {
+                    // 4.2.2.1.1. Добавить ошибку NotEnoughOperands в вектор ошибок
+                    Error err;
+                    err.code = NotEnoughOperands;
+                    errors.push_back(err);
+                }
+                else {
+                    // 4.2.2.2. Извлечь из стека right узел
+                    Node* right = nodeStack.top();
+                    nodeStack.pop();
+
+                    // 4.2.2.3. Извлечь из стека left узел
+                    Node* left = nodeStack.top();
+                    nodeStack.pop();
+
+                    // 4.2.2.4. Если типы операндов и операции не совместимы между собой
+                    auto opIt = operationTypes.find(token.type);
+
+                    if (opIt != operationTypes.end()) {
+                        bool compatible = false;
+
+                        for (const auto& sig : opIt->second.allowedSignatures) {
+                            if (sig.size() == 2) {
+                                if (sig[0] == left->token.operandType &&
+                                    sig[1] == right->token.operandType) {
+                                    compatible = true;
+                                }
+                            }
+                        }
+
+                        if (!compatible) {
+                            // 4.2.2.4.1. Добавить ошибку MismatchedOperandTypes в вектор ошибок
+                            Error err;
+                            err.code = MismatchedOperandTypes;
+                            errors.push_back(err);
+                        }
+                    }
+
+                    // 4.2.2.5. Создать новый узел с токеном, установить left и right
+                    newNode = new Node(token, left, right);
+                }
+            }
+
+            // 4.2.3. Если арность равна 1:
+            else if (operatorFound && arity == 1) {
+
+                // 4.2.3.1. Если в nodeStack меньше 1 узла
+                if (nodeStack.size() < 1) {
+                    // 4.2.3.1.1. Добавить ошибку NotEnoughOperands в вектор ошибок
+                    Error err;
+                    err.code = NotEnoughOperands;
+                    errors.push_back(err);
+                }
+                else {
+                    // 4.2.3.2. Извлечь из стека child узел
+                    Node* child = nodeStack.top();
+                    nodeStack.pop();
+
+                    // 4.2.3.3. Если типы операнда и операции несовместимы
+                    auto opIt = operationTypes.find(token.type);
+
+                    if (opIt != operationTypes.end()) {
+                        bool compatible = false;
+
+                        for (const auto& sig : opIt->second.allowedSignatures) {
+                            if (sig.size() == 1) {
+                                if (sig[0] == child->token.operandType) {
+                                    compatible = true;
+                                }
+                            }
+                        }
+
+                        if (!compatible) {
+                            // 4.2.3.3.1. Добавить ошибку MismatchedOperandTypes в вектор ошибок
+                            Error err;
+                            err.code = MismatchedOperandTypes;
+                            errors.push_back(err);
+                        }
+                    }
+
+                    // 4.2.3.4. Создать новый узел с токеном, установить left = child, right = nullptr
+                    newNode = new Node(token, child);
+                }
+            }
+
+            // 4.2.4. Положить новый узел в nodeStack
+            if (newNode != nullptr) {
+                nodeStack.push(newNode);
+
+                // 4.2.5. Увеличить nodeCount на 1
+                nodeCount++;
+
+                // 4.2.6. Если nodeCount больше 1000
+                if (nodeCount > 1000) {
+                    // 4.2.6.1. Добавить ошибку TooManyNodes в вектор ошибок
+                    Error err;
+                    err.code = TooManyNodes;
+                    errors.push_back(err);
+                }
+            }
+        }
+    }
+
+    // 5. Если nodeStack пуст 
+    if (nodeStack.empty()) {
+        // 5.1. Добавить ошибку NotEnoughOperands в вектор ошибок
+        Error err;
+        err.code = NotEnoughOperands;
+        errors.push_back(err);
+    }
+
+    // 6. Если в nodeStack больше одного узла
+    if (nodeStack.size() > 1) {
+        // 6.1. Добавить ошибку TooManyOperands в вектор ошибок
+        Error err;
+        err.code = TooManyOperands;
+        errors.push_back(err);
+    }
+
+    // 7. Извлечь единственный узел из стека и сохранить в root
+    if (!nodeStack.empty()) {
+        root = nodeStack.top();
+        nodeStack.pop();
+    }
+
+    // 8. Если вектор ошибок (errors) не пуст 
+    if (!errors.empty()) {
+        // 8.1. Вернуть false
+        return false;
+    }
+    // 8.2. Иначе вернуть true
+    return true;
+}
+
 int main()
 {
     

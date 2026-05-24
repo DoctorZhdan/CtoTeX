@@ -4,6 +4,7 @@ using namespace std;
 #include <map>
 #include <set>
 #include <vector>
+#include <stack>
 
 
 
@@ -361,3 +362,11 @@ void printErrors(const vector<Error>& errors);
 /// @param errors вектор для сбора ошибок
 /// @return true при успешной токенизации, false при наличии ошибок
 bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<Error>& errors);
+
+/// @brief Функция построения дерева разбора из строки выражения
+/// @param expression строка с выражением в обратной польской записи
+/// @param root указатель на корень построенного дерева
+/// @param operatorInfo словарь операторов с информацией о них 
+/// @param errors вектор для сбора ошибок
+/// @return true при успешном построении дерева, false при наличии ошибок
+bool buildTree(const string& expression, Node*& root, const map<TokenType, OperatorInfo>& operatorInfo, vector<Error>& errors);
