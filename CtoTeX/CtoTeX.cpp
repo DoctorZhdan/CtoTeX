@@ -680,6 +680,80 @@ bool saveToOutFile(const string& filename, const string& texString, vector<Error
     return true;
 }
 
+bool needsParentheses(Node* parent, Node* child, bool isRightChild) {
+    // 1. Если child является листом (NUMBER, VARIABLE, CONSTANT)
+    TokenType childType = child->token.type;
+    if (childType == NUMBER || childType == VARIABLE || childType == CONSTANT) {
+        // 1.1. Вернуть false
+        return false;
+    }
+
+    // 2. Если child является унарным минусом (UMINUS)
+    if (childType == UMINUS) {
+        // 2.1. Вернуть true
+        return true;
+    }
+
+    TokenType parentType = parent->token.type;
+
+    // 3. Если parent является тригонометрической функцией (SIN, COS, TAN, ASIN, ACOS, ATAN)
+    if (parentType == SIN || parentType == COS || parentType == TAN ||
+        parentType == ASIN || parentType == ACOS || parentType == ATAN) {
+        // 3.1. Вернуть true
+        return true;
+    }
+
+    // 4. Если parent является логарифмом (LOG, LOG10)
+    if (parentType == LOG || parentType == LOG10) {
+        // 4.1. Вернуть true
+        return true;
+    }
+
+    // Получить информацию о приоритетах из operatorInfo
+    auto parentIt = operatorInfo.find(parentType);
+    auto childIt = operatorInfo.find(childType);
+
+    // Если информация не найдена, скобки не ставим
+    if (parentIt == operatorInfo.end() || childIt == operatorInfo.end()) {
+        return false;
+    }
+
+    int parentPrec = parentIt->second.precedence;
+    int childPrec = childIt->second.precedence;
+    bool parentLeftAssoc = parentIt->second.leftAssoc;
+
+    // 5. Если приоритет потомка выше
+    if (childPrec < parentPrec) {
+        // 5.1. Вернуть false
+        return false;
+    }
+
+    // 6. Если приоритет потомка ниже
+    if (childPrec > parentPrec) {
+        // 6.1. Вернуть true
+        return true;
+    }
+
+    // 7. Если приоритеты равны
+    if (childPrec == parentPrec)
+    {
+        // 7.1. Если текущая операция левоассоциативная (parentLeftAssoc == true)
+        if (parentLeftAssoc)
+        {
+            // 7.1.1. Вернуть isRightChild
+            return isRightChild;
+        }
+        // 7.2. Если текущая операция правоассоциативная (parentLeftAssoc == false)
+        else {
+            // 7.2.1. Вернуть !isRightChild
+            return !isRightChild;
+        }
+    }
+
+    // 8. Вернуть false
+    return false;
+}
+
 int main()
 {
     

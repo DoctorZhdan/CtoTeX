@@ -377,3 +377,10 @@ bool buildTree(const string& expression, Node*& root, const map<TokenType, Opera
 /// @param errors вектор для сбора ошибок
 /// @return true при успешной записи, false при наличии ошибок
 bool saveToOutFile(const string& filename, const string& texString, vector<Error>& errors);
+
+/// @brief Функция определения необходимости добавления скобок вокруг дочернего узла
+/// @param parent указатель на текущий узел (текущая операция)
+/// @param child указатель на дочерний узел (потомок, для которого проверяем)
+/// @param isRightChild true, если потомок является правым, false — если левым
+/// @return true, если вокруг строки дочернего узла необходимо добавить круглые скобки, false — если скобки не требуются
+bool needsParentheses(Node* parent, Node* child, bool isRightChild);
