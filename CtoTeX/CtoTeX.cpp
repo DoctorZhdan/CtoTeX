@@ -754,6 +754,31 @@ bool needsParentheses(Node* parent, Node* child, bool isRightChild) {
     return false;
 }
 
+string getChildTexWithParens(Node* parent, Node* child, bool isRightChild, const Config& config) {
+    // 1. Получить TeX-строку дочернего узла (cToTex)
+    string childStr = cToTex(child, parent->token.type, isRightChild, config);
+
+    // 2. Если требуются скобки (needsParentheses)
+    if (needsParentheses(parent, child, isRightChild)) {
+        // 2.1. Вернуть "(" + childStr + ")"
+        return string("(") + childStr + ")";
+    }
+
+    // 2.2. Иначе вернуть childStr
+    return childStr;
+}
+
+
+
+
+
+
+
+string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config& config) {
+    return "texxt";
+}
+
+
 int main()
 {
     

@@ -384,3 +384,26 @@ bool saveToOutFile(const string& filename, const string& texString, vector<Error
 /// @param isRightChild true, если потомок €вл€етс€ правым, false Ч если левым
 /// @return true, если вокруг строки дочернего узла необходимо добавить круглые скобки, false Ч если скобки не требуютс€
 bool needsParentheses(Node* parent, Node* child, bool isRightChild);
+
+/// @brief ‘ункци€ получени€ TeX-строки дочернего узла с добавлением скобок при необходимости
+/// @param parent указатель на текущий узел (текуща€ операци€)
+/// @param child указатель на дочерний узел (потомок, дл€ которого получаем строку)
+/// @param isRightChild true, если потомок €вл€етс€ правым, false Ч если левым
+/// @param config объект структуры Config, содержащий параметры отображени€
+/// @return TeX-строка дочернего узла, дополненна€ круглыми скобками при необходимости
+string getChildTexWithParens(Node* parent, Node* child, bool isRightChild, const Config& config);
+
+
+
+
+
+
+
+/// @brief –екурсивна€ функци€ генерации TeX-строки из дерева выражени€
+/// @param node указатель на текущий узел дерева, дл€ которого генерируетс€ TeX-строка
+/// @param parentType тип операции родительского узла (значение UNKNOWN, если узел Ц корень)
+/// @param isRightChild флаг, указывающий, €вл€етс€ ли текущий узел правым потомком (true) или левым/корнем (false)
+/// @param config объект структуры Config, содержащий параметры отображени€ 
+/// @return сгенерированна€ TeX-строка
+string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config& config);
+
