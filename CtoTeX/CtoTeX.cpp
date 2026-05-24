@@ -819,7 +819,77 @@ bool isMulIdenVar(Node* node, string& operandStr, int& varCount, const Config& c
     return false;
 }
 
+bool isLogDiv(Node* node, string& base, string& argument, const Config& config) {
+    // 1. Если текущий узел не существует
+    if (node == nullptr) {
+        // 1.1. Вернуть false
+        return false;
+    }
 
+    // 2. Если узел не является оператором деления (DIV)
+    if (node->token.type != DIV) {
+        // 2.1. Вернуть false
+        return false;
+    }
+
+    Node* leftNode = node->left;   // левый потомок (числитель)
+    Node* rightNode = node->right; // правый потомок (знаменатель)
+
+    string leftBase;   // основание левого логарифма
+    string leftArg;    // аргумент левого логарифма
+    string rightBase;  // основание правого логарифма
+    string rightArg;   // аргумент правого логарифма
+
+    // 3. Проверить левого потомка: является ли он логарифмом (LOG или LOG10)
+    // 3.1. Если левый узел является натуральным логарифмом (LOG)
+    if (leftNode->token.type == LOG) {
+        // 3.1.1. Получить аргумент логарифма (левый потомок узла с логарифмом)
+        leftArg = cToTex(leftNode->left, UNKNOWN, false, config);
+        // 3.1.2. Считать основанием левого логарифма "e" (натуральный логарифм)
+        leftBase = "e";
+    }
+    // 3.2. Если левый узел является десятичным логарифмом (LOG10)
+    else if (leftNode->token.type == LOG10) {
+        // 3.2.1. Получить аргумент логарифма (левый потомок узла с логарифмом)
+        leftArg = cToTex(leftNode->left, UNKNOWN, false, config);
+        // 3.2.2. Считать основанием левого логарифма "10" (десятичный логарифм)
+        leftBase = "10";
+    }
+    // 3.3. Иначе вернуть false
+    else {
+        return false;
+    }
+
+    // 4. Проверить правого потомка: является ли он логарифмом (LOG или LOG10)
+    // 4.1. Если правый узел является натуральным логарифмом (LOG)
+    if (rightNode->token.type == LOG) {
+        rightArg = cToTex(rightNode->left, UNKNOWN, false, config);
+        rightBase = "e";
+    }
+    // 4.2. Если правый узел является десятичным логарифмом (LOG10)
+    else if (rightNode->token.type == LOG10) {
+        rightArg = cToTex(rightNode->left, UNKNOWN, false, config);
+        rightBase = "10";
+    }
+    // 4.3. Иначе вернуть false
+    else {
+        return false;
+    }
+
+    // 5. Проверить, что основания совпадают
+    // 5.1. Если основание левого логарифма не равно основанию правого логарифма, вернуть false
+    if (leftBase != rightBase) {
+        return false;
+    }
+
+    // 6. Сохранить результаты в выходные параметры
+    // основание = аргумент правого логарифма (y), аргумент = аргумент левого логарифма (x)
+    base = rightArg;
+    argument = leftArg;
+
+    // 6. Вернуть true
+    return true;
+}
 
 
 

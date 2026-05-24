@@ -393,7 +393,6 @@ bool needsParentheses(Node* parent, Node* child, bool isRightChild);
 /// @return TeX-строка дочернего узла, дополненная круглыми скобками при необходимости
 string getChildTexWithParens(Node* parent, Node* child, bool isRightChild, const Config& config);
 
-
 /// @brief Функция проверки, является ли поддерево цепочкой умножений одинаковых операндов
 /// @param node указатель на текущий узел дерева (проверяемое поддерево)
 /// @param operandStr строка для сохранения строкового представления операнда
@@ -402,7 +401,13 @@ string getChildTexWithParens(Node* parent, Node* child, bool isRightChild, const
 /// @return true, если поддерево является цепочкой умножений одинаковых операндов, иначе false
 bool isMulIdenVar(Node* node, string& operandStr, int& varCount, const Config& config);
 
-
+/// @brief Функция проверки, является ли узел делением двух логарифмов с одинаковым основанием
+/// @param node указатель на текущий узел дерева (оператор деления)
+/// @param base строка для сохранения основания логарифма (аргумент логарифма из знаменателя)
+/// @param argument строка для сохранения аргумента логарифма (аргумент логарифма из числителя)
+/// @param config объект структуры Config, содержащий параметры отображения
+/// @return true, если узел является делением двух логарифмов с одинаковым основанием, иначе false
+bool isLogDiv(Node* node, string& base, string& argument, const Config& config);
 
 
 /// @brief Рекурсивная функция генерации TeX-строки из дерева выражения
