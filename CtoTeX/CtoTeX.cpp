@@ -642,6 +642,44 @@ bool buildTree(const string& expression, Node*& root, const map<TokenType, Opera
     return true;
 }
 
+bool saveToOutFile(const string& filename, const string& texString, vector<Error>& errors) {
+    // 1. Открыть файл по пути filename для записи
+    ofstream outFile(filename);
+
+    // 2. Если файл не удалось открыть
+    if (!outFile.is_open()) {
+        // 2.1. Добавить ошибку OutputFileNotCreate в вектор errors
+        Error err;
+        err.code = OutputFileNotCreate;
+        err.line = filename;
+        errors.push_back(err);
+        // 2.2. Вернуть false
+        return false;
+    }
+
+    // 3. Записать строку texString в файл
+    outFile << texString;
+
+    // 4. Если запись не удалась
+    if (outFile.fail())
+    {
+        // 4.1. Добавить ошибку OutputFileNotCreate в вектор errors
+        Error err;
+        err.code = OutputFileNotCreate;
+        err.line = filename;
+        errors.push_back(err);
+        // 4.2. Вернуть false
+        outFile.close();
+        return false;
+    }
+
+    // 5. Закрыть файл
+    outFile.close();
+
+    // 6. Вернуть true
+    return true;
+}
+
 int main()
 {
     

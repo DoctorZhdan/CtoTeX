@@ -370,3 +370,10 @@ bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<
 /// @param errors вектор для сбора ошибок
 /// @return true при успешном построении дерева, false при наличии ошибок
 bool buildTree(const string& expression, Node*& root, const map<TokenType, OperatorInfo>& operatorInfo, vector<Error>& errors);
+
+/// @brief Функция сохранения TeX-строки в выходной файл
+/// @param filename путь к выходному файлу
+/// @param texString сгенерированная TeX-строка
+/// @param errors вектор для сбора ошибок
+/// @return true при успешной записи, false при наличии ошибок
+bool saveToOutFile(const string& filename, const string& texString, vector<Error>& errors);
