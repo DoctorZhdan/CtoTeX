@@ -394,7 +394,13 @@ bool needsParentheses(Node* parent, Node* child, bool isRightChild);
 string getChildTexWithParens(Node* parent, Node* child, bool isRightChild, const Config& config);
 
 
-
+/// @brief Функция проверки, является ли поддерево цепочкой умножений одинаковых операндов
+/// @param node указатель на текущий узел дерева (проверяемое поддерево)
+/// @param operandStr строка для сохранения строкового представления операнда
+/// @param varCount целое число для сохранения количества одинаковых операндов в цепочке умножений
+/// @param config объект структуры Config, содержащий параметры отображения
+/// @return true, если поддерево является цепочкой умножений одинаковых операндов, иначе false
+bool isMulIdenVar(Node* node, string& operandStr, int& varCount, const Config& config);
 
 
 

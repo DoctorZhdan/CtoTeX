@@ -768,7 +768,56 @@ string getChildTexWithParens(Node* parent, Node* child, bool isRightChild, const
     return childStr;
 }
 
+bool isMulIdenVar(Node* node, string& operandStr, int& varCount, const Config& config) {
+    // 1. Если текущий узел не существует
+    if (node == nullptr) {
+        // 1.1. Вернуть false
+        return false;
+    }
 
+    // 2. Если узел является оператором умножения (MUL)
+    if (node->token.type == MUL)
+    {
+        // 2.1. Проверить левого потомка на соответствие шаблону параметра (isMulIdenVar)
+        bool leftResult = isMulIdenVar(node->left, operandStr, varCount, config);
+        // 2.2. Проверить правого потомка на соответствие шаблону параметра (isMulIdenVar)
+        bool rightResult = isMulIdenVar(node->right, operandStr, varCount, config);
+        // 2.3. Вернуть true, если оба потомка подходят под шаблон
+        return leftResult && rightResult;
+    }
+
+    // 3. Если узел является листом (NUMBER, VARIABLE, CONSTANT)
+    TokenType type = node->token.type;
+    if (type == NUMBER || type == VARIABLE || type == CONSTANT)
+    {
+        // 3.1. Получить строковое представление узла (cToTex)
+        string currentStr = cToTex(node, UNKNOWN, false, config);
+
+        // 3.2. Если строка со строковым отображением узла пустая
+        if (operandStr.empty()) {
+            // 3.2.1. Считать отображением узла полученное отображение листа
+            operandStr = currentStr;
+            // 3.2.2. Инкрементировать количество найденных множителей
+            varCount++;
+        }
+        // 3.3. Иначе если текущее отображение равно полученному отображению листа
+        else if (operandStr == currentStr) {
+            // 3.3.1. Инкрементировать количество найденных множителей
+            varCount++;
+        }
+        // 3.4. Иначе
+        else {
+            // 3.4.1. Вернуть false
+            return false;
+        }
+        // 3.5. Вернуть true
+        return true;
+    }
+
+    // 4. Если узел является другим типом (не MUL и не лист)
+    // 4.1. Вернуть false
+    return false;
+}
 
 
 
