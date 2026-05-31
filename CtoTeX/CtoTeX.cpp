@@ -1519,9 +1519,59 @@ string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config&
 }
 
 
-int main()
-{
-    
+/// @brief Главная функция программы
+/// @param argc количество аргументов командной строки
+/// @param argv массив аргументов командной строки
+/// @return 0 при успешном завершении, 1 при ошибке
+int main(int argc, char* argv[]) {
+
+    setlocale(LC_ALL, "");
+    system("chcp 65001 > nul");
+
+    // 1. Открыть входные файлы и считать данные 
+    // Проверка количества аргументов командной строки
+    if (argc != 4)
+    {
+        cerr << "Usage: " << argv[0] << " <expression_file> <config_file> <output_file>" << endl;
+        return 1;
+    }
+
+    string expression; // Строка для хранения выражения из файла
+    Config config; // Объект для хранения параметров отображения
+    vector<Error> errors; // Вектор для сбора ошибок
+
+    // Чтение входных файлов
+    if (!readInputFiles(argv[1], argv[2], expression, config, errors)) {
+        printErrors(errors);
+        return 1;
+    }
+
+    // 2. Построить дерево через стек, разбив строку с выражением на токены по пробелам
+    Node* root = nullptr;       // указатель на корень дерева
+
+    if (!buildTree(expression, root, operatorInfo, errors))
+    {
+        printErrors(errors);
+        delete root;
+        return 1;
+    }
+
+    // 3. Сгенерировать tex-строку из дерева 
+    string texString = cToTex(root, UNKNOWN, false, config);
+
+    // 4. Записать tex-строку в выходной файл 
+    if (!saveToOutFile(argv[3], texString, errors))
+    {
+        printErrors(errors);
+        delete root;
+        return 1;
+    }
+
+    // 5. Завершить работу программы
+    delete root;
+
+    cout << "Success! TeX string written to " << argv[3] << endl;
+    return 0;
 }
 
 
