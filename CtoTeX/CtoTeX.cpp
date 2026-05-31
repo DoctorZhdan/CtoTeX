@@ -891,6 +891,83 @@ bool isLogDiv(Node* node, string& base, string& argument, const Config& config) 
     return true;
 }
 
+bool isArrOperation(Node* node, TokenType opType, string& arrayName, vector<int>& indexes, bool& arrayNameFound)
+{
+    // 1. Если текущий узел не существует
+    if (!node)
+    {
+        // 1.1 Вернуть false
+        return false;
+    }
+
+    // 2. Обойти поддерево и собрать все индексы:
+
+    // 2.1. Если узел является оператором и совпадает с искомым оператором
+    if (node->token.type == opType)
+    {
+        // 2.1.1. Рекурсивно обработать левого потомка
+        if (!isArrOperation(node->left, opType,
+            arrayName, indexes, arrayNameFound))
+        {
+            return false;
+        }
+
+        // 2.1.2. Рекурсивно обработать правого потомка
+        if (!isArrOperation(node->right, opType,
+            arrayName, indexes, arrayNameFound))
+        {
+            return false;
+        }
+    }
+    // 2.2. Если узел является оператором индексации (ARRAY_INDEX):
+    else if (node->token.type == ARRAY_INDEX)
+    {
+        // 2.2.1. Получить имя массива 
+        string name = node->token.value;
+
+        // 2.2.2. Если имя массива до сих пор не было найдено
+        if (!arrayNameFound)
+        {
+            // 2.2.2.1. Сохранить найденное имя массива 
+            arrayName = name;
+            arrayNameFound = true;
+        }
+        // 2.2.3. Иначе если найденное имя массива не совпадает с существующим именем массива
+        else if (arrayName != name)
+        {
+            // 2.2.3.1. Вернуть false (разные массивы)
+            return false;
+        }
+
+        // 2.2.4. Получить значение индекса из правого потомка 
+        if (!node->right || node->right->token.type != NUMBER)
+        {
+            return false;
+        }
+
+        int index = stoi(node->right->token.value);
+
+        //2.2.5. Добавить индекс в вектор indexes
+        indexes.push_back(index);
+    }
+    else // 2.3. Иначе узел является другим типом (не искомый оператор и не ARRAY_INDEX)
+    {
+        // 2.3.1. Вернуть false
+        return false;
+    }
+
+    // 3. После сбора всех индексов:
+
+    // 3.1.	Если indexes пуст
+    if (indexes.empty())
+    {
+        // 3.1.1.Вернуть false
+        return false;
+    }
+
+    // 4. Вернуть true
+    return true;
+}
 
 
 string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config& config) {

@@ -409,6 +409,14 @@ bool isMulIdenVar(Node* node, string& operandStr, int& varCount, const Config& c
 /// @return true, если узел является делением двух логарифмов с одинаковым основанием, иначе false
 bool isLogDiv(Node* node, string& base, string& argument, const Config& config);
 
+/// @brief Функция проверки, является ли поддерево цепочкой операций с элементами массива
+/// @param node указатель на текущий узел дерева (проверяемое поддерево)
+/// @param opType ожидаемый тип оператора (MUL для умножения, PLUS для сложения)
+/// @param arrayName строка для сохранения имени массива (выходной параметр)
+/// @param indexes вектор для сбора индексов элементов массива 
+/// @param arrayNameFound флаг, указывающий, было ли уже найдено имя массива (для проверки совпадения)
+/// @return true, если поддерево является цепочкой операций opType с элементами массива, иначе false
+bool isArrOperation(Node* node, TokenType opType, string& arrayName, vector<int>& indexes, bool& arrayNameFound);
 
 /// @brief Рекурсивная функция генерации TeX-строки из дерева выражения
 /// @param node указатель на текущий узел дерева, для которого генерируется TeX-строка
