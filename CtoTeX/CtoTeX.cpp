@@ -969,9 +969,553 @@ bool isArrOperation(Node* node, TokenType opType, string& arrayName, vector<int>
     return true;
 }
 
-
 string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config& config) {
-    return "texxt";
+    // 1. Если текущий узел не существует 
+    if (node == nullptr) {
+        // 1.1. Завершить выполнение
+        return "";
+    }
+
+    // 2. Если узел является листом (NUMBER, VARIABLE, CONSTANT)
+    TokenType type = node->token.type;
+    if (type == NUMBER || type == VARIABLE || type == CONSTANT) {
+        // 2.1. Вернуть ТеХ-отображение узла
+        return node->token.value;
+    }
+
+    // Получение настроек конфигурации
+    string mulIdenVarVal = config.paramMap.at("mulIdenVar");
+    string arrMulVal = config.paramMap.at("arrMul");
+    string arrSumVal = config.paramMap.at("arrSum");
+    string logDivVal = config.paramMap.at("logDiv");
+    string trigFunNoNegPowVal = config.paramMap.at("trigFunNoNegPow");
+    string trigFunNegPowVal = config.paramMap.at("trigFunNegPow");
+    string trigFunMinusOnePowVal = config.paramMap.at("trigFunMinusOnePow");
+    string zeroPointFivePowVal = config.paramMap.at("zeroPointFivePow");
+    string oneDivNPowVal = config.paramMap.at("oneDivNPow");
+    string abPowVal = config.paramMap.at("abPow");
+    string squareRootVal = config.paramMap.at("squareRoot");
+
+    string result;
+    string temp;  // временная переменная для хранения результата вызова функции
+
+    switch (type) {
+
+        // 3. Если узел является оператором умножения (MUL)
+    case MUL: {
+        // 3.1. Если параметр отображения MulIdenVar имеет значение powVarN 
+        // и функция-детектор параметра отображения MulIdenVar вернула истинное значение (isMulIdenVar)
+        if (mulIdenVarVal == "powVarN") {
+            string operandStr;
+            int varCount = 0;
+            if (isMulIdenVar(node, operandStr, varCount, config)) {
+                // 3.1.1. Сгенерировать ТеХ-отображение узла как операнда в соответствующей степени
+                result = operandStr + "^{" + to_string(varCount) + "}";
+                return result;
+            }
+        }
+
+        // 3.2. Если параметр отображения arrMul имеет значение combineInMul 
+        // и функция-детектор параметра отображения arrMul вернула истинное значение (isArrOperation)
+        if (arrMulVal == "combineInMul") {
+            string arrayName;
+            int startIndex, endIndex;
+            vector<int> indexes;
+            bool arrayNameFound = false;
+
+            if (isArrOperation(node, MUL, arrayName, indexes, arrayNameFound)) {
+
+                // 3.2.1. Найти минимальный и максимальный индексы элементов массива  
+                startIndex = *min_element(indexes.begin(), indexes.end());
+                endIndex = *max_element(indexes.begin(), indexes.end());
+
+                bool isCorrect = true;
+
+                // 3.2.2. Проверить, что все индексы образуют непрерывную последовательность
+                for (int i = startIndex; i <= endIndex; i++) {
+                    bool continuity = false;
+                    for (int val : indexes) {
+                        if (val == i) {
+                            continuity = true;
+                        }
+                    }
+                    if (!continuity) {
+                        isCorrect = continuity;
+                    }
+                }
+
+                // 3.2.3. Если индексы образуют непрерывную последовательность
+                if (isCorrect) {
+                    // 3.2.3.1. Сгенерировать ТеХ-отображение узла как произведение элементов массива
+                    result = "\\prod_{i=" + to_string(startIndex) + "}^{" + to_string(endIndex) + "} " + arrayName + "_{i}";
+                    return result;
+                }
+            }
+        }
+        // 3.3. Иначе сгенерировать ТеХ-отображение узла: 
+        // строка левого потомка с учётом скобок + «\cdot» + строка правого потомка с учётом скобок (getChildTexWithParens)
+        string leftStr = getChildTexWithParens(node, node->left, false, config);
+        string rightStr = getChildTexWithParens(node, node->right, true, config);
+        result = leftStr + " \\cdot " + rightStr;
+        return result;
+    }
+
+            // 4. Если узел является оператором сложения (PLUS), параметр отображения arrSum имеет значение combineInSum 
+            // и функция-детектор параметра отображения arrSum вернула истинное значение (isArrOperation)
+    case PLUS: {
+        if (arrSumVal == "combineInSum") {
+            string arrayName;
+            int startIndex = 0;
+            int endIndex = 0;
+            vector<int> indexes;
+            bool arrayNameFound = false;
+            if (isArrOperation(node, PLUS, arrayName, indexes, arrayNameFound))
+            {
+                // 4.1. Найти минимальный и максимальный индексы элементов массива
+                startIndex = *min_element(indexes.begin(), indexes.end());
+                endIndex = *max_element(indexes.begin(), indexes.end());
+
+                // 4.2. Проверить, что все индексы образуют непрерывную последовательность
+                bool isCorrect = true;
+
+                for (int i = startIndex; i <= endIndex; i++)
+                {
+                    bool continuity = false;
+
+                    for (int val : indexes)
+                    {
+                        if (val == i)
+                        {
+                            continuity = true;
+                        }
+                    }
+
+                    if (!continuity)
+                    {
+                        isCorrect = continuity;
+                    }
+                }
+
+                // 4.3. Если индексы образуют непрерывную последовательность
+                if (isCorrect) {
+                    // 4.3.1. Сгенерировать ТеХ-отображение узла как сумму элементов массива
+                    result = "\\sum_{i=" + to_string(startIndex) + "}^{" + to_string(endIndex) + "} " + arrayName + "_{i}";
+                    return result;
+                }
+
+
+            }
+        }
+
+        // 4.4. Иначе сгенерировать ТеХ-отображение узла: 
+        // строка левого потомка с учётом скобок + «+» + строка правого потомка с учётом скобок (getChildTexWithParens)
+        string leftStr = getChildTexWithParens(node, node->left, false, config);
+        string rightStr = getChildTexWithParens(node, node->right, true, config);
+        result = leftStr + " + " + rightStr;
+        return result;
+    }
+
+             // 5. Если узел является оператором вычитания (MINUS)
+    case MINUS: {
+        // 5.1. Сгенерировать ТеХ-отображение узла: 
+        // строка левого потомка с учётом скобок + «-» + строка правого потомка с учётом скобок (getChildTexWithParens)
+        string leftStr = getChildTexWithParens(node, node->left, false, config);
+        string rightStr = getChildTexWithParens(node, node->right, true, config);
+        result = leftStr + " - " + rightStr;
+        return result;
+    }
+
+              // 6. Если узел является унарным минусом (UMINUS)
+    case UMINUS: {
+        // 6.1. Сгенерировать ТеХ-отображение узла: «-» + строка левого потомка с учётом скобок (getChildTexWithParens)
+        string childStr = getChildTexWithParens(node, node->left, false, config);
+        result = "-" + childStr;
+        return result;
+    }
+
+               // 7. Если узел является оператором деления (DIV)
+    case DIV: {
+        // 7.1. Если параметр отображения logDiv имеет значение logConverting 
+        // и функция-детектор параметра отображения logDiv вернула истинное значение (isLogDiv)
+        if (logDivVal == "logConverting") {
+            string base, argument;
+            if (isLogDiv(node, base, argument, config))
+            {
+                // 7.1.1. Сгенерировать ТеХ-отображение узла как логарифм левого потомка с основанием правого потомка
+                result = "\\log_{" + base + "}(" + argument + ")";
+                return result;
+            }
+        }
+
+        // 7.2. Иначе сгенерировать ТеХ-отображение узла: \frac{строка левого потомка}{строка правого потомка}
+        string leftStr = cToTex(node->left, type, false, config);
+        string rightStr = cToTex(node->right, type, true, config);
+        result = "\\frac{" + leftStr + "}{" + rightStr + "}";
+        return result;
+    }
+
+            // 8. Если узел является оператором возведения в степень (POW)
+    case POW: {
+        // 8.1. Если левый потомок является тригонометрической функцией
+        TokenType leftType = node->left->token.type;
+        bool isTrig = (leftType == SIN || leftType == COS || leftType == TAN ||
+            leftType == ASIN || leftType == ACOS || leftType == ATAN);
+
+        if (isTrig) {
+            string trigFunc;
+            switch (leftType) {
+            case SIN: trigFunc = "\\sin"; break;
+            case COS: trigFunc = "\\cos"; break;
+            case TAN: trigFunc = "\\tan"; break;
+            case ASIN: trigFunc = "\\arcsin"; break;
+            case ACOS: trigFunc = "\\arccos"; break;
+            case ATAN: trigFunc = "\\arctan"; break;
+            default: break;
+            }
+
+            string exponent = node->right->token.value;
+            double expVal = stod(exponent);
+
+            // 8.1.1. Если параметр отображения trigFunNoNegPow имеет значение powAfterFun 
+            // и правый потомок является неотрицательным числом
+            if (expVal >= 0) {
+                if (trigFunNoNegPowVal == "powAfterFun") {
+                    // 8.1.1.1. Сгенерировать ТеХ-отображение узла:
+                    // тригонометрическая функция + «^{»  + правый потомок + «}» + левый потомок тригонометрической функции (getChildTexWithParens)
+                    temp = getChildTexWithParens(node, node->left, false, config);
+                    result = trigFunc + "^{" + exponent + "}" + temp;
+                    return result;
+                }
+                else {
+                    // 8.1.1.2. Иначе сгенерировать ТеХ-отображение узла:
+                    // тригонометрическая функция + левый потомок тригонометрической функции (getChildTexWithParens) + «^{»  + правый потомок + «}» 
+                    temp = getChildTexWithParens(node, node->left, false, config);
+                    result = trigFunc + temp + "^{" + exponent + "}";
+                    return result;
+                }
+            }
+            // 8.1.2. Иначе если параметр отображения trigFunNegPow имеет значение divNoNegPow 
+            // и правый потомок является отрицательным числом (кроме -1)
+            else if (expVal < 0 && expVal != -1) {
+                if (trigFunNegPowVal == "divNoNegPow") {
+                    // 8.1.2.1. Сгенерировать ТеХ-отображение узла:
+                    // «\frac{1}{» + тригонометрическая функция + «(» + левый потомок тригонометрической функции + «)» + «^{» + число без знака минус + «}}»
+                    string absExp = to_string(abs(expVal));
+                    temp = cToTex(node->left, type, false, config);
+                    result = "\\frac{1}{" + trigFunc + "(" + temp + ")^{" + absExp + "}}";
+                    return result;
+                }
+                else {
+                    // 8.1.2.2. Иначе сгенерировать ТеХ-отображение узла:
+                    // тригонометрическая функция + «(» + левый потомок тригонометрической функции + «)» + «^{» + число  + «}»
+                    temp = cToTex(node->left, type, false, config);
+                    result = trigFunc + "(" + temp + ")^{" + exponent + "}";
+                    return result;
+                }
+            }
+            // 8.1.3. Иначе если правый потомок является числом -1 и параметр отображения trigFunMinusOnePow имеет значение divNoNegPow
+            else if (expVal == -1) {
+                if (trigFunMinusOnePowVal == "divNoNegPow") {
+                    // 8.1.3.1. Сгенерировать ТеХ-отображение узла:
+                    // «\frac{1}{» + тригонометрическая функция + левый потомок тригонометрической функции (getChildTexWithParens) + «}» 
+                    temp = getChildTexWithParens(node, node->left, false, config);
+                    result = "\\frac{1}{" + trigFunc + temp + "}";
+                    return result;
+                }
+                // 8.1.3.2.	Иначе если правый потомок является числом -1 
+                // и параметр отображения trigFunMinusOnePow имеет значение reverseFun
+                else if (trigFunMinusOnePowVal == "reverseFun") {
+                    // 8.1.3.2.1. Сгенерировать ТеХ-отображение узла как обратную тригонометрическую функцию с таким же аргументом
+                    temp = getChildTexWithParens(node, node->left, false, config);
+                    if (leftType == SIN) result = "\\arcsin" + temp;
+                    if (leftType == COS) result = "\\arccos" + temp;
+                    if (leftType == TAN) result = "\\arctan" + temp;
+                    return result;
+                }
+                // 8.1.3.3.	Иначе сгенерировать ТеХ-отображение узла как тригонометрическую функцию в степени -1
+                else {
+                    temp = getChildTexWithParens(node, node->left, false, config);
+                    result = trigFunc + temp + "^{-1}";
+                    return result;
+                }
+            }
+            // 8.1.4. Иначе сгенерировать ТеХ-отображение узла: 
+            // тригонометрическая функция + левый потомок тригонометрической функции (getChildTexWithParens) + «^{» + правый потомок + «}»
+            temp = getChildTexWithParens(node, node->left, false, config);
+            result = trigFunc + temp + "^{" + exponent + "}";
+            return result;
+        }
+
+        // 8.2. Если правый потомок 0.5 (или 1/2)
+        string exponent = cToTex(node->right, type, true, config);
+        if (exponent == "0.5" || exponent == "1/2") {
+            // 8.2.1. Если значение параметра отображения zeroPointFivePow имеет значение powToSqrt
+            if (zeroPointFivePowVal == "powToSqrt") {
+                // 8.2.1.1. Сгенерировать ТеХ-отображение узла: «\sqrt{» + левый потомок + «}»
+                temp = cToTex(node->left, type, false, config);
+                result = "\\sqrt{" + temp + "}";
+                return result;
+            }
+            else {
+                // 8.2.1.2. Иначе сгенерировать ТеХ-отображение узла: 
+                result = cToTex(node->left, type, false, config) + "^{" + exponent + "}";
+                return result;
+            }
+        }
+
+        // 8.3. Если правый потомок 1/n (кроме n = 2)
+        if (node->right->token.type == DIV)
+        {
+            Node* numeratorNode = node->right->left;
+            Node* denominatorNode = node->right->right;
+
+            if (numeratorNode && denominatorNode &&
+                numeratorNode->token.type == NUMBER &&
+                denominatorNode->token.type == NUMBER)
+            {
+                string numerator = numeratorNode->token.value;
+                string denominator = denominatorNode->token.value;
+
+                // 8.3.1. Если параметр отображения oneDivNPow имеет значение powToSqrt
+                if (oneDivNPowVal == "powToSqrt")
+                {
+                    if (numerator == "1" && denominator != "2")
+                    {
+                        // 8.3.1.1. Сгенерировать ТеХ-отображение узла: «\sqrt[» + число n + «]{» + левый потомок + «}»
+                        temp = cToTex(node->left, type, false, config);
+                        result = "\\sqrt[" + denominator + "]{" + temp + "}";
+                        return result;
+                    }
+                }
+            }
+        }
+
+        // 8.4. Если правый потомок a/b (кроме a=1 и b=2)
+        if (node->right->token.type == DIV)
+        {
+            Node* numeratorNode = node->right->left;
+            Node* denominatorNode = node->right->right;
+
+            if (numeratorNode && denominatorNode &&
+                numeratorNode->token.type == NUMBER &&
+                denominatorNode->token.type == NUMBER)
+            {
+                string numerator = numeratorNode->token.value;
+                string denominator = denominatorNode->token.value;
+
+                // 8.4.1. Если параметр отображения abPow имеет значение powToSqrt
+                if (abPowVal == "powToSqrt")
+                {
+                    if (numerator != "1" || denominator != "2")
+                    {
+                        // 8.4.1.1. Сгенерировать ТеХ-отображение узла:
+                        // «\sqrt[» + число b + «]{» + левый потомок + «^{» + число a + «}}»
+                        temp = cToTex(node->left, type, false, config);
+                        result = "\\sqrt[" + denominator + "]{" + temp + "^{" + numerator + "}}";
+                        return result;
+                    }
+                }
+            }
+        }
+
+        // 8.5. Если ни одно из условий не подошло 
+        // 8.5.1. Сгенерировать ТеХ-отображение узла: левый потомок + «^{» + правый потомок + «}»
+        result = cToTex(node->left, type, false, config) + "^{" + exponent + "}";
+        return result;
+    }
+
+            // 9. Если узел является оператором извлечения квадратного корня (SQRT) и параметр squareRoot имеет значение sqrtToPow
+    case SQRT: {
+        string inner = cToTex(node->left, type, false, config);
+        if (squareRootVal == "sqrtToPow") {
+            // 9.1. Сгенерировать ТеХ-отображение узла: левый потомок + «^{0.5}»
+            result = inner + "^{0.5}";
+            return result;
+        }
+        else {
+            // 9.2. Иначе сгенерировать ТеХ-отображение узла: «\sqrt{» + левый потомок + «}»
+            result = "\\sqrt{" + inner + "}";
+            return result;
+        }
+    }
+
+             // 10. Если узел является оператором извлечения кубического корня (CBRT)
+    case CBRT: {
+        // 10.1. Сгенерировать ТеХ-отображение узла
+        string inner = cToTex(node->left, type, false, config);
+        result = "\\sqrt[3]{" + inner + "}";
+        return result;
+    }
+
+             // 11. Если узел является индексацией элемента массива (ARRAY_INDEX)
+    case ARRAY_INDEX: {
+        // 11.1. Сгенерировать ТеХ-отображение узла
+        string arrayName = cToTex(node->left, type, false, config);
+        string index = cToTex(node->right, type, true, config);
+        result = arrayName + "_{" + index + "}";
+        return result;
+    }
+
+                    // 12. Если узел является оператором синуса (SIN)
+    case SIN: {
+        // 12.1. Сгенерировать ТеХ-отображение узла
+        temp = getChildTexWithParens(node, node->left, false, config);
+        result = "\\sin" + temp;
+        return result;
+    }
+
+            // 13. Если узел является оператором косинуса (COS)
+    case COS: {
+        // 13.1. Сгенерировать ТеХ-отображение узла
+        temp = getChildTexWithParens(node, node->left, false, config);
+        result = "\\cos" + temp;
+        return result;
+    }
+
+            // 14. Если узел является оператором тангенса (TAN)
+    case TAN: {
+        // 14.1. Сгенерировать ТеХ-отображение узла
+        temp = getChildTexWithParens(node, node->left, false, config);
+        result = "\\tan" + temp;
+        return result;
+    }
+
+            // 15. Если узел является оператором арксинуса (ASIN)
+    case ASIN: {
+        // 15.1. Сгенерировать ТеХ-отображение узла
+        temp = getChildTexWithParens(node, node->left, false, config);
+        result = "\\arcsin" + temp;
+        return result;
+    }
+
+             // 16. Если узел является оператором арккосинуса (ACOS)
+    case ACOS: {
+        // 16.1. Сгенерировать ТеХ-отображение узла
+        temp = getChildTexWithParens(node, node->left, false, config);
+        result = "\\arccos" + temp;
+        return result;
+    }
+
+             // 17. Если узел является оператором арктангенса (ATAN)
+    case ATAN: {
+        // 17.1. Сгенерировать ТеХ-отображение узла
+        temp = getChildTexWithParens(node, node->left, false, config);
+        result = "\\arctan" + temp;
+        return result;
+    }
+
+             // 18. Если узел является оператором логарифма (LOG)
+    case LOG: {
+        // 18.1. Сгенерировать ТеХ-отображение узла
+        result = "\\ln(" + cToTex(node->left, type, false, config) + ")";
+        return result;
+    }
+
+            // 19. Если узел является оператором десятичного логарифма (LOG10)
+    case LOG10: {
+        // 19.1. Сгенерировать ТеХ-отображение узла
+        result = "\\log_{10}(" + cToTex(node->left, type, false, config) + ")";
+        return result;
+    }
+
+              // 20. Если узел является оператором экспоненты (EXP)
+    case EXP: {
+        // 20.1. Сгенерировать ТеХ-отображение узла
+        result = "e^{" + cToTex(node->left, type, false, config) + "}";
+        return result;
+    }
+
+            // 21. Если узел является оператором модуля (ABS или FABS)
+    case ABS:
+    case FABS: {
+        // 21.1. Сгенерировать ТеХ-отображение узла
+        result = "|" + cToTex(node->left, type, false, config) + "|";
+        return result;
+    }
+
+             // 22. Если узел является оператором равенства (EQ)
+    case EQ: {
+        // 22.1. Сгенерировать ТеХ-отображение узла
+        string leftStr = getChildTexWithParens(node, node->left, false, config);
+        string rightStr = getChildTexWithParens(node, node->right, true, config);
+        result = leftStr + " = " + rightStr;
+        return result;
+    }
+
+           // 23. Если узел является оператором неравенства (NEQ)
+    case NEQ: {
+        // 23.1. Сгенерировать ТеХ-отображение узла
+        string leftStr = getChildTexWithParens(node, node->left, false, config);
+        string rightStr = getChildTexWithParens(node, node->right, true, config);
+        result = leftStr + " \\neq " + rightStr;
+        return result;
+    }
+
+            // 24. Если узел является оператором меньше (LT)
+    case LT: {
+        // 24.1. Сгенерировать ТеХ-отображение узла
+        string leftStr = getChildTexWithParens(node, node->left, false, config);
+        string rightStr = getChildTexWithParens(node, node->right, true, config);
+        result = leftStr + " < " + rightStr;
+        return result;
+    }
+
+           // 25. Если узел является оператором больше (GT)
+    case GT: {
+        // 25.1. Сгенерировать ТеХ-отображение узла
+        string leftStr = getChildTexWithParens(node, node->left, false, config);
+        string rightStr = getChildTexWithParens(node, node->right, true, config);
+        result = leftStr + " > " + rightStr;
+        return result;
+    }
+
+           // 26. Если узел является оператором меньше или равно (LE)
+    case LE: {
+        // 26.1. Сгенерировать ТеХ-отображение узла
+        string leftStr = getChildTexWithParens(node, node->left, false, config);
+        string rightStr = getChildTexWithParens(node, node->right, true, config);
+        result = leftStr + " \\leq " + rightStr;
+        return result;
+    }
+
+           // 27. Если узел является оператором больше или равно (GE)
+    case GE: {
+        // 27.1. Сгенерировать ТеХ-отображение узла
+        string leftStr = getChildTexWithParens(node, node->left, false, config);
+        string rightStr = getChildTexWithParens(node, node->right, true, config);
+        result = leftStr + " \\geq " + rightStr;
+        return result;
+    }
+
+           // 28. Если узел является логическим оператором AND (LAND)
+    case LAND: {
+        // 28.1. Сгенерировать ТеХ-отображение узла
+        string leftStr = getChildTexWithParens(node, node->left, false, config);
+        string rightStr = getChildTexWithParens(node, node->right, true, config);
+        result = leftStr + " \\land " + rightStr;
+        return result;
+    }
+
+             // 29. Если узел является логическим оператором OR (LOR)
+    case LOR: {
+        // 29.1. Сгенерировать ТеХ-отображение узла
+        string leftStr = getChildTexWithParens(node, node->left, false, config);
+        string rightStr = getChildTexWithParens(node, node->right, true, config);
+        result = leftStr + " \\lor " + rightStr;
+        return result;
+    }
+
+            // 30. Если узел является оператором логического отрицания (LNOT)
+    case LNOT: {
+        // 30.1. Сгенерировать ТеХ-отображение узла
+        string childStr = getChildTexWithParens(node, node->left, false, config);
+        result = "\\lnot " + childStr;
+        return result;
+    }
+
+    default:
+        return "";
+    }
 }
 
 
