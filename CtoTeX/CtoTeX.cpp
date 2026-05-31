@@ -923,7 +923,7 @@ bool isArrOperation(Node* node, TokenType opType, string& arrayName, vector<int>
     else if (node->token.type == ARRAY_INDEX)
     {
         // 2.2.1. Получить имя массива 
-        string name = node->token.value;
+        string name = node->left->token.value;
 
         // 2.2.2. Если имя массива до сих пор не было найдено
         if (!arrayNameFound)
