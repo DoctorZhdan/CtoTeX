@@ -631,4 +631,138 @@ namespace UnitTestsCtoTex
             Assert::IsFalse(isLogDiv(root, base, arg, config));
         }
     };
+
+    TEST_CLASS(IsMulIdenVar_UnitTests)
+    {
+    public:
+
+        TEST_METHOD(Basic_MulChain)
+        {
+            // Цепочка MUL одинаковых операндов
+            string expr = "x x * x *";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+            Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
+
+            string operandStr;
+            int varCount = 0;
+            Config config;
+
+            Assert::IsTrue(isMulIdenVar(root, operandStr, varCount, config));
+            Assert::AreEqual(3, varCount);
+            Assert::AreEqual(string("x"), operandStr);
+
+            delete root;
+        }
+
+        TEST_METHOD(SingleOperand)
+        {
+            // Одиночный узел, лист
+            string expr = "y";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+            Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
+
+            string operandStr;
+            int varCount = 0;
+            Config config;
+
+            Assert::IsTrue(isMulIdenVar(root, operandStr, varCount, config));
+            Assert::AreEqual(1, varCount);
+            Assert::AreEqual(string("y"), operandStr);
+
+            delete root;
+        }
+
+        TEST_METHOD(DifferentOperands)
+        {
+            // Цепочка MUL с разными операндами
+            string expr = "x y *";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+            Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
+
+            string operandStr;
+            int varCount = 0;
+            Config config;
+
+            Assert::IsFalse(isMulIdenVar(root, operandStr, varCount, config));
+
+            delete root;
+        }
+
+        TEST_METHOD(NotMulOperator)
+        {
+            // Узел другой операции
+            string expr = "x x +";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+            Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
+
+            string operandStr;
+            int varCount = 0;
+            Config config;
+
+            Assert::IsFalse(isMulIdenVar(root, operandStr, varCount, config));
+
+            delete root;
+        }
+
+        TEST_METHOD(NullptrNode)
+        {
+            // nullptr
+            Node* root = nullptr;
+
+            string operandStr;
+            int varCount = 0;
+            Config config;
+
+            Assert::IsFalse(isMulIdenVar(root, operandStr, varCount, config));
+        }
+
+        TEST_METHOD(TwoOperands)
+        {
+            // Два одинаковых операнда
+            string expr = "a a *";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+            Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
+
+            string operandStr;
+            int varCount = 0;
+            Config config;
+
+            Assert::IsTrue(isMulIdenVar(root, operandStr, varCount, config));
+            Assert::AreEqual(2, varCount);
+            Assert::AreEqual(string("a"), operandStr);
+
+            delete root;
+        }
+
+        TEST_METHOD(ManyOperands)
+        {
+            // Четыре одинаковых операнда
+            string expr = "z z * z * z *";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+            Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
+
+            string operandStr;
+            int varCount = 0;
+            Config config;
+
+            Assert::IsTrue(isMulIdenVar(root, operandStr, varCount, config));
+            Assert::AreEqual(4, varCount);
+            Assert::AreEqual(string("z"), operandStr);
+
+            delete root;
+        }
+
+    };
 }
