@@ -223,19 +223,109 @@ bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<
             }
         }
 
-        // 3.1 Если слово содержит  содержит более одного оператора или слово содержит 1 оператор из списка допустимых операторов, но всё слово не является оператором 
-        if (opCounter > 1 || (opCounter == 1 && allowedOperations.find(word) == allowedOperations.end()))
-        {
-            // 3.1.1 Занести соответствующую ошибку в вектор ошибок
-            Error err;
-            err.code = (opCounter > 1) ? InvalidSymbolSequence : OperatorNotSeparatedBySpaces;
-            err.position = 0;
-            err.length = word.size();
-            err.line = word;
-            errors.push_back(err);
-
-            // 3.1.2 Перейти к обработке следующего слова
+        // Специальная проверка для унарного минуса
+        if (word == "-_") {
+            if (errors.empty()) {
+                Token t;
+                t.type = UMINUS;
+                t.value = "-_";
+                t.operandType = ARITHMETIC;
+                tokens.push_back(t);
+                nodeCount++;
+            }
             processed = true;
+        }
+
+        // Специальная проверка для оператора неравенства
+        if (word == "!=") {
+            if (errors.empty()) {
+                Token t;
+                t.type = NEQ;
+                t.value = "!=";
+                t.operandType = LOGICAL;
+                tokens.push_back(t);
+                nodeCount++;
+            }
+            processed = true;
+        }
+
+        // Специальная проверка для оператора меньше или равно
+        if (word == "<=") {
+            if (errors.empty()) {
+                Token t;
+                t.type = LE;
+                t.value = "<=";
+                t.operandType = ARITHMETIC;
+                tokens.push_back(t);
+                nodeCount++;
+            }
+            processed = true;
+        }
+
+        // Специальная проверка для оператора больше или равно
+        if (word == ">=") {
+            if (errors.empty()) {
+                Token t;
+                t.type = GE;
+                t.value = ">=";
+                t.operandType = ARITHMETIC;
+                tokens.push_back(t);
+                nodeCount++;
+            }
+            processed = true;
+        }
+
+        // Специальная проверка для десятичного логарифма
+        if (word == "#log10") {
+            if (errors.empty()) {
+                Token t;
+                t.type = LOG10;
+                t.value = "#log10";
+                t.operandType = ARITHMETIC;
+                tokens.push_back(t);
+                nodeCount++;
+            }
+            processed = true;
+        }
+
+        // 3.1 Если слово содержит содержит более одного оператора или слово содержит 1 оператор из списка допустимых операторов, но всё слово не является оператором 
+        if (!processed && (opCounter > 1 || (opCounter == 1 && allowedOperations.find(word) == allowedOperations.end())))
+        {
+            // Проверить, не является ли слово отрицательным числом
+            bool isNegativeNumber = false;
+
+            if (word.size() > 1 && word[0] == '-')
+            {
+                isNegativeNumber = true;
+                bool dotFound = false;
+                for (int j = 1; j < word.size(); j++)
+                {
+                    if (isdigit(word[j])) {}
+                    else if (word[j] == '.' && !dotFound)
+                    {
+                        dotFound = true;
+                    }
+                    else
+                    {
+                        isNegativeNumber = false;
+                    }
+                }
+            }
+
+            if (!isNegativeNumber)
+            {
+
+                // 3.1.1 Занести соответствующую ошибку в вектор ошибок
+                Error err;
+                err.code = (opCounter > 1) ? InvalidSymbolSequence : OperatorNotSeparatedBySpaces;
+                err.position = 0;
+                err.length = word.size();
+                err.line = word;
+                errors.push_back(err);
+
+                // 3.1.2 Перейти к обработке следующего слова
+                processed = true;
+            }
         }
 
         // 3.2. Если слово входит в список допустимых констант (allowedConstants): 
