@@ -327,4 +327,183 @@ namespace UnitTestsCtoTex
         }
 
     };
+
+    TEST_CLASS(IsArrOperation_UnitTests)
+    {
+    public:
+
+        TEST_METHOD(OperatorType_PLUS)
+        {
+            // Тип оператора PLUS (сложение)
+            string expr = "a[1] a[2] +";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+            Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
+
+            string name; vector<int> idx; bool found = false;
+            Assert::IsTrue(isArrOperation(root, PLUS, name, idx, found));
+
+            delete root;
+        }
+
+        TEST_METHOD(OperatorType_MUL)
+        {
+            // Тип оператора MUL (умножение)
+            string expr = "a[1] a[2] *";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+            Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
+
+            string name; vector<int> idx; bool found = false;
+            Assert::IsTrue(isArrOperation(root, MUL, name, idx, found));
+
+            delete root;
+        }
+
+        TEST_METHOD(Count_One)
+        {
+            // Один элемент массива
+            string expr = "a[1]";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+            Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
+
+            string name; vector<int> idx; bool found = false;
+            Assert::IsTrue(isArrOperation(root, PLUS, name, idx, found));
+
+            delete root;
+        }
+
+        TEST_METHOD(Count_Two)
+        {
+            // Два элемента массива
+            string expr = "a[1] a[2] +";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+            Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
+
+            string name; vector<int> idx; bool found = false;
+            Assert::IsTrue(isArrOperation(root, PLUS, name, idx, found));
+
+            delete root;
+        }
+
+        TEST_METHOD(Count_ThreeOrMore)
+        {
+            // Более двух элементов массива
+            string expr = "a[1] a[2] + a[3] +";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+            Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
+
+            string name; vector<int> idx; bool found = false;
+            Assert::IsTrue(isArrOperation(root, PLUS, name, idx, found));
+
+            delete root;
+        }
+
+        TEST_METHOD(ArrayName_Same)
+        {
+            // Одинаковое имя массива
+            string expr = "a[1] a[2] +";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+            Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
+
+            string name; vector<int> idx; bool found = false;
+            Assert::IsTrue(isArrOperation(root, PLUS, name, idx, found));
+
+            delete root;
+        }
+
+        TEST_METHOD(ArrayName_Different)
+        {
+            // Разные имена массивов
+            string expr = "a[1] b[2] +";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+            Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
+
+            string name; vector<int> idx; bool found = false;
+            Assert::IsFalse(isArrOperation(root, PLUS, name, idx, found));
+
+            delete root;
+        }
+
+        TEST_METHOD(OnlyArrayIndex)
+        {
+            // Только обращения к массиву
+            string expr = "a[1] a[2] +";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+            Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
+
+            string name; vector<int> idx; bool found = false;
+            Assert::IsTrue(isArrOperation(root, PLUS, name, idx, found));
+
+            delete root;
+        }
+
+        TEST_METHOD(OtherOperators)
+        {
+            // Есть посторонний оператор
+            string expr = "a[1] a[2] * a[3] +";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+            Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
+
+            string name; vector<int> idx; bool found = false;
+            Assert::IsFalse(isArrOperation(root, PLUS, name, idx, found));
+
+            delete root;
+        }
+
+        TEST_METHOD(ValidTree)
+        {
+            // Корректное поддерево
+            string expr = "a[1] a[2] *";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+            Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
+
+            string name; vector<int> idx; bool found = false;
+            Assert::IsTrue(isArrOperation(root, MUL, name, idx, found));
+
+            delete root;
+        }
+
+        TEST_METHOD(Nullptr)
+        {
+            // Пустой указатель
+            Node* root = nullptr;
+
+            string name; vector<int> idx; bool found = false;
+            Assert::IsFalse(isArrOperation(root, PLUS, name, idx, found));
+        }
+
+        TEST_METHOD(NoArrayIndex)
+        {
+            // Нет обращений к массиву
+            string expr = "5 3 +";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+            Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
+
+            string name; vector<int> idx; bool found = false;
+            Assert::IsFalse(isArrOperation(root, PLUS, name, idx, found));
+
+            delete root;
+        }
+    };
 }

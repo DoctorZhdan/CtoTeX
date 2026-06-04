@@ -411,75 +411,153 @@ bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<
             processed = true;
         }
 
-        // 3.4. Если первый символ слова – буква:
-        if (!processed && isalpha(word[0]))
+        // 3.4 Если слово содержит '[' и ']'
+        if (!processed && word.find('[') != string::npos && word.find(']') != string::npos)
         {
-            // 3.4.1 Для каждого символа слова, начиная с позиции 1:
-            for (size_t i = 1; i < word.size(); i++)
+            // 3.4.1 Найти позиции '[' и ']'
+            size_t l = word.find('[');
+            size_t r = word.find(']');
+
+            // 3.4.2 Проверка корректности
+            if (l == string::npos || r == string::npos || l > r || r != word.size() - 1)
             {
-                // 3.4.1.1 Если символ является буквой или цифрой, перейти к следующему символу
-                if (!(isalnum(word[i])))
-                {
-                    // 3.4.1.2 В противном случае считать символ недопустимым и занести соответствующую ошибку в вектор ошибок
-                    errors.push_back({ InvalidSymbol, (int)i, 1, word });
-                }
-                // 3.4.1.3 Перейти к следующему символу
+                // 3.4.2.1 ошибка
+                errors.push_back({ InvalidSymbolSequence, 0, (int)word.size(), word });
+                // 3.4.2.2 перейти дальше
+                processed = true;
+                continue;
             }
 
-            // 3.4.2 Если длина слова превышает 255 символов, занести соответствующую ошибку в вектор ошибок
+            // 3.4.3 Имя массива
+            string name = word.substr(0, l);
+
+            // 3.4.4 Индекс
+            string indexStr = word.substr(l + 1, r - l - 1);
+
+            // 3.4.5 Проверка имени массива
+            if (name.empty() || !isalpha(name[0]))
+            {
+                errors.push_back({ InvalidSymbol, 0, (int)name.size(), name });
+            }
+
+            for (int j = 1; j < name.size(); j++)
+            {
+                if (!isalnum(name[j]))
+                {
+                    errors.push_back({ InvalidSymbol, j, 1, name });
+                }
+            }
+
+            // 3.4.6 Проверка индекса
+            for (char c : indexStr)
+            {
+                if (!isdigit(c))
+                {
+                    errors.push_back({ InvalidSymbolSequence, 0, (int)indexStr.size(), indexStr });
+                }
+            }
+
+            // 3.4.7 Если ошибок нет
+            if (errors.empty())
+            {
+                // Токен для имени массива
+                Token arrayToken;
+                arrayToken.type = VARIABLE;
+                arrayToken.value = name;
+                arrayToken.operandType = ARITHMETIC;
+                tokens.push_back(arrayToken);
+
+                // Токен для индекса
+                Token indexToken;
+                indexToken.type = NUMBER;
+                indexToken.value = indexStr;
+                indexToken.operandType = ARITHMETIC;
+                tokens.push_back(indexToken);
+
+                // Токен для оператора индексации
+                Token indexOpToken;
+                indexOpToken.type = ARRAY_INDEX;
+                indexOpToken.value = "a[i]";
+                indexOpToken.operandType = ARITHMETIC;
+                tokens.push_back(indexOpToken);
+
+                // 3.4.7.5 увеличить счётчик
+                nodeCount += 3;
+            }
+
+            // 3.4.8 перейти дальше
+            processed = true;
+        }
+
+        // 3.5. Если первый символ слова – буква:
+        if (!processed && isalpha(word[0]))
+        {
+            // 3.5.1 Для каждого символа слова, начиная с позиции 1:
+            for (size_t i = 1; i < word.size(); i++)
+            {
+                // 3.5.1.1 Если символ является буквой или цифрой, перейти к следующему символу
+                if (!(isalnum(word[i])))
+                {
+                    // 3.5.1.2 В противном случае считать символ недопустимым и занести соответствующую ошибку в вектор ошибок
+                    errors.push_back({ InvalidSymbol, (int)i, 1, word });
+                }
+                // 3.5.1.3 Перейти к следующему символу
+            }
+
+            // 3.5.2 Если длина слова превышает 255 символов, занести соответствующую ошибку в вектор ошибок
             if (word.size() > 255)
             {
                 errors.push_back({ VariableNameTooLong, -1, (int)word.size(), word });
             }
 
-            // 3.4.3 Если вектор ошибок пуст
+            // 3.5.3 Если вектор ошибок пуст
             if (errors.empty())
             {
                 Token t{ VARIABLE, word, ARITHMETIC };
 
-                // 3.4.3.2 Добавить созданный токен в вектор токенов (tokens)
+                // 3.5.3.2 Добавить созданный токен в вектор токенов (tokens)
                 tokens.push_back(t);
 
-                // 3.4.3.3 Инкрементировать значение счётчика узлов
+                // 3.5.3.3 Инкрементировать значение счётчика узлов
                 nodeCount++;
             }
 
-            // 3.4.4 Перейти к обработке следующего слова
+            // 3.5.4 Перейти к обработке следующего слова
             processed = true;
         }
 
-        // 3.5. Если первый символ слова – цифра или если длина слова больше 1 и первый символ – минус, а второй – цифра  
+        // 3.6. Если первый символ слова – цифра или если длина слова больше 1 и первый символ – минус, а второй – цифра  
         bool isNumberStart = isdigit(word[0]) || (word.size() > 1 && word[0] == '-' && isdigit(word[1]));
         if (!processed && isNumberStart)
         {
-            // 3.5.1 Считать, что точка ещё не встречалась в слове
+            // 3.6.1 Считать, что точка ещё не встречалась в слове
             bool dotFound = false;
             int dotPos = -1;
 
-            // 3.5.2 Для каждого символа слова, начиная с позиции 1:
+            // 3.6.2 Для каждого символа слова, начиная с позиции 1:
             for (size_t i = 1; i < word.size(); i++)
             {
-                // 3.5.2.1 Если символ является цифрой, перейти к следующему символу
+                // 3.6.2.1 Если символ является цифрой, перейти к следующему символу
                 if (isdigit(word[i]))
                 {
                 }
-                // 3.5.2.2 Если символ является точкой, и точка ещё не встречалась в слове, запомнить местоположение точки и перейти к следующему символу
+                // 3.6.2.2 Если символ является точкой, и точка ещё не встречалась в слове, запомнить местоположение точки и перейти к следующему символу
                 else if (word[i] == '.' && !dotFound)
                 {
                     dotFound = true;
                     dotPos = i;
                 }
-                // 3.5.2.3 В противном случае считать символ недопустимым и занести соответствующую ошибку в вектор ошибок
+                // 3.6.2.3 В противном случае считать символ недопустимым и занести соответствующую ошибку в вектор ошибок
                 else {
                     errors.push_back({ InvalidSymbolSequence, (int)i, 1, word });
                 }
-                // 3.5.2.4 Перейти к следующему символу
+                // 3.6.2.4 Перейти к следующему символу
             }
 
-            // 3.5.3 Если в слове есть точка
+            // 3.6.3 Если в слове есть точка
             if (dotFound)
             {
-                // 3.5.3.1 Если число символов после точки превышает 8, занести соответствующую ошибку в вектор ошибок
+                // 3.6.3.1 Если число символов после точки превышает 8, занести соответствующую ошибку в вектор ошибок
                 int afterSym = word.size() - dotPos - 1;
                 if (afterSym > 8)
                 {
@@ -487,7 +565,7 @@ bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<
                 }
             }
 
-            // 3.5.4 Если число не входит в диапазон [-2*10^9, 2*10^9], занести соответствующую ошибку в вектор ошибок
+            // 3.6.4 Если число не входит в диапазон [-2*10^9, 2*10^9], занести соответствующую ошибку в вектор ошибок
             try {
                 double val = stod(word);
                 if (val < -2e9 || val > 2e9)
@@ -499,29 +577,29 @@ bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<
                 errors.push_back({ InvalidSymbolSequence, -1, (int)word.size(), word });
             }
 
-            // 3.5.5 Если вектор ошибок пуст
+            // 3.6.5 Если вектор ошибок пуст
             if (errors.empty())
             {
                 Token t{ NUMBER, word, ARITHMETIC };
 
-                // 3.5.5.2 Добавить созданный токен в вектор токенов (tokens)
+                // 3.6.5.2 Добавить созданный токен в вектор токенов (tokens)
                 tokens.push_back(t);
 
-                // 3.5.5.3 Инкрементировать значение счётчика узлов
+                // 3.6.5.3 Инкрементировать значение счётчика узлов
                 nodeCount++;
             }
 
-            // 3.5.6 Перейти к обработке следующего слова
+            // 3.6.6 Перейти к обработке следующего слова
             processed = true;
         }
 
-        // 3.6 В противном случае считать, что слово начинается с недопустимого символа
+        // 3.7 В противном случае считать, что слово начинается с недопустимого символа
         if (!processed)
         {
-            // 3.7 Занести соответствующую ошибку в вектор ошибок
+            // 3.8 Занести соответствующую ошибку в вектор ошибок
             errors.push_back({ InvalidSymbol, 0, (int)word.size(), word });
 
-            // 3.8 Перейти к обработке следующего слова
+            // 3.9 Перейти к обработке следующего слова
         }
     }
 
