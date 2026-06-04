@@ -1148,6 +1148,15 @@ string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config&
     TokenType type = node->token.type;
     if (type == NUMBER || type == VARIABLE || type == CONSTANT) {
         // 2.1. Вернуть ТеХ-отображение узла
+        if (type == CONSTANT) {
+            if (node->token.value == "pi") return "\\pi";
+            if (node->token.value == "phi") return "\\varphi";
+            if (node->token.value == "e") return "e";
+            if (node->token.value == "i") return "i";
+            if (node->token.value == "true") return "true";
+            if (node->token.value == "false") return "false";
+        }
+
         return node->token.value;
     }
 

@@ -1383,7 +1383,7 @@ namespace UnitTestsCtoTex
             Assert::IsTrue(ok);
             Config config;
             string result = cToTex(root, UNKNOWN, false, config);
-            Assert::AreEqual(string("pi"), result);
+            Assert::AreEqual(string("\\pi"), result);
             delete root;
         }
 
