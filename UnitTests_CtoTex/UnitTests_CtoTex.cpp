@@ -506,4 +506,129 @@ namespace UnitTestsCtoTex
             delete root;
         }
     };
+
+    TEST_CLASS(IsLogDiv_UnitTests)
+    {
+    public:
+
+        TEST_METHOD(Valid_LOG_DIV)
+        {
+            // Деление двух натуральных логарифмов (LOG / LOG), одинаковое основание (e)
+
+            string expr = "a #log b #log /";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+            Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
+
+            string base, arg;
+            Config config;
+
+            Assert::IsTrue(isLogDiv(root, base, arg, config));
+
+            delete root;
+        }
+
+        TEST_METHOD(Valid_LOG10_DIV)
+        {
+            // Деление двух десятичных логарифмов (LOG10 / LOG10), одинаковое основание (10)
+
+            string expr = "a #log10 b #log10 /";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+            Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
+
+            string base, arg;
+            Config config;
+
+            Assert::IsTrue(isLogDiv(root, base, arg, config));
+
+            delete root;
+        }
+
+        TEST_METHOD(DifferentBases)
+        {
+            // Логарифмы с разными основаниями (LOG / LOG10)
+
+            string expr = "a #log b #log10 /";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+            Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
+
+            string base, arg;
+            Config config;
+
+            Assert::IsFalse(isLogDiv(root, base, arg, config));
+
+            delete root;
+        }
+
+        TEST_METHOD(NotDIVNode)
+        {
+            // Узел не является делением
+
+            string expr = "a #log b #log +";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+            Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
+
+            string base, arg;
+            Config config;
+
+            Assert::IsFalse(isLogDiv(root, base, arg, config));
+
+            delete root;
+        }
+
+        TEST_METHOD(LeftNotLog)
+        {
+            // Левый узел не является логарифмом
+
+            string expr = "a b #log /";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+            Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
+
+            string base, arg;
+            Config config;
+
+            Assert::IsFalse(isLogDiv(root, base, arg, config));
+
+            delete root;
+        }
+
+        TEST_METHOD(RightNotLog)
+        {
+            // Правый узел не является логарифмом
+
+            string expr = "a #log b /";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+            Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
+
+            string base, arg;
+            Config config;
+
+            Assert::IsFalse(isLogDiv(root, base, arg, config));
+
+            delete root;
+        }
+
+        TEST_METHOD(NullptrNode)
+        {
+            // Пустой указатель (nullptr)
+
+            Node* root = nullptr;
+
+            string base, arg;
+            Config config;
+
+            Assert::IsFalse(isLogDiv(root, base, arg, config));
+        }
+    };
 }
