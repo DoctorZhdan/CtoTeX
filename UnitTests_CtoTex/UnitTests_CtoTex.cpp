@@ -766,4 +766,692 @@ namespace UnitTestsCtoTex
 
     };
 
+    TEST_CLASS(cToTex_UnitTests)
+    {
+    public:
+
+        // Сложение 
+        TEST_METHOD(Plus_Standard)
+        {
+            string expr = "a b +";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Assert::IsTrue(errors.empty());
+            Config config;
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("a + b"), result);
+            delete root;
+        }
+
+        // Вычитание 
+        TEST_METHOD(Minus_Standard)
+        {
+            string expr = "a b -";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("a - b"), result);
+            delete root;
+        }
+
+        // Умножение
+        TEST_METHOD(Mul_Standard)
+        {
+            string expr = "a b *";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("a \\cdot b"), result);
+            delete root;
+        }
+
+        // Деление 
+        TEST_METHOD(Div_Standard)
+        {
+            string expr = "a b /";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("\\frac{a}{b}"), result);
+            delete root;
+        }
+
+        // Унарный минус 
+        TEST_METHOD(UnaryMinus_Standard)
+        {
+            string expr = "a -_";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("-a"), result);
+            delete root;
+        }
+
+        // Умножение с mulIdenVar = powVarN 
+        TEST_METHOD(Mul_PowVarN)
+        {
+            string expr = "x x x * *";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            config.paramMap["mulIdenVar"] = "powVarN";
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("x^{3}"), result);
+            delete root;
+        }
+
+        // Умножение с arrMul = combineInMul 
+        TEST_METHOD(Mul_CombineInMul)
+        {
+            string expr = "a[1] a[2] a[3] * *";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            config.paramMap["arrMul"] = "combineInMul";
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("\\prod_{i=1}^{3} a_{i}"), result);
+            delete root;
+        }
+
+
+        // Возведение в степень 
+        TEST_METHOD(Pow_Standard)
+        {
+            string expr = "x 2 #pow";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("x^{2}"), result);
+            delete root;
+        }
+
+        // Степень 0.5 с powToSqrt 
+        TEST_METHOD(Pow_ZeroPointFive_ToSqrt)
+        {
+            string expr = "x 0.5 #pow";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            config.paramMap["zeroPointFivePow"] = "powToSqrt";
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("\\sqrt{x}"), result);
+            delete root;
+        }
+
+        // Степень 1/3 с powToSqrt 
+        TEST_METHOD(Pow_OneDivN_ToSqrt)
+        {
+            string expr = "x 1 3 / #pow";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            config.paramMap["oneDivNPow"] = "powToSqrt";
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("\\sqrt[3]{x}"), result);
+            delete root;
+        }
+
+        // Степень 2/3 с powToSqrt 
+        TEST_METHOD(Pow_AB_ToSqrt)
+        {
+            string expr = "x 2 3 / #pow";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            config.paramMap["abPow"] = "powToSqrt";
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("\\sqrt[3]{x^{2}}"), result);
+            delete root;
+        }
+
+        // Квадратный корень 
+        TEST_METHOD(Sqrt_Standard)
+        {
+            string expr = "x #sqrt";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("\\sqrt{x}"), result);
+            delete root;
+        }
+
+        // Квадратный корень с sqrtToPow 
+        TEST_METHOD(Sqrt_ToPow)
+        {
+            string expr = "x #sqrt";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            config.paramMap["squareRoot"] = "sqrtToPow";
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("x^{0.5}"), result);
+            delete root;
+        }
+
+        // Кубический корень 
+        TEST_METHOD(Cbrt_Standard)
+        {
+            string expr = "x #cbrt";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("\\sqrt[3]{x}"), result);
+            delete root;
+        }
+
+        // Синус 
+        TEST_METHOD(Sin_Standard)
+        {
+            string expr = "x #sin";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("\\sin x"), result);
+            delete root;
+        }
+
+        // Косинус 
+        TEST_METHOD(Cos_Standard)
+        {
+            string expr = "x #cos";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("\\cos x"), result);
+            delete root;
+        }
+
+        // Тангенс 
+        TEST_METHOD(Tan_Standard)
+        {
+            string expr = "x #tan";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("\\tan x"), result);
+            delete root;
+        }
+
+        // Арксинус 
+        TEST_METHOD(Asin_Standard)
+        {
+            string expr = "x #asin";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("\\arcsin x"), result);
+            delete root;
+        }
+
+        // Арккосинус
+        TEST_METHOD(Acos_Standard)
+        {
+            string expr = "x #acos";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("\\arccos x"), result);
+            delete root;
+        }
+
+        // Арктангенс 
+        TEST_METHOD(Atan_Standard)
+        {
+            string expr = "x #atan";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("\\arctan x"), result);
+            delete root;
+        }
+
+        // sin^2(x) с powAfterFun 
+        TEST_METHOD(Trig_PowAfterFun)
+        {
+            string expr = "x #sin 2 #pow";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            config.paramMap["trigFunNoNegPow"] = "powAfterFun";
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("\\sin^{2}x"), result);
+            delete root;
+        }
+
+        //  sin(x)^2 с powAfterVar 
+        TEST_METHOD(Trig_PowAfterVar)
+        {
+            string expr = "x #sin 2 #pow";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            config.paramMap["trigFunNoNegPow"] = "powAfterVar";
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("\\sin x^{2}"), result);
+            delete root;
+        }
+
+        // sin^{-1}(x) с reverseFun 
+        TEST_METHOD(Trig_MinusOne_ReverseFun)
+        {
+            string expr = "x #sin -1 #pow";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            config.paramMap["trigFunMinusOnePow"] = "reverseFun";
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("\\arcsin x"), result);
+            delete root;
+        }
+
+        // sin^{-2}(x) с divNoNegPow 
+        TEST_METHOD(Trig_NegPow_DivNoNegPow)
+        {
+            string expr = "x #sin -2 #pow";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            config.paramMap["trigFunNegPow"] = "divNoNegPow";
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("\\frac{1}{\\sin(x)^{2}}"), result);
+            delete root;
+        }
+
+        // Натуральный логарифм 
+        TEST_METHOD(Log_Standard)
+        {
+            string expr = "x #log";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("\\ln(x)"), result);
+            delete root;
+        }
+
+        // Десятичный логарифм 
+        TEST_METHOD(Log10_Standard)
+        {
+            string expr = "x #log10";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("\\log_{10}(x)"), result);
+            delete root;
+        }
+
+        // Экспонента
+        TEST_METHOD(Exp_Standard)
+        {
+            string expr = "x #exp";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("e^{x}"), result);
+            delete root;
+        }
+
+        // Деление логарифмов с logConverting 
+        TEST_METHOD(LogDiv_Converting)
+        {
+            string expr = "a #log b #log /";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            config.paramMap["logDiv"] = "logConverting";
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("\\log_{b}(a)"), result);
+            delete root;
+        }
+
+        // Модуль
+        TEST_METHOD(Abs_Standard)
+        {
+            string expr = "x #abs";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("|x|"), result);
+            delete root;
+        }
+
+        // Равенство 
+        TEST_METHOD(Eq_Standard)
+        {
+            string expr = "a b ==";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("a = b"), result);
+            delete root;
+        }
+
+        // Неравенство
+        TEST_METHOD(Neq_Standard)
+        {
+            string expr = "a b !=";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("a \\neq b"), result);
+            delete root;
+        }
+
+        // Меньше 
+        TEST_METHOD(Lt_Standard)
+        {
+            string expr = "a b <";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("a < b"), result);
+            delete root;
+        }
+
+        // Больше 
+        TEST_METHOD(Gt_Standard)
+        {
+            string expr = "a b >";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("a > b"), result);
+            delete root;
+        }
+
+        // Меньше или равно 
+        TEST_METHOD(Le_Standard)
+        {
+            string expr = "a b <=";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("a \\leq b"), result);
+            delete root;
+        }
+
+        // Больше или равно 
+        TEST_METHOD(Ge_Standard)
+        {
+            string expr = "a b >=";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("a \\geq b"), result);
+            delete root;
+        }
+
+        // Логическое И 
+        TEST_METHOD(Land_Standard)
+        {
+            string expr = "true false &&";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("true \\land false"), result);
+            delete root;
+        }
+
+        // Логическое ИЛИ 
+        TEST_METHOD(Lor_Standard)
+        {
+            string expr = "true false ||";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("true \\lor false"), result);
+            delete root;
+        }
+
+        // Логическое НЕ 
+        TEST_METHOD(Lnot_Standard)
+        {
+            string expr = "true !";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::IsTrue(result == "\\lnot true");
+            delete root;
+        }
+
+        // Индексация 
+        TEST_METHOD(ArrayIndex_Standard)
+        {
+            string expr = "a[5]";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("a_{5}"), result);
+            delete root;
+        }
+
+        // Сумма элементов массива с combineInSum 
+        TEST_METHOD(ArrSum_CombineInSum)
+        {
+            string expr = "a[1] a[2] a[3] + +";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            config.paramMap["arrSum"] = "combineInSum";
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("\\sum_{i=1}^{3} a_{i}"), result);
+            delete root;
+        }
+
+
+        // Число 
+        TEST_METHOD(Number_Leaf)
+        {
+            string expr = "10";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("10"), result);
+            delete root;
+        }
+
+        // Переменная 
+        TEST_METHOD(Variable_Leaf)
+        {
+            string expr = "x";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("x"), result);
+            delete root;
+        }
+
+        // Константа
+        TEST_METHOD(ConstantPi_Leaf)
+        {
+            string expr = "pi";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Config config;
+            string result = cToTex(root, UNKNOWN, false, config);
+            Assert::AreEqual(string("pi"), result);
+            delete root;
+        }
+
+        // Пустой узел
+        TEST_METHOD(NullNode)
+        {
+            Config config;
+            string result = cToTex(nullptr, UNKNOWN, false, config);
+            Assert::AreEqual(string(""), result);
+        }
+
+        // Комплексный тест
+        TEST_METHOD(Complex_Test)
+        {
+
+            string expr = "a b + c d - * x #sin 2 #pow -";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+
+            Assert::IsTrue(ok);
+            Assert::IsTrue(errors.empty());
+
+            Config config;
+            config.paramMap["trigFunNoNegPow"] = "powAfterVar";
+
+            string result = cToTex(root, UNKNOWN, false, config);
+
+
+            string expected = "(a + b) \\cdot (c - d) - \\sin x^{2}";
+
+            Assert::AreEqual(expected, result);
+
+            delete root;
+        }
+
+
+        // Комплексный тест 2
+        TEST_METHOD(Complex_Test2)
+        {
+            // Выражение: (a + b) * (c - d) + e / f - sin(x)^2 + cos(y) * (z[1] + z[2])
+
+            string expr = "a b + c d - * e f / + x #sin 2 #pow - y #cos z[1] z[2] + * +";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+
+            Assert::IsTrue(ok);
+            Assert::IsTrue(errors.empty());
+
+            Config config;
+            config.paramMap["mulIdenVar"] = "withoutChanges";
+            config.paramMap["arrSum"] = "combineInSum";
+            config.paramMap["trigFunNoNegPow"] = "powAfterVar";
+
+            string result = cToTex(root, UNKNOWN, false, config);
+
+            string expected = "(a + b) \\cdot (c - d) + \\frac{e}{f} - \\sin x^{2} + \\cos y \\cdot (\\sum_{i=1}^{2} z_{i})";
+
+            Assert::AreEqual(expected, result);
+
+            delete root;
+        }
+
+    };
+
 }
