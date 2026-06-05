@@ -1,0 +1,24 @@
+========================= 
+  RUNNING BATCH TESTS 
+========================= 
+ 
+Testing test1_in.txt ... 
+❌ FAILED: test1_in.txt 
+--- CONFIG: 
+--- EXPECTED: 
+--- GOT: 
+ 
+------------------------- 
+Testing test2_in.txt ... 
+❌ FAILED: test2_in.txt 
+--- CONFIG: 
+--- EXPECTED: 
+--- GOT: 
+ 
+------------------------- 
+ 
+========================= 
+  RESULTS 
+========================= 
+Passed: 0 
+Failed: 2 

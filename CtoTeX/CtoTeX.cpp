@@ -1400,7 +1400,7 @@ string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config&
                 if (trigFunMinusOnePowVal == "divNoNegPow") {
                     // 8.1.3.1. Сгенерировать ТеХ-отображение узла:
                     // «\frac{1}{» + тригонометрическая функция + левый потомок тригонометрической функции (getChildTexWithParens) + «}» 
-                    temp = getChildTexWithParens(node, node->left, false, config);
+                    temp = getChildTexWithParens(node->left, node->left->left, false, config);
                     result = "\\frac{1}{" + trigFunc + temp + "}";
                     return result;
                 }

@@ -299,6 +299,8 @@ namespace UnitTestsCtoTex
             Assert::AreEqual(string("(true \\lor false)"), rightResult);
 
             delete root;
+
+
         }
 
         TEST_METHOD(ComplexArithmeticWithoutDivision)
@@ -325,6 +327,55 @@ namespace UnitTestsCtoTex
 
             delete root;
         }
+
+        TEST_METHOD(InvalidExpression_NotEnoughOperands)
+        {
+            // Не хватает операндов
+            string expr = "a +";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+
+            Assert::IsFalse(ok);
+            Assert::IsTrue(!errors.empty());
+
+            bool found = false;
+            for (size_t i = 0; i < errors.size(); ++i) {
+                if (errors[i].code == NotEnoughOperands) {
+                    found = true;
+                }
+            }
+            Assert::IsTrue(found);
+
+            delete root;
+        }
+
+        TEST_METHOD(InvalidExpression_TooManyOperands)
+        {
+            // Лишние операнды
+            string expr = "a b c +";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+
+            Assert::IsFalse(ok);
+            Assert::IsTrue(!errors.empty());
+
+            bool found = false;
+            for (size_t i = 0; i < errors.size(); ++i) {
+                if (errors[i].code == TooManyOperands) {
+                    found = true;
+                }
+            }
+            Assert::IsTrue(found);
+
+            delete root;
+        }
+
 
     };
 
@@ -505,6 +556,56 @@ namespace UnitTestsCtoTex
 
             delete root;
         }
+
+        TEST_METHOD(Invalid_EmptyExpression)
+        {
+            // Пустое выражение
+            string expr = "";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+
+            Assert::IsFalse(ok);
+            Assert::IsTrue(!errors.empty());
+
+            bool found = false;
+            for (size_t i = 0; i < errors.size(); ++i) {
+                if (errors[i].code == NotEnoughOperands) {
+                    found = true;
+                }
+            }
+            Assert::IsTrue(found);
+
+            delete root;
+        }
+
+        TEST_METHOD(Invalid_WrongArraySyntax)
+        {
+            // Неправильный синтаксис массива: a[1 без закрывающей скобки
+            string expr = "a[1";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+
+            Assert::IsFalse(ok);
+            Assert::IsTrue(!errors.empty());
+
+            bool found = false;
+            for (size_t i = 0; i < errors.size(); ++i) {
+                if (errors[i].code == InvalidSymbol || errors[i].code == InvalidSymbolSequence) {
+                    found = true;
+                }
+            }
+            Assert::IsTrue(found);
+
+            delete root;
+        }
+
+
     };
 
     TEST_CLASS(IsLogDiv_UnitTests)
@@ -630,6 +731,55 @@ namespace UnitTestsCtoTex
 
             Assert::IsFalse(isLogDiv(root, base, arg, config));
         }
+
+        TEST_METHOD(InvalidExpression_NotEnoughOperands)
+        {
+            // Не хватает операндов для деления
+            string expr = "a #log /";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+
+            Assert::IsFalse(ok);
+            Assert::IsTrue(!errors.empty());
+
+            bool found = false;
+            for (size_t i = 0; i < errors.size(); ++i) {
+                if (errors[i].code == NotEnoughOperands) {
+                    found = true;
+                }
+            }
+            Assert::IsTrue(found);
+
+            delete root;
+        }
+
+        TEST_METHOD(InvalidExpression_TooManyOperands)
+        {
+            // Лишние операнды после деления логарифмов
+            string expr = "a #log b #log / c";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+
+            Assert::IsFalse(ok);
+            Assert::IsTrue(!errors.empty());
+
+            bool found = false;
+            for (size_t i = 0; i < errors.size(); ++i) {
+                if (errors[i].code == TooManyOperands) {
+                    found = true;
+                }
+            }
+            Assert::IsTrue(found);
+
+            delete root;
+        }
+
     };
 
     TEST_CLASS(IsMulIdenVar_UnitTests)
@@ -760,6 +910,54 @@ namespace UnitTestsCtoTex
             Assert::IsTrue(isMulIdenVar(root, operandStr, varCount, config));
             Assert::AreEqual(4, varCount);
             Assert::AreEqual(string("z"), operandStr);
+
+            delete root;
+        }
+
+        TEST_METHOD(InvalidExpression_InvalidCharInMulChain)
+        {
+            // Недопустимый символ в цепочке умножений
+            string expr = "x @ x *";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+
+            Assert::IsFalse(ok);
+            Assert::IsTrue(!errors.empty());
+
+            bool found = false;
+            for (size_t i = 0; i < errors.size(); ++i) {
+                if (errors[i].code == InvalidSymbol) {
+                    found = true;
+                }
+            }
+            Assert::IsTrue(found);
+
+            delete root;
+        }
+
+        TEST_METHOD(InvalidExpression_OperatorNotSeparatedInMulChain)
+        {
+            // Оператор не отделён пробелами в цепочке умножений
+            string expr = "x x*x";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+
+            Assert::IsFalse(ok);
+            Assert::IsTrue(!errors.empty());
+
+            bool found = false;
+            for (size_t i = 0; i < errors.size(); ++i) {
+                if (errors[i].code == OperatorNotSeparatedBySpaces) {
+                    found = true;
+                }
+            }
+            Assert::IsTrue(found);
 
             delete root;
         }
@@ -1448,6 +1646,48 @@ namespace UnitTestsCtoTex
             string expected = "(a + b) \\cdot (c - d) + \\frac{e}{f} - \\sin x^{2} + \\cos y \\cdot (\\sum_{i=1}^{2} z_{i})";
 
             Assert::AreEqual(expected, result);
+
+            delete root;
+        }
+
+        // Ошибка: несовместимые типы операндов 
+        TEST_METHOD(InvalidExpression_MismatchedTypesInArithmetic)
+        {
+            string expr = "true 5 +";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsFalse(ok);
+            Assert::IsTrue(!errors.empty());
+
+            bool found = false;
+            for (size_t i = 0; i < errors.size(); ++i) {
+                if (errors[i].code == MismatchedOperandTypes || errors[i].code == ArithmeticWithLogical) {
+                    found = true;
+                }
+            }
+            Assert::IsTrue(found);
+
+            delete root;
+        }
+
+        // Ошибка: вещественное число с более чем 8 знаками после запятой
+        TEST_METHOD(InvalidExpression_TooManyDecimalPlaces)
+        {
+            string expr = "3.123456789 2 +";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsFalse(ok);
+            Assert::IsTrue(!errors.empty());
+
+            bool found = false;
+            for (size_t i = 0; i < errors.size(); ++i) {
+                if (errors[i].code == TooManyDecimalDigits) {
+                    found = true;
+                }
+            }
+            Assert::IsTrue(found);
 
             delete root;
         }
