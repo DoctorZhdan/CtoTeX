@@ -80,7 +80,7 @@ const map<ErrorCode, string> errorMessages = {
 
 /// @brief Структура для хранения данных об ошибке
 struct Error {
-    ErrorCode code;          ///< Код ошибки из перечисления
+    ErrorCode code = InputFileNotExist; ///< Код ошибки из перечисления
     int position = -1;       ///< Индекс символа, содержащего ошибку, в строке 
     int length = 1;          ///< Длина последовательности некорректных символов 
     string line;             ///< Строка, содержащая ошибку
@@ -155,9 +155,9 @@ enum OperandType {
 
 /// @brief Структура токена (лексемы)
 struct Token {
-    TokenType type;          ///< тип токена
+    TokenType type = UNKNOWN; ///< тип токена
     string value;            ///< текстовое представление токена
-    OperandType operandType; ///< тип операндов (арифметический или логический)
+    OperandType operandType = ARITHMETIC; ///< тип операндов (арифметический или логический)
 };
 
 /// @brief Класс узла дерева разбора
@@ -187,6 +187,13 @@ public:
         delete left;
         delete right;
     }
+
+    /// @brief Запрет конструктора копирования
+    Node(const Node&) = delete;
+
+    /// @brief Запрет оператора присваивания
+    Node& operator=(const Node&) = delete;
+
 };
 
 /// @brief Структура параметров отображения
@@ -282,9 +289,9 @@ const map<TokenType, OperationTypeInfo> operationTypes = {
 
 /// @brief Структура с информацией об операторе
 struct OperatorInfo {
-    int precedence;   ///< уровень приоритета (чем меньше число, тем выше приоритет)
-    bool leftAssoc;   ///< ассоциативность (true — левая, false — правая)
-    int arity;        ///< количество операндов (1 или 2)
+    int precedence = 0;   ///< уровень приоритета (чем меньше число, тем выше приоритет)
+    bool leftAssoc = true;   ///< ассоциативность (true — левая, false — правая)
+    int arity = 0;        ///< количество операндов (1 или 2)
     string tex;       ///< TeX-представление оператора
 };
 

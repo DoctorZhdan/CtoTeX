@@ -1692,6 +1692,58 @@ namespace UnitTestsCtoTex
             delete root;
         }
 
+        // Несколько ошибок
+        TEST_METHOD(ManyErrorsInTheExpression)
+        {
+            string expr = "a 1.2345678934 + c d - * e f / + x #sin 2#pow - y #cos $ z[1] z[2] + * +";
+            Node* root = nullptr;
+            vector<Error> errors;
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsFalse(ok);
+            Assert::IsTrue(!errors.empty());
+
+            bool found = false;
+            for (size_t i = 0; i < errors.size(); ++i) {
+                if (errors[i].code == TooManyDecimalDigits || errors[i].code == OperatorNotSeparatedBySpaces || errors[i].code == InvalidSymbol) {
+                    found = true;
+                }
+            }
+            Assert::IsTrue(found);
+
+            delete root;
+        }
+
+        // Комплексный тест 3
+        TEST_METHOD(Complex_Test3)
+        {
+            // Выражение: (a + b) * (c - d) + e / f - sin(x)^2 + cos(y) * (z[1] + z[2])
+
+            string expr = "a a * a * a * e #log f #log / + x #sin 2 #pow - y #cos z[1] z[2] + * +";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+
+            Assert::IsTrue(ok);
+            Assert::IsTrue(errors.empty());
+
+            Config config;
+            config.paramMap["mulIdenVar"] = "powVarN";
+            config.paramMap["arrSum"] = "combineInSum";
+            config.paramMap["trigFunNoNegPow"] = "powAfterVar";
+            config.paramMap["logDiv "] = "logConverting";
+
+            string result = cToTex(root, UNKNOWN, false, config);
+
+            string expected = "a^{4} + \\log_{f}(e) - \\sin x^{2} + \\cos y \\cdot (\\sum_{i=1}^{2} z_{i})";
+
+            Assert::AreEqual(expected, result);
+
+            delete root;
+        }
+
+
     };
 
 }

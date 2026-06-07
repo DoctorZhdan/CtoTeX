@@ -1,1 +1,1 @@
-trigFunMinusOnePow divNoNegPow
+arrSum combineInSum

@@ -1,1 +1,1 @@
-\frac{1}{\cosx}
+a^{4} + \log_{f}(e) - \sin x^{2} + \cos y \cdot (\sum_{i=1}^{2} z_{i})
