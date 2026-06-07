@@ -496,13 +496,13 @@ bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<
         if (!processed && isalpha(word[0]))
         {
             // 3.5.1 Для каждого символа слова, начиная с позиции 1:
-            for (size_t i = 1; i < word.size(); i++)
+            for (size_t j = 1; j < word.size(); j++)
             {
                 // 3.5.1.1 Если символ является буквой или цифрой, перейти к следующему символу
-                if (!(isalnum(word[i])))
+                if (!(isalnum(word[j])))
                 {
                     // 3.5.1.2 В противном случае считать символ недопустимым и занести соответствующую ошибку в вектор ошибок
-                    errors.push_back({ InvalidSymbol, (int)i, 1, word });
+                    errors.push_back({ InvalidSymbol, (int)j, 1, word });
                 }
                 // 3.5.1.3 Перейти к следующему символу
             }
@@ -538,21 +538,21 @@ bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<
             int dotPos = -1;
 
             // 3.6.2 Для каждого символа слова, начиная с позиции 1:
-            for (size_t i = 1; i < word.size(); i++)
+            for (size_t k = 1; k < word.size(); k++)
             {
                 // 3.6.2.1 Если символ является цифрой, перейти к следующему символу
-                if (isdigit(word[i]))
+                if (isdigit(word[k]))
                 {
                 }
                 // 3.6.2.2 Если символ является точкой, и точка ещё не встречалась в слове, запомнить местоположение точки и перейти к следующему символу
-                else if (word[i] == '.' && !dotFound)
+                else if (word[k] == '.' && !dotFound)
                 {
                     dotFound = true;
-                    dotPos = i;
+                    dotPos = k;
                 }
                 // 3.6.2.3 В противном случае считать символ недопустимым и занести соответствующую ошибку в вектор ошибок
                 else {
-                    errors.push_back({ InvalidSymbolSequence, (int)i, 1, word });
+                    errors.push_back({ InvalidSymbolSequence, (int)k, 1, word });
                 }
                 // 3.6.2.4 Перейти к следующему символу
             }
