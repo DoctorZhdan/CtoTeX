@@ -906,19 +906,16 @@ bool needsParentheses(Node* parent, Node* child, bool isRightChild) {
     }
 
     // 7. Если приоритеты равны
-    if (childPrec == parentPrec)
+    // 7.1. Если текущая операция левоассоциативная (parentLeftAssoc == true)
+    if (parentLeftAssoc)
     {
-        // 7.1. Если текущая операция левоассоциативная (parentLeftAssoc == true)
-        if (parentLeftAssoc)
-        {
-            // 7.1.1. Вернуть isRightChild
-            return isRightChild;
-        }
-        // 7.2. Если текущая операция правоассоциативная (parentLeftAssoc == false)
-        else {
-            // 7.2.1. Вернуть !isRightChild
-            return !isRightChild;
-        }
+        // 7.1.1. Вернуть isRightChild
+        return isRightChild;
+    }
+    // 7.2. Если текущая операция правоассоциативная (parentLeftAssoc == false)
+    else {
+        // 7.2.1. Вернуть !isRightChild
+        return !isRightChild;
     }
 
     // 8. Вернуть false
