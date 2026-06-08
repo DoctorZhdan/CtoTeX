@@ -1744,6 +1744,56 @@ namespace UnitTestsCtoTex
         }
 
 
+        TEST_METHOD(ArrSum_NonContinuousIndexes)
+        {
+            // Сумма элементов массива с пропусками индексов
+            string expr = "a[1] a[3] + a[5] +";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+
+            Assert::IsTrue(ok);
+            Assert::IsTrue(errors.empty());
+
+            Config config;
+            config.paramMap["arrSum"] = "combineInSum";
+
+            string result = cToTex(root, UNKNOWN, false, config);
+
+            string expected = "a_{1} + a_{3} + a_{5}";
+            Assert::AreEqual(expected, result);
+
+            delete root;
+        }
+
+
+        TEST_METHOD(ArrMul_NonContinuousIndexes)
+        {
+            // Произведение элементов массива с пропусками индексов
+            string expr = "a[1] a[3] * a[5] *";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+
+            Assert::IsTrue(ok);
+            Assert::IsTrue(errors.empty());
+
+            Config config;
+            config.paramMap["arrMul "] = "combineInMul";
+
+            string result = cToTex(root, UNKNOWN, false, config);
+
+            string expected = "a_{1} \\cdot a_{3} \\cdot a_{5}";
+            Assert::AreEqual(expected, result);
+
+            delete root;
+        }
+
+
     };
 
 }

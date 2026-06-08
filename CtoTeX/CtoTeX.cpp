@@ -398,7 +398,6 @@ bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<
                 else if (word == "&&") { t.type = LAND; t.operandType = LOGICAL; }
                 else if (word == "||") { t.type = LOR; t.operandType = LOGICAL; }
                 else if (word == "!") { t.type = LNOT; t.operandType = LOGICAL; }
-                else if (word == "a[i]") t.type = ARRAY_INDEX;
                 else t.type = UNKNOWN;
 
                 // 3.3.1.2 Добавить созданный токен в вектор токенов (tokens)
@@ -1206,18 +1205,43 @@ string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config&
                 startIndex = *min_element(indexes.begin(), indexes.end());
                 endIndex = *max_element(indexes.begin(), indexes.end());
 
+                // 3.2.2. Проверить, что все индексы образуют непрерывную последовательность
                 bool isCorrect = true;
 
-                // 3.2.2. Проверить, что все индексы образуют непрерывную последовательность
-                for (int i = startIndex; i <= endIndex; i++) {
+                // Размер диапазона
+                if ((endIndex - startIndex + 1) != indexes.size())
+                {
+                    isCorrect = false;
+                }
+
+                // Непрерывность
+                for (int i = startIndex; i <= endIndex; i++)
+                {
                     bool continuity = false;
-                    for (int val : indexes) {
-                        if (val == i) {
+
+                    for (int val : indexes)
+                    {
+                        if (val == i)
+                        {
                             continuity = true;
                         }
                     }
-                    if (!continuity) {
-                        isCorrect = continuity;
+
+                    if (!continuity)
+                    {
+                        isCorrect = false;
+                    }
+                }
+
+                // Дубликаты
+                for (int i = 0; i < indexes.size(); i++)
+                {
+                    for (int j = i + 1; j < indexes.size(); j++)
+                    {
+                        if (indexes[i] == indexes[j])
+                        {
+                            isCorrect = false;
+                        }
                     }
                 }
 
@@ -1255,6 +1279,13 @@ string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config&
                 // 4.2. Проверить, что все индексы образуют непрерывную последовательность
                 bool isCorrect = true;
 
+                // Размер диапазона
+                if ((endIndex - startIndex + 1) != indexes.size())
+                {
+                    isCorrect = false;
+                }
+
+                // Непрерывность
                 for (int i = startIndex; i <= endIndex; i++)
                 {
                     bool continuity = false;
@@ -1269,7 +1300,19 @@ string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config&
 
                     if (!continuity)
                     {
-                        isCorrect = continuity;
+                        isCorrect = false;
+                    }
+                }
+
+                // Дубликаты
+                for (int i = 0; i < indexes.size(); i++)
+                {
+                    for (int j = i + 1; j < indexes.size(); j++)
+                    {
+                        if (indexes[i] == indexes[j])
+                        {
+                            isCorrect = false;
+                        }
                     }
                 }
 
