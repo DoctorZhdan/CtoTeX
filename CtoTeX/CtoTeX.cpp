@@ -220,56 +220,15 @@ bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<
             processed = true;
         }
 
-
-        // Посчитать количество оператороов в слове
-        int opCounter = 0;
-        for (const string& op : allowedOperations) {
-            size_t pos = 0;
-            while ((pos = word.find(op, pos)) != string::npos) {
-                opCounter++;
-                pos += op.size();
-            }
-        }
-
-        // 3.1 Если слово содержит содержит более одного оператора или слово содержит 1 оператор из списка допустимых операторов, но всё слово не является оператором 
-        if (!processed && (opCounter > 1 || (opCounter == 1 && allowedOperations.find(word) == allowedOperations.end())))
+        // Проверка корректности расположения операторов в слове
+        if (!processed)
         {
-            // Проверить, не является ли слово отрицательным числом
-            bool isNegativeNumber = false;
-
-            if (word.size() > 1 && word[0] == '-')
+            if (checkOperatorSpacing(word, errors, allowedOperations))
             {
-                isNegativeNumber = true;
-                bool dotFound = false;
-                for (int j = 1; j < word.size(); j++)
-                {
-                    if (isdigit(word[j])) {}
-                    else if (word[j] == '.' && !dotFound)
-                    {
-                        dotFound = true;
-                    }
-                    else
-                    {
-                        isNegativeNumber = false;
-                    }
-                }
-            }
-
-            if (!isNegativeNumber)
-            {
-
-                // 3.1.1 Занести соответствующую ошибку в вектор ошибок
-                Error err;
-                err.code = (opCounter > 1) ? InvalidSymbolSequence : OperatorNotSeparatedBySpaces;
-                err.position = 0;
-                err.length = word.size();
-                err.line = word;
-                errors.push_back(err);
-
-                // 3.1.2 Перейти к обработке следующего слова
                 processed = true;
             }
         }
+        
 
         // 3.2. Если слово входит в список допустимых констант (allowedConstants): 
         if (!processed && allowedConstants.find(word) != allowedConstants.end())
@@ -1746,5 +1705,57 @@ bool parseOperator(const string& word, vector<Token>& tokens, int& nodeCount)
     }
 
     // 4. Если слово не является оператором
+    return false;
+}
+
+
+bool checkOperatorSpacing(const string& word, vector<Error>& errors, const set<string>& allowedOperations)
+{
+    // 1. Подсчёт количества операторов в слове 
+    int opCounter = 0;
+
+    for (const string& op : allowedOperations) {
+        size_t pos = 0;
+        while ((pos = word.find(op, pos)) != string::npos) {
+            opCounter++;
+            pos += op.size();
+        }
+    }
+
+    // 2. Проверка на наличие оператора внутри слова 
+    if (opCounter > 1 || (opCounter == 1 && allowedOperations.find(word) == allowedOperations.end()))
+    {
+        //  3. Проверка, не является ли слово отрицательным числом 
+        bool isNegativeNumber = false;
+
+        if (word.size() > 1 && word[0] == '-') {
+            isNegativeNumber = true;
+            bool dotFound = false;
+
+            for (size_t i = 1; i < word.size(); i++) {
+                if (isdigit(word[i])) {}
+                else if (word[i] == '.' && !dotFound) {
+                    dotFound = true;
+                }
+                else {
+                    isNegativeNumber = false;
+                }
+            }
+        }
+
+        //  4. Если это не число, ошибка
+        if (!isNegativeNumber)
+        {
+            Error err;
+            err.code = (opCounter > 1) ? InvalidSymbolSequence : OperatorNotSeparatedBySpaces;
+            err.position = 0;
+            err.length = word.size();
+            err.line = word;
+
+            errors.push_back(err);
+            return true;
+        }
+    }
+
     return false;
 }

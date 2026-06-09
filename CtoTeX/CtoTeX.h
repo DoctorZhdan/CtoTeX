@@ -444,4 +444,9 @@ string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config&
 bool parseOperator(const string& word, vector<Token>& tokens, int& nodeCount);
 
 
-
+/// @brief Проверяет корректность расположения операторов в слове 
+/// @param word текущее слово 
+/// @param errors вектор ошибок, в который добавляются найденные ошибки
+/// @param allowedOperations множество допустимых операторов
+/// @return true, если слово содержит ошибку, связанную с операторами; false в противном случае
+bool checkOperatorSpacing(const string& word, vector<Error>& errors, const set<string>& allowedOperations);
