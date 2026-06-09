@@ -433,3 +433,15 @@ bool isArrOperation(Node* node, TokenType opType, string& arrayName, vector<int>
 /// @return сгенерированная TeX-строка
 string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config& config);
 
+
+
+
+/// @brief Проверяет, является ли слово оператором или функцией, и при необходимости добавляет соответствующий токен
+/// @param word текущее слово (лексема), выделенное из входного выражения
+/// @param tokens вектор токенов, в который добавляется результат разбора
+/// @param nodeCount счётчик узлов (увеличивается при добавлении токена)
+/// @return true, если слово распознано как оператор/функция; false в противном случае
+bool parseOperator(const string& word, vector<Token>& tokens, int& nodeCount);
+
+
+

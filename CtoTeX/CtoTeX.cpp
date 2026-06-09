@@ -213,6 +213,14 @@ bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<
         string word = wordList[i];
         bool processed = false; // processed - флаг того, что слово уже распознано как что-то допустимое
 
+
+        // Обработка операторов 
+        if (parseOperator(word, tokens, nodeCount))
+        {
+            processed = true;
+        }
+
+
         // Посчитать количество оператороов в слове
         int opCounter = 0;
         for (const string& op : allowedOperations) {
@@ -221,71 +229,6 @@ bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<
                 opCounter++;
                 pos += op.size();
             }
-        }
-
-        // Специальная проверка для унарного минуса
-        if (word == "-_") {
-            if (errors.empty()) {
-                Token t;
-                t.type = UMINUS;
-                t.value = "-_";
-                t.operandType = ARITHMETIC;
-                tokens.push_back(t);
-                nodeCount++;
-            }
-            processed = true;
-        }
-
-        // Специальная проверка для оператора неравенства
-        if (word == "!=") {
-            if (errors.empty()) {
-                Token t;
-                t.type = NEQ;
-                t.value = "!=";
-                t.operandType = LOGICAL;
-                tokens.push_back(t);
-                nodeCount++;
-            }
-            processed = true;
-        }
-
-        // Специальная проверка для оператора меньше или равно
-        if (word == "<=") {
-            if (errors.empty()) {
-                Token t;
-                t.type = LE;
-                t.value = "<=";
-                t.operandType = ARITHMETIC;
-                tokens.push_back(t);
-                nodeCount++;
-            }
-            processed = true;
-        }
-
-        // Специальная проверка для оператора больше или равно
-        if (word == ">=") {
-            if (errors.empty()) {
-                Token t;
-                t.type = GE;
-                t.value = ">=";
-                t.operandType = ARITHMETIC;
-                tokens.push_back(t);
-                nodeCount++;
-            }
-            processed = true;
-        }
-
-        // Специальная проверка для десятичного логарифма
-        if (word == "#log10") {
-            if (errors.empty()) {
-                Token t;
-                t.type = LOG10;
-                t.value = "#log10";
-                t.operandType = ARITHMETIC;
-                tokens.push_back(t);
-                nodeCount++;
-            }
-            processed = true;
         }
 
         // 3.1 Если слово содержит содержит более одного оператора или слово содержит 1 оператор из списка допустимых операторов, но всё слово не является оператором 
@@ -359,57 +302,6 @@ bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<
             processed = true;
         }
 
-        // 3.3. Если слово совпадает с любым оператором из списка допустимых операторов (allowedOperations)
-        if (!processed && allowedOperations.find(word) != allowedOperations.end())
-        {
-            // 3.3.1 Если вектор ошибок пуст
-            if (errors.empty())
-            {
-                Token t;
-                t.value = word;
-                t.operandType = ARITHMETIC;
-
-                // 3.3.1.1 Создать токен с соответствующим типом оператора
-                if (word == "+") t.type = PLUS;
-                else if (word == "-") t.type = MINUS;
-                else if (word == "*") t.type = MUL;
-                else if (word == "/") t.type = DIV;
-                else if (word == "-_") t.type = UMINUS;
-                else if (word == "#pow") t.type = POW;
-                else if (word == "#sqrt") t.type = SQRT;
-                else if (word == "#cbrt") t.type = CBRT;
-                else if (word == "#sin") t.type = SIN;
-                else if (word == "#cos") t.type = COS;
-                else if (word == "#tan") t.type = TAN;
-                else if (word == "#asin") t.type = ASIN;
-                else if (word == "#acos") t.type = ACOS;
-                else if (word == "#atan") t.type = ATAN;
-                else if (word == "#log") t.type = LOG;
-                else if (word == "#log10") t.type = LOG10;
-                else if (word == "#exp") t.type = EXP;
-                else if (word == "#abs") t.type = ABS;
-                else if (word == "#fabs") t.type = FABS;
-                else if (word == "==") t.type = EQ;
-                else if (word == "!=") t.type = NEQ;
-                else if (word == "<") t.type = LT;
-                else if (word == ">") t.type = GT;
-                else if (word == "<=") t.type = LE;
-                else if (word == ">=") t.type = GE;
-                else if (word == "&&") { t.type = LAND; t.operandType = LOGICAL; }
-                else if (word == "||") { t.type = LOR; t.operandType = LOGICAL; }
-                else if (word == "!") { t.type = LNOT; t.operandType = LOGICAL; }
-                else t.type = UNKNOWN;
-
-                // 3.3.1.2 Добавить созданный токен в вектор токенов (tokens)
-                tokens.push_back(t);
-
-                // 3.3.1.3 Инкрементировать значение счётчика узлов
-                nodeCount++;
-            }
-            // 3.3.2 Перейти к обработке следующего слова
-            processed = true;
-        }
-
         // 3.4 Если слово содержит '[' и ']'
         if (!processed && word.find('[') != string::npos && word.find(']') != string::npos)
         {
@@ -426,7 +318,7 @@ bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<
                 processed = true;
 
             }
-            else 
+            else
             {
 
                 // 3.4.3 Имя массива
@@ -1800,3 +1692,59 @@ int main(int argc, char* argv[]) {
 }
 
 
+
+bool parseOperator(const string& word, vector<Token>& tokens, int& nodeCount)
+{
+    // 1. Обработка специального случая унарного минуса 
+   
+    if (word == "-_") {
+        tokens.push_back({ UMINUS, "-_", ARITHMETIC });
+        nodeCount++;
+        return true;
+    }
+
+    // Таблица операторов и функций
+    static const map<string, TokenType> opMap = {
+        {"+", PLUS}, {"-", MINUS}, {"*", MUL}, {"/", DIV},
+        {"#pow", POW}, {"#sqrt", SQRT}, {"#cbrt", CBRT},
+        {"#sin", SIN}, {"#cos", COS}, {"#tan", TAN},
+        {"#asin", ASIN}, {"#acos", ACOS}, {"#atan", ATAN},
+        {"#log", LOG}, {"#log10", LOG10}, {"#exp", EXP},
+        {"#abs", ABS}, {"#fabs", FABS},
+        {"==", EQ}, {"!=", NEQ}, {"<", LT}, {">", GT},
+        {"<=", LE}, {">=", GE},
+        {"&&", LAND}, {"||", LOR}, {"!", LNOT}
+    };
+
+    //  Поиск слова в таблице операторов 
+    auto it = opMap.find(word);
+
+    if (it != opMap.end()) {
+        Token t;
+
+        // Устанавливаем тип токена
+        t.type = it->second;
+
+        // Сохраняем исходное строковое значение
+        t.value = word;
+
+        // Определяем тип операнда
+        if (word == "&&" || word == "||" || word == "!") {
+            t.operandType = LOGICAL;
+        }
+        else {
+            t.operandType = ARITHMETIC;
+        }
+
+        // Добавляем токен в результат
+        tokens.push_back(t);
+
+        // Увеличиваем счётчик узлов
+        nodeCount++;
+
+        return true;
+    }
+
+    // 4. Если слово не является оператором
+    return false;
+}
