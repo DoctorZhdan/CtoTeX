@@ -334,34 +334,21 @@ bool buildTree(const string& expression, Node*& root, const map<TokenType, Opera
         }
     }
 
-    // 5. Если nodeStack пуст 
-    if (nodeStack.empty()) {
-        // 5.1. Добавить ошибку NotEnoughOperands в вектор ошибок
-        Error err;
-        err.code = NotEnoughOperands;
-        errors.push_back(err);
-    }
+    // 5. Проверить состояние стека
+    checkStackState(nodeStack, errors);
 
-    // 6. Если в nodeStack больше одного узла
-    if (nodeStack.size() > 1) {
-        // 6.1. Добавить ошибку TooManyOperands в вектор ошибок
-        Error err;
-        err.code = TooManyOperands;
-        errors.push_back(err);
-    }
-
-    // 7. Извлечь единственный узел из стека и сохранить в root
+    // 6. Извлечь единственный узел из стека и сохранить в root
     if (!nodeStack.empty()) {
         root = nodeStack.top();
         nodeStack.pop();
     }
 
-    // 8. Если вектор ошибок (errors) не пуст 
+    // 7. Если вектор ошибок (errors) не пуст 
     if (!errors.empty()) {
-        // 8.1. Вернуть false
+        // 7.1. Вернуть false
         return false;
     }
-    // 8.2. Иначе вернуть true
+    // 7.2. Иначе вернуть true
     return true;
 }
 
@@ -1786,6 +1773,25 @@ void processOperand(const Token& token, stack<Node*>& nodeStack, int& nodeCount,
     {
         Error err;
         err.code = TooManyNodes;
+        errors.push_back(err);
+    }
+}
+
+void checkStackState(stack<Node*>& nodeStack, vector<Error>& errors)
+{
+    // 1. Если стек пуст, в выражении не было операндов
+    if (nodeStack.empty())
+    {
+        Error err;
+        err.code = NotEnoughOperands;
+        errors.push_back(err);
+    }
+
+    // 2. Если в стеке больше одного узла, в выражении остались лишние операнды
+    if (nodeStack.size() > 1)
+    {
+        Error err;
+        err.code = TooManyOperands;
         errors.push_back(err);
     }
 }

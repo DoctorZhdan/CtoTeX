@@ -515,3 +515,8 @@ Node* processUnaryOperator(const Token& token, stack<Node*>& nodeStack, vector<E
 /// @param nodeCount счЄтчик узлов
 /// @param errors вектор ошибок
 void processOperand(const Token& token, stack<Node*>& nodeStack, int& nodeCount, vector<Error>& errors);
+
+/// @brief ѕровер€ет состо€ние стека после обработки всех токенов
+/// @param nodeStack стек узлов
+/// @param errors вектор ошибок
+void checkStackState(stack<Node*>& nodeStack, vector<Error>& errors);
