@@ -589,3 +589,9 @@ string getMulOperationTeX(Node* node, const Config& config);
 /// @return TeX-строка сложения
 string getPlusOperationTeX(Node* node, const Config& config);
 
+/// @brief Генерирует TeX для операции деления
+/// @param node указатель на узел DIV
+/// @param config объект с настройками отображения
+/// @param type тип узла 
+/// @return TeX-строка деления
+string getDivOperationTeX(Node* node, const Config& config, TokenType type);

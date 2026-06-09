@@ -715,23 +715,7 @@ string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config&
 
                // 7. Если узел является оператором деления (DIV)
     case DIV: {
-        // 7.1. Если параметр отображения logDiv имеет значение logConverting 
-        // и функция-детектор параметра отображения logDiv вернула истинное значение (isLogDiv)
-        if (logDivVal == "logConverting") {
-            string base, argument;
-            if (isLogDiv(node, base, argument, config))
-            {
-                // 7.1.1. Сгенерировать ТеХ-отображение узла как логарифм левого потомка с основанием правого потомка
-                result = "\\log_{" + base + "}(" + argument + ")";
-                return result;
-            }
-        }
-
-        // 7.2. Иначе сгенерировать ТеХ-отображение узла: \frac{строка левого потомка}{строка правого потомка}
-        string leftStr = cToTex(node->left, type, false, config);
-        string rightStr = cToTex(node->right, type, true, config);
-        result = "\\frac{" + leftStr + "}{" + rightStr + "}";
-        return result;
+        return getDivOperationTeX(node, config, type);
     }
 
             // 8. Если узел является оператором возведения в степень (POW)
@@ -1798,4 +1782,25 @@ string getPlusOperationTeX(Node* node, const Config& config)
     string leftStr = getChildTexWithParens(node, node->left, false, config);
     string rightStr = getChildTexWithParens(node, node->right, true, config);
     return leftStr + " + " + rightStr;
+}
+
+string getDivOperationTeX(Node* node, const Config& config, TokenType type)
+{
+    // 1. Получение настройки для преобразования логарифмов
+    string logDivVal = config.paramMap.at("logDiv");
+
+    // 2. Проверка на logDiv (деление логарифмов с одинаковым основанием)
+    if (logDivVal == "logConverting")
+    {
+        string base, argument;
+        if (isLogDiv(node, base, argument, config))
+        {
+            return "\\log_{" + base + "}(" + argument + ")";
+        }
+    }
+
+    // 3. Обычное деление
+    string leftStr = cToTex(node->left, type, false, config);
+    string rightStr = cToTex(node->right, type, true, config);
+    return "\\frac{" + leftStr + "}{" + rightStr + "}";
 }
