@@ -687,46 +687,7 @@ string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config&
 
         // 3. Если узел является оператором умножения (MUL)
     case MUL: {
-        // 3.1. Если параметр отображения MulIdenVar имеет значение powVarN 
-        // и функция-детектор параметра отображения MulIdenVar вернула истинное значение (isMulIdenVar)
-        if (mulIdenVarVal == "powVarN") {
-            string operandStr;
-            int varCount = 0;
-            if (isMulIdenVar(node, operandStr, varCount, config)) {
-                // 3.1.1. Сгенерировать ТеХ-отображение узла как операнда в соответствующей степени
-                result = operandStr + "^{" + to_string(varCount) + "}";
-                return result;
-            }
-        }
-
-        // 3.2. Если параметр отображения arrMul имеет значение combineInMul 
-        // и функция-детектор параметра отображения arrMul вернула истинное значение (isArrOperation)
-        if (arrMulVal == "combineInMul") {
-            string arrayName;
-            int startIndex, endIndex;
-            vector<int> indexes;
-            bool arrayNameFound = false;
-
-            if (isArrOperation(node, MUL, arrayName, indexes, arrayNameFound)) {
-
-                // 3.2.1. Найти минимальный и максимальный индексы элементов массива  
-                startIndex = *min_element(indexes.begin(), indexes.end());
-                endIndex = *max_element(indexes.begin(), indexes.end());
-
-                // 3.2.3. Если индексы образуют непрерывную последовательность
-                if (isValidIndexRange(indexes, startIndex, endIndex)) {
-                    // 3.2.3.1. Сгенерировать ТеХ-отображение узла как произведение элементов массива
-                    result = "\\prod_{i=" + to_string(startIndex) + "}^{" + to_string(endIndex) + "} " + arrayName + "_{i}";
-                    return result;
-                }
-            }
-        }
-        // 3.3. Иначе сгенерировать ТеХ-отображение узла: 
-        // строка левого потомка с учётом скобок + «\cdot» + строка правого потомка с учётом скобок (getChildTexWithParens)
-        string leftStr = getChildTexWithParens(node, node->left, false, config);
-        string rightStr = getChildTexWithParens(node, node->right, true, config);
-        result = leftStr + " \\cdot " + rightStr;
-        return result;
+        return getMulOperationTeX(node, config);
     }
 
             // 4. Если узел является оператором сложения (PLUS), параметр отображения arrSum имеет значение combineInSum 
@@ -1792,4 +1753,46 @@ bool isValidIndexRange(const vector<int>& indexes, int startIndex, int endIndex)
     }
 
     return true;
+}
+
+string getMulOperationTeX(Node* node, const Config& config)
+{
+    // 1. Получение настроек конфигурации
+    string mulIdenVarVal = config.paramMap.at("mulIdenVar");
+    string arrMulVal = config.paramMap.at("arrMul");
+
+    // 2. Проверка на mulIdenVar (цепочка одинаковых умножений)
+    if (mulIdenVarVal == "powVarN")
+    {
+        string operandStr;
+        int varCount = 0;
+        if (isMulIdenVar(node, operandStr, varCount, config))
+        {
+            return operandStr + "^{" + to_string(varCount) + "}";
+        }
+    }
+
+    // 3. Проверка на arrMul (произведение элементов массива)
+    if (arrMulVal == "combineInMul")
+    {
+        string arrayName;
+        vector<int> indexes;
+        bool arrayNameFound = false;
+
+        if (isArrOperation(node, MUL, arrayName, indexes, arrayNameFound))
+        {
+            int startIndex = *min_element(indexes.begin(), indexes.end());
+            int endIndex = *max_element(indexes.begin(), indexes.end());
+
+            if (isValidIndexRange(indexes, startIndex, endIndex))
+            {
+                return "\\prod_{i=" + to_string(startIndex) + "}^{" + to_string(endIndex) + "} " + arrayName + "_{i}";
+            }
+        }
+    }
+
+    // 4. Обычное умножение
+    string leftStr = getChildTexWithParens(node, node->left, false, config);
+    string rightStr = getChildTexWithParens(node, node->right, true, config);
+    return leftStr + " \\cdot " + rightStr;
 }

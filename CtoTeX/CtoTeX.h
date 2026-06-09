@@ -577,3 +577,8 @@ bool getExponentFraction(Node* node, string& numerator, string& denominator);
 /// @return true, если индексы непрерывны, нет пропусков и дубликатов
 bool isValidIndexRange(const vector<int>& indexes, int startIndex, int endIndex);
 
+/// @brief Генерирует TeX для операции умножения
+/// @param node указатель на узел MUL
+/// @param config объект с настройками отображения
+/// @return TeX-строка умножения
+string getMulOperationTeX(Node* node, const Config& config);
