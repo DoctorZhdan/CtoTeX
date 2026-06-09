@@ -342,43 +342,16 @@ bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<
             }
         }
 
-        // 3.5. Если первый символ слова – буква:
-        if (!processed && isalpha(word[0]))
+        // Обработка переменной
+        if (!processed)
         {
-            // 3.5.1 Для каждого символа слова, начиная с позиции 1:
-            for (size_t j = 1; j < word.size(); j++)
+            if (parseVariable(word, tokens, errors, nodeCount))
             {
-                // 3.5.1.1 Если символ является буквой или цифрой, перейти к следующему символу
-                if (!(isalnum(word[j])))
-                {
-                    // 3.5.1.2 В противном случае считать символ недопустимым и занести соответствующую ошибку в вектор ошибок
-                    errors.push_back({ InvalidSymbol, (int)j, 1, word });
-                }
-                // 3.5.1.3 Перейти к следующему символу
+                processed = true;
             }
-
-            // 3.5.2 Если длина слова превышает 255 символов, занести соответствующую ошибку в вектор ошибок
-            if (word.size() > 255)
-            {
-                errors.push_back({ VariableNameTooLong, -1, (int)word.size(), word });
-            }
-
-            // 3.5.3 Если вектор ошибок пуст
-            if (errors.empty())
-            {
-                Token t{ VARIABLE, word, ARITHMETIC };
-
-                // 3.5.3.2 Добавить созданный токен в вектор токенов (tokens)
-                tokens.push_back(t);
-
-                // 3.5.3.3 Инкрементировать значение счётчика узлов
-                nodeCount++;
-            }
-
-            // 3.5.4 Перейти к обработке следующего слова
-            processed = true;
         }
 
+        // Обработка числа
         if (!processed)
         {
             if (parseNumber(word, tokens, errors, nodeCount))
@@ -1649,7 +1622,6 @@ bool parseOperator(const string& word, vector<Token>& tokens, int& nodeCount)
     return false;
 }
 
-
 bool checkOperatorSpacing(const string& word, vector<Error>& errors, const set<string>& allowedOperations)
 {
     // 1. Подсчёт количества операторов в слове 
@@ -1700,7 +1672,6 @@ bool checkOperatorSpacing(const string& word, vector<Error>& errors, const set<s
 
     return false;
 }
-
 
 bool parseNumber(const string& word, vector<Token>& tokens, vector<Error>& errors, int& nodeCount)
 {
@@ -1758,6 +1729,35 @@ bool parseNumber(const string& word, vector<Token>& tokens, vector<Error>& error
     if (errors.empty())
     {
         tokens.push_back({ NUMBER, word, ARITHMETIC });
+        nodeCount++;
+    }
+
+    return true;
+}
+
+bool parseVariable(const string& word, vector<Token>& tokens, vector<Error>& errors, int& nodeCount)
+{
+    // 1. Проверка: переменная должна начинаться с буквы
+    if (!isalpha(word[0]))
+        return false;
+
+    size_t errBefore = errors.size();
+
+    // 2. Проверка допустимых символов
+    for (size_t i = 1; i < word.size(); i++) {
+        if (!isalnum(word[i])) {
+            errors.push_back({ InvalidSymbol, (int)i, 1, word });
+        }
+    }
+
+    // 3. Ограничение длины имени
+    if (word.size() > 255) {
+        errors.push_back({ VariableNameTooLong, -1, (int)word.size(), word });
+    }
+
+    // 4. Если ошибок нет, добавляем токен
+    if (errors.size() == errBefore) {
+        tokens.push_back({ VARIABLE, word, ARITHMETIC });
         nodeCount++;
     }
 

@@ -459,3 +459,12 @@ bool checkOperatorSpacing(const string& word, vector<Error>& errors, const set<s
 /// @param nodeCount счЄтчик узлов 
 /// @return true, если слово обработано как число, иначе false
 bool parseNumber(const string& word, vector<Token>& tokens, vector<Error>& errors, int& nodeCount);
+
+
+/// @brief ѕровер€ет, €вл€етс€ ли слово переменной и добавл€ет токен
+/// @param word текущее слово 
+/// @param tokens вектор токенов 
+/// @param errors вектор ошибок 
+/// @param nodeCount счЄтчик узлов 
+/// @return true, если слово обработано как переменна€, иначе false
+bool parseVariable(const string& word, vector<Token>& tokens, vector<Error>& errors, int& nodeCount);
