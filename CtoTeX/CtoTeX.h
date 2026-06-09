@@ -443,14 +443,12 @@ string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config&
 /// @return true, если слово распознано как оператор/функция; false в противном случае
 bool parseOperator(const string& word, vector<Token>& tokens, int& nodeCount);
 
-
 /// @brief Проверяет корректность расположения операторов в слове 
 /// @param word текущее слово 
 /// @param errors вектор ошибок, в который добавляются найденные ошибки
 /// @param allowedOperations множество допустимых операторов
 /// @return true, если слово содержит ошибку, связанную с операторами; false в противном случае
 bool checkOperatorSpacing(const string& word, vector<Error>& errors, const set<string>& allowedOperations);
-
 
 /// @brief Проверяет, является ли слово числом и добавляет токен
 /// @param word текущее слово 
@@ -460,7 +458,6 @@ bool checkOperatorSpacing(const string& word, vector<Error>& errors, const set<s
 /// @return true, если слово обработано как число, иначе false
 bool parseNumber(const string& word, vector<Token>& tokens, vector<Error>& errors, int& nodeCount);
 
-
 /// @brief Проверяет, является ли слово переменной и добавляет токен
 /// @param word текущее слово 
 /// @param tokens вектор токенов 
@@ -469,14 +466,12 @@ bool parseNumber(const string& word, vector<Token>& tokens, vector<Error>& error
 /// @return true, если слово обработано как переменная, иначе false
 bool parseVariable(const string& word, vector<Token>& tokens, vector<Error>& errors, int& nodeCount);
 
-
 /// @brief Проверяет, является ли слово константой и добавляет токен
 /// @param word текущее слово
 /// @param tokens вектор токенов
 /// @param nodeCount счётчик узлов
 /// @return true, если слово обработано как константа, иначе false
 bool parseConstant(const string& word, vector<Token>& tokens, int& nodeCount);
-
 
 /// @brief Проверяет, является ли слово индексацией массива и добавляет соответствующие токены
 /// @param word текущее слово 
@@ -485,7 +480,6 @@ bool parseConstant(const string& word, vector<Token>& tokens, int& nodeCount);
 /// @param nodeCount счётчик узлов 
 /// @return true, если слово обработано как элемент массива, иначе false
 bool parseArray(const string& word, vector<Token>& tokens, vector<Error>& errors, int& nodeCount);
-
 
 /// @brief Разбивает строку выражения на слова по пробелам
 /// @param expression входная строка
@@ -500,14 +494,12 @@ void splitIntoWords(const string& expression, vector<string>& wordList);
 /// @return указатель на новый узел или nullptr при ошибке
 Node* processBinaryOperator(const Token& token, stack<Node*>& nodeStack, vector<Error>& errors);
 
-
 /// @brief Обрабатывает унарный оператор: извлекает один операнд из стека, проверяет тип, создаёт узел
 /// @param token токен оператора
 /// @param nodeStack стек узлов
 /// @param errors вектор ошибок
 /// @return указатель на новый узел или nullptr при ошибке
 Node* processUnaryOperator(const Token& token, stack<Node*>& nodeStack, vector<Error>& errors);
-
 
 /// @brief Обрабатывает токен-операнд (число, переменная, константа)
 /// @param token токен для обработки
@@ -529,3 +521,9 @@ void checkStackState(stack<Node*>& nodeStack, vector<Error>& errors);
 /// @param isRightChild флаг правого потомка
 /// @return true если скобки нужны, false если нет
 bool comparePrecedence(int parentPrec, int childPrec, bool parentLeftAssoc, bool isRightChild);
+
+
+/// @brief Преобразует имя константы в TeX-представление
+/// @param value имя константы 
+/// @return TeX-представление константы
+string getConstantTeX(const string& value);

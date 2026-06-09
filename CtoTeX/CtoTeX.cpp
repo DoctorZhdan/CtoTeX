@@ -662,14 +662,7 @@ string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config&
     TokenType type = node->token.type;
     if (type == NUMBER || type == VARIABLE || type == CONSTANT) {
         // 2.1. Вернуть ТеХ-отображение узла
-        if (type == CONSTANT) {
-            if (node->token.value == "pi") return "\\pi";
-            if (node->token.value == "phi") return "\\varphi";
-            if (node->token.value == "e") return "e";
-            if (node->token.value == "i") return "i";
-            if (node->token.value == "true") return "true";
-            if (node->token.value == "false") return "false";
-        }
+        return getConstantTeX(node->token.value);
 
         return node->token.value;
     }
@@ -1799,4 +1792,18 @@ bool comparePrecedence(int parentPrec, int childPrec, bool parentLeftAssoc, bool
     {
         return !isRightChild;
     }
+}
+
+
+
+
+string getConstantTeX(const string& value)
+{
+    if (value == "pi") return "\\pi";
+    if (value == "phi") return "\\varphi";
+    if (value == "e") return "e";
+    if (value == "i") return "i";
+    if (value == "true") return "true";
+    if (value == "false") return "false";
+    return value;
 }
