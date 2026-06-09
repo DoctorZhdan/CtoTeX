@@ -1829,10 +1829,10 @@ namespace UnitTestsCtoTex
             delete root;
         }
 
-        TEST_METHOD(AllTrigFunctions)
+        TEST_METHOD(AllTrigFunctionsInPower)
         {
-            // Сумма всех тригонометрических функций
-            string expr = "x #sin x #cos + x #tan + x #asin + x #acos + x #atan +";
+            // Тригонометрические функции в степени
+            string expr = "x #sin 2 #pow x #cos 2 #pow + x #tan 2 #pow + x #asin 2 #pow + x #acos 2 #pow + x #atan 2 #pow +";
 
             Node* root = nullptr;
             vector<Error> errors;
@@ -1842,14 +1842,15 @@ namespace UnitTestsCtoTex
             Assert::IsTrue(errors.empty());
 
             Config config;
+            config.paramMap["trigFunNoNegPow"] = "powAfterVar";
 
             string result = cToTex(root, UNKNOWN, false, config);
 
-            string expected = "\\sin x + \\cos x + \\tan x + \\arcsin x + \\arccos x + \\arctan x";
+            string expected = "\\sin x^{2} + \\cos x^{2} + \\tan x^{2} + \\arcsin x^{2} + \\arccos x^{2} + \\arctan x^{2}";
             Assert::AreEqual(expected, result);
 
             delete root;
-        } 
+        }
 
         TEST_METHOD(TrigFunction_NegativePower_NegPow)
         {
