@@ -539,3 +539,34 @@ string getTrigFunctionTeX(Node* node, const Config& config);
 /// @param config объект с настройками отображения
 /// @return TeX-строка логарифма 
 string getLogFunctionTeX(Node* node, const Config& config);
+
+/// @brief Генерирует TeX для тригонометрической функции, возведённой в степень
+/// @param node указатель на узел POW (левый потомок — тригонометрическая функция)
+/// @param config объект с настройками отображения
+/// @return TeX-строка 
+string getTrigPowerTeX(Node* node, const Config& config);
+
+/// @brief Генерирует TeX для дробной степени 
+/// @param node указатель на узел POW
+/// @param config объект с настройками отображения
+/// @return TeX-строка
+string* getFractionPowerTeX(Node* node, const Config& config, TokenType type);
+
+/// @brief Генерирует TeX для положительной степени
+/// @param node указатель на узел POW
+/// @param config объект с настройками отображения
+/// @return TeX-строка 
+string getRegularPowerTeX(Node* node, const Config& config, TokenType type);
+
+/// @brief Возвращает TeX-имя тригонометрической функции
+/// @param type тип узла
+/// @return TeX-имя функции
+string getTrigFunctionName(TokenType type);
+
+/// @brief Извлекает числитель и знаменатель из узла-деления в показателе степени
+/// @param node указатель на узел POW
+/// @param numerator выходной параметр для числителя
+/// @param denominator выходной параметр для знаменателя
+/// @return true, если правый потомок является делением двух чисел, иначе false
+bool getExponentFraction(Node* node, string& numerator, string& denominator);
+

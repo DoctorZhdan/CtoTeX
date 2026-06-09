@@ -884,177 +884,26 @@ string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config&
 
             // 8. Если узел является оператором возведения в степень (POW)
     case POW: {
-        // 8.1. Если левый потомок является тригонометрической функцией
+        // 1. Проверка на тригонометрическую функцию
         TokenType leftType = node->left->token.type;
         bool isTrig = (leftType == SIN || leftType == COS || leftType == TAN ||
             leftType == ASIN || leftType == ACOS || leftType == ATAN);
+        if (isTrig)
+        {
+            return getTrigPowerTeX(node, config);
+        }
 
-        if (isTrig) {
-            string trigFunc;
-            switch (leftType) {
-            case SIN: trigFunc = "\\sin"; break;
-            case COS: trigFunc = "\\cos"; break;
-            case TAN: trigFunc = "\\tan"; break;
-            case ASIN: trigFunc = "\\arcsin"; break;
-            case ACOS: trigFunc = "\\arccos"; break;
-            case ATAN: trigFunc = "\\arctan"; break;
-            default: break;
-            }
-
-            string exponent = node->right->token.value;
-            double expVal = stod(exponent);
-
-            // 8.1.1. Если параметр отображения trigFunNoNegPow имеет значение powAfterFun 
-            // и правый потомок является неотрицательным числом
-            if (expVal >= 0) {
-                if (trigFunNoNegPowVal == "powAfterFun") {
-                    // 8.1.1.1. Сгенерировать ТеХ-отображение узла:
-                    // тригонометрическая функция + «^{»  + правый потомок + «}» + левый потомок тригонометрической функции (getChildTexWithParens)
-                    temp = getChildTexWithParens(node->left, node->left->left, false, config);
-                    result = trigFunc + "^{" + exponent + "}" + temp;
-                    return result;
-                }
-                else {
-                    // 8.1.1.2. Иначе сгенерировать ТеХ-отображение узла:
-                    // тригонометрическая функция + левый потомок тригонометрической функции (getChildTexWithParens) + «^{»  + правый потомок + «}» 
-                    temp = getChildTexWithParens(node->left, node->left->left, false, config);
-                    result = trigFunc + " " + temp + "^{" + exponent + "}";
-                    return result;
-                }
-            }
-            // 8.1.2. Иначе если параметр отображения trigFunNegPow имеет значение divNoNegPow 
-            // и правый потомок является отрицательным числом (кроме -1)
-            else if (expVal < 0 && expVal != -1) {
-                if (trigFunNegPowVal == "divNoNegPow") {
-                    // 8.1.2.1. Сгенерировать ТеХ-отображение узла:
-                    // «\frac{1}{» + тригонометрическая функция + «(» + левый потомок тригонометрической функции + «)» + «^{» + число без знака минус + «}}»
-                    string absExp = exponent;
-                    if (!absExp.empty() && absExp[0] == '-')
-                    {
-                        absExp = absExp.substr(1);
-                    }
-
-                    temp = cToTex(node->left->left, leftType, false, config);
-                    result = "\\frac{1}{" + trigFunc + "(" + temp + ")^{" + absExp + "}}";
-                    return result;
-                }
-                else {
-                    // 8.1.2.2. Иначе сгенерировать ТеХ-отображение узла:
-                    // тригонометрическая функция + «(» + левый потомок тригонометрической функции + «)» + «^{» + число  + «}»
-                    temp = cToTex(node->left->left, type, false, config);
-                    result = trigFunc + "(" + temp + ")^{" + exponent + "}";
-                    return result;
-                }
-            }
-            // 8.1.3. Иначе если правый потомок является числом -1 и параметр отображения trigFunMinusOnePow имеет значение divNoNegPow
-            else if (expVal == -1) {
-                if (trigFunMinusOnePowVal == "divNoNegPow") {
-                    // 8.1.3.1. Сгенерировать ТеХ-отображение узла:
-                    // «\frac{1}{» + тригонометрическая функция + левый потомок тригонометрической функции (getChildTexWithParens) + «}» 
-                    temp = getChildTexWithParens(node->left, node->left->left, false, config);
-                    result = "\\frac{1}{" + trigFunc + " " + temp + "}";
-                    return result;
-                }
-                // 8.1.3.2.	Иначе если правый потомок является числом -1 
-                // и параметр отображения trigFunMinusOnePow имеет значение reverseFun
-                else if (trigFunMinusOnePowVal == "reverseFun") {
-                    // 8.1.3.2.1. Сгенерировать ТеХ-отображение узла как обратную тригонометрическую функцию с таким же аргументом
-                    temp = getChildTexWithParens(node->left, node->left->left, false, config);
-                    if (leftType == SIN) result = "\\arcsin " + temp;
-                    if (leftType == COS) result = "\\arccos " + temp;
-                    if (leftType == TAN) result = "\\arctan " + temp;
-                    return result;
-                }
-                // 8.1.3.3.	Иначе сгенерировать ТеХ-отображение узла как тригонометрическую функцию в степени -1
-                else {
-                    temp = getChildTexWithParens(node->left, node->left->left, false, config);
-                    result = trigFunc + " " + temp + "^{-1}";
-                    return result;
-                }
-            }
-            // 8.1.4. Иначе сгенерировать ТеХ-отображение узла: 
-            // тригонометрическая функция + левый потомок тригонометрической функции (getChildTexWithParens) + «^{» + правый потомок + «}»
-            temp = getChildTexWithParens(node, node->left, false, config);
-            result = trigFunc + temp + "^{" + exponent + "}";
+        // 2. Проверка на дробную степень
+        string* fractionResult = getFractionPowerTeX(node, config, type);
+        if (fractionResult != nullptr)
+        {
+            string result = *fractionResult;
+            delete fractionResult;
             return result;
         }
 
-        // 8.2. Если правый потомок 0.5 (или 1/2)
-        string exponent = cToTex(node->right, type, true, config);
-        if (exponent == "0.5" || exponent == "1/2") {
-            // 8.2.1. Если значение параметра отображения zeroPointFivePow имеет значение powToSqrt
-            if (zeroPointFivePowVal == "powToSqrt") {
-                // 8.2.1.1. Сгенерировать ТеХ-отображение узла: «\sqrt{» + левый потомок + «}»
-                temp = cToTex(node->left, type, false, config);
-                result = "\\sqrt{" + temp + "}";
-                return result;
-            }
-            else {
-                // 8.2.1.2. Иначе сгенерировать ТеХ-отображение узла: 
-                result = cToTex(node->left, type, false, config) + "^{" + exponent + "}";
-                return result;
-            }
-        }
-
-        // 8.3. Если правый потомок 1/n (кроме n = 2)
-        if (node->right->token.type == DIV)
-        {
-            Node* numeratorNode = node->right->left;
-            Node* denominatorNode = node->right->right;
-
-            if (numeratorNode && denominatorNode &&
-                numeratorNode->token.type == NUMBER &&
-                denominatorNode->token.type == NUMBER)
-            {
-                string numerator = numeratorNode->token.value;
-                string denominator = denominatorNode->token.value;
-
-                // 8.3.1. Если параметр отображения oneDivNPow имеет значение powToSqrt
-                if (oneDivNPowVal == "powToSqrt")
-                {
-                    if (numerator == "1" && denominator != "2")
-                    {
-                        // 8.3.1.1. Сгенерировать ТеХ-отображение узла: «\sqrt[» + число n + «]{» + левый потомок + «}»
-                        temp = cToTex(node->left, type, false, config);
-                        result = "\\sqrt[" + denominator + "]{" + temp + "}";
-                        return result;
-                    }
-                }
-            }
-        }
-
-        // 8.4. Если правый потомок a/b (кроме a=1 и b=2)
-        if (node->right->token.type == DIV)
-        {
-            Node* numeratorNode = node->right->left;
-            Node* denominatorNode = node->right->right;
-
-            if (numeratorNode && denominatorNode &&
-                numeratorNode->token.type == NUMBER &&
-                denominatorNode->token.type == NUMBER)
-            {
-                string numerator = numeratorNode->token.value;
-                string denominator = denominatorNode->token.value;
-
-                // 8.4.1. Если параметр отображения abPow имеет значение powToSqrt
-                if (abPowVal == "powToSqrt")
-                {
-                    if (numerator != "1" || denominator != "2")
-                    {
-                        // 8.4.1.1. Сгенерировать ТеХ-отображение узла:
-                        // «\sqrt[» + число b + «]{» + левый потомок + «^{» + число a + «}}»
-                        temp = cToTex(node->left, type, false, config);
-                        result = "\\sqrt[" + denominator + "]{" + temp + "^{" + numerator + "}}";
-                        return result;
-                    }
-                }
-            }
-        }
-
-        // 8.5. Если ни одно из условий не подошло 
-        // 8.5.1. Сгенерировать ТеХ-отображение узла: левый потомок + «^{» + правый потомок + «}»
-        result = cToTex(node->left, type, false, config) + "^{" + exponent + "}";
-        return result;
+        // 3. Обычная степень
+        return getRegularPowerTeX(node, config, type);
     }
 
             // 9. Если узел является оператором извлечения квадратного корня (SQRT) и параметр squareRoot имеет значение sqrtToPow
@@ -1806,4 +1655,180 @@ string getLogFunctionTeX(Node* node, const Config& config)
         // Десятичный логарифм
         return "\\log_{10}(" + argStr + ")";
     }
+}
+
+string getTrigPowerTeX(Node* node, const Config& config)
+{
+    // 1. Получение параметров
+    TokenType leftType = node->left->token.type;
+    string exponent = node->right->token.value;
+    double expVal = stod(exponent);
+
+    // 2. Определение TeX-имени тригонометрической функции 
+    string trigFunc = getTrigFunctionName(leftType);
+    if (trigFunc.empty()) return "";  // неизвестный тип
+
+    // 3. Получение настроек конфигурации для тригонометрических функций
+    string trigFunNoNegPowVal = config.paramMap.at("trigFunNoNegPow");       // неотрицательная степень
+    string trigFunNegPowVal = config.paramMap.at("trigFunNegPow");           // отрицательная степень (кроме -1)
+    string trigFunMinusOnePowVal = config.paramMap.at("trigFunMinusOnePow"); // степень -1
+
+    string temp;  
+
+    // 4. Обработка в зависимости от значения степени
+
+    // 4.1. Неотрицательная степень 
+    if (expVal >= 0)
+    {
+        // Получение строки аргумента 
+        temp = getChildTexWithParens(node->left, node->left->left, false, config);
+
+        if (trigFunNoNegPowVal == "powAfterFun")
+        {
+            // Степень перед аргументом
+            return trigFunc + "^{" + exponent + "}" + temp;
+        }
+        else
+        {
+            // Степень после аргумента 
+            return trigFunc + " " + temp + "^{" + exponent + "}";
+        }
+    }
+    // 4.2. Отрицательная степень (кроме -1)
+    else if (expVal < 0 && expVal != -1)
+    {
+        // Удаляем знак минуса для вывода положительной степени в знаменателе
+        string absExp = (exponent[0] == '-') ? exponent.substr(1) : exponent;
+        temp = cToTex(node->left->left, leftType, false, config);
+
+        if (trigFunNegPowVal == "divNoNegPow")
+        {
+            // Дробь
+            return "\\frac{1}{" + trigFunc + "(" + temp + ")^{" + absExp + "}}";
+        }
+        else
+        {
+            // Отрицательная степень 
+            return trigFunc + "(" + temp + ")^{" + exponent + "}";
+        }
+    }
+    // 4.3. Степень -1 
+    else if (expVal == -1)
+    {
+        temp = getChildTexWithParens(node->left, node->left->left, false, config);
+
+        if (trigFunMinusOnePowVal == "divNoNegPow")
+        {
+            // Дробь
+            return "\\frac{1}{" + trigFunc + " " + temp + "}";
+        }
+        else if (trigFunMinusOnePowVal == "reverseFun")
+        {
+            // Обратная функция
+            if (leftType == SIN) return "\\arcsin " + temp;
+            if (leftType == COS) return "\\arccos " + temp;
+            if (leftType == TAN) return "\\arctan " + temp;
+        }
+        // Степень -1 
+        return trigFunc + " " + temp + "^{-1}";
+    }
+
+    // 5. Стандартный случай (если ни одно условие не подошло)
+    temp = getChildTexWithParens(node, node->left, false, config);
+    return trigFunc + temp + "^{" + exponent + "}";
+}
+
+string* getFractionPowerTeX(Node* node, const Config& config, TokenType type)
+{
+    string exponent = cToTex(node->right, type, true, config);
+    string temp = cToTex(node->left, type, false, config);
+
+    // 1. Степень 0.5 (или 1/2)
+    if (exponent == "0.5" || exponent == "1/2")
+    {
+        string zeroPointFivePowVal = config.paramMap.at("zeroPointFivePow");
+        if (zeroPointFivePowVal == "powToSqrt")
+        {
+            return new string("\\sqrt{" + temp + "}");
+        }
+        else
+        {
+            return new string(cToTex(node->left, type, false, config) + "^{" + exponent + "}");
+        }
+    }
+
+    // 2. Извлечение числителя и знаменателя
+    string numerator, denominator;
+    if (!getExponentFraction(node, numerator, denominator))
+    {
+        return nullptr;
+    }
+
+    // 3. Степень 1/n (кроме n = 2)
+    if (numerator == "1" && denominator != "2")
+    {
+        string oneDivNPowVal = config.paramMap.at("oneDivNPow");
+        if (oneDivNPowVal == "powToSqrt")
+        {
+            return new string("\\sqrt[" + denominator + "]{" + temp + "}");
+        }
+    }
+
+    // 4. Степень a/b (кроме a=1 и b=2)
+    if (numerator != "1" || denominator != "2")
+    {
+        string abPowVal = config.paramMap.at("abPow");
+        if (abPowVal == "powToSqrt")
+        {
+            return new string("\\sqrt[" + denominator + "]{" + temp + "^{" + numerator + "}}");
+        }
+    }
+
+    return nullptr;
+}
+
+string getRegularPowerTeX(Node* node, const Config& config, TokenType type)
+{
+    string exponent = cToTex(node->right, type, true, config);
+    return cToTex(node->left, type, false, config) + "^{" + exponent + "}";
+}
+
+string getTrigFunctionName(TokenType type)
+{
+    switch (type)
+    {
+    case SIN:  return "\\sin";
+    case COS:  return "\\cos";
+    case TAN:  return "\\tan";
+    case ASIN: return "\\arcsin";
+    case ACOS: return "\\arccos";
+    case ATAN: return "\\arctan";
+    default:   return "";
+    }
+}
+
+bool getExponentFraction(Node* node, string& numerator, string& denominator)
+{
+    // 1. Проверка, что правый потомок является оператором деления
+    if (node->right->token.type != DIV)
+    {
+        return false;
+    }
+
+    Node* numeratorNode = node->right->left;
+    Node* denominatorNode = node->right->right;
+
+    // 2. Проверка, что оба потомка существуют и являются числами
+    if (!numeratorNode || !denominatorNode ||
+        numeratorNode->token.type != NUMBER ||
+        denominatorNode->token.type != NUMBER)
+    {
+        return false;
+    }
+
+    // 3. Извлечение значений
+    numerator = numeratorNode->token.value;
+    denominator = denominatorNode->token.value;
+
+    return true;
 }
