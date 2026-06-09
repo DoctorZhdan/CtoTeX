@@ -379,71 +379,12 @@ bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<
             processed = true;
         }
 
-        // 3.6. Если первый символ слова – цифра или если длина слова больше 1 и первый символ – минус, а второй – цифра  
-        bool isNumberStart = isdigit(word[0]) || (word.size() > 1 && word[0] == '-' && isdigit(word[1]));
-        if (!processed && isNumberStart)
+        if (!processed)
         {
-            // 3.6.1 Считать, что точка ещё не встречалась в слове
-            bool dotFound = false;
-            int dotPos = -1;
-
-            // 3.6.2 Для каждого символа слова, начиная с позиции 1:
-            for (size_t k = 1; k < word.size(); k++)
+            if (parseNumber(word, tokens, errors, nodeCount))
             {
-                // 3.6.2.1 Если символ является цифрой, перейти к следующему символу
-                if (isdigit(word[k]))
-                {
-                }
-                // 3.6.2.2 Если символ является точкой, и точка ещё не встречалась в слове, запомнить местоположение точки и перейти к следующему символу
-                else if (word[k] == '.' && !dotFound)
-                {
-                    dotFound = true;
-                    dotPos = k;
-                }
-                // 3.6.2.3 В противном случае считать символ недопустимым и занести соответствующую ошибку в вектор ошибок
-                else {
-                    errors.push_back({ InvalidSymbolSequence, (int)k, 1, word });
-                }
-                // 3.6.2.4 Перейти к следующему символу
+                processed = true;
             }
-
-            // 3.6.3 Если в слове есть точка
-            if (dotFound)
-            {
-                // 3.6.3.1 Если число символов после точки превышает 8, занести соответствующую ошибку в вектор ошибок
-                int afterSym = word.size() - dotPos - 1;
-                if (afterSym > 8)
-                {
-                    errors.push_back({ TooManyDecimalDigits, dotPos + 1, afterSym, word });
-                }
-            }
-
-            // 3.6.4 Если число не входит в диапазон [-2*10^9, 2*10^9], занести соответствующую ошибку в вектор ошибок
-            try {
-                double val = stod(word);
-                if (val < -2e9 || val > 2e9)
-                {
-                    errors.push_back({ IntegerOverflow, -1, (int)word.size(), word });
-                }
-            }
-            catch (...) {
-                errors.push_back({ InvalidSymbolSequence, -1, (int)word.size(), word });
-            }
-
-            // 3.6.5 Если вектор ошибок пуст
-            if (errors.empty())
-            {
-                Token t{ NUMBER, word, ARITHMETIC };
-
-                // 3.6.5.2 Добавить созданный токен в вектор токенов (tokens)
-                tokens.push_back(t);
-
-                // 3.6.5.3 Инкрементировать значение счётчика узлов
-                nodeCount++;
-            }
-
-            // 3.6.6 Перейти к обработке следующего слова
-            processed = true;
         }
 
         // 3.7 В противном случае считать, что слово начинается с недопустимого символа
@@ -1758,4 +1699,67 @@ bool checkOperatorSpacing(const string& word, vector<Error>& errors, const set<s
     }
 
     return false;
+}
+
+
+bool parseNumber(const string& word, vector<Token>& tokens, vector<Error>& errors, int& nodeCount)
+{
+    // 1. Проверка, может ли слово быть числом
+    bool isNumberStart = isdigit(word[0]) ||
+        (word.size() > 1 && word[0] == '-' && isdigit(word[1]));
+
+    if (!isNumberStart)
+        return false;
+
+    // 2. Проверка структуры числа
+    bool dotFound = false;
+    int dotPos = -1;
+
+    for (size_t i = 1; i < word.size(); i++)
+    {
+        if (isdigit(word[i])) {}
+
+        else if (word[i] == '.' && !dotFound)
+        {
+            dotFound = true;
+            dotPos = i;
+        }
+
+        else
+        {
+            errors.push_back({ InvalidSymbolSequence, (int)i, 1, word });
+        }
+    }
+
+    // 3. Проверка количества знаков после запятой
+    if (dotFound)
+    {
+        int after = word.size() - dotPos - 1;
+        if (after > 8)
+        {
+            errors.push_back({ TooManyDecimalDigits, dotPos + 1, after, word });
+        }
+    }
+
+    // 4. Проверка диапазона
+    try {
+        double val = stod(word);
+        if (val < -2e9 || val > 2e9)
+        {
+            errors.push_back({ IntegerOverflow, -1, (int)word.size(), word });
+        }
+    }
+    catch (...)
+    {
+        errors.push_back({ InvalidSymbolSequence, -1, (int)word.size(), word });
+    }
+
+    // 5. Если ошибок нет, добавляем токен
+    if (errors.empty())
+    {
+        tokens.push_back({ NUMBER, word, ARITHMETIC });
+        nodeCount++;
+    }
+
+    return true;
 }

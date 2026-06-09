@@ -450,3 +450,12 @@ bool parseOperator(const string& word, vector<Token>& tokens, int& nodeCount);
 /// @param allowedOperations множество допустимых операторов
 /// @return true, если слово содержит ошибку, связанную с операторами; false в противном случае
 bool checkOperatorSpacing(const string& word, vector<Error>& errors, const set<string>& allowedOperations);
+
+
+/// @brief Проверяет, является ли слово числом и добавляет токен
+/// @param word текущее слово 
+/// @param tokens вектор токенов 
+/// @param errors вектор ошибок
+/// @param nodeCount счётчик узлов 
+/// @return true, если слово обработано как число, иначе false
+bool parseNumber(const string& word, vector<Token>& tokens, vector<Error>& errors, int& nodeCount);
