@@ -582,3 +582,10 @@ bool isValidIndexRange(const vector<int>& indexes, int startIndex, int endIndex)
 /// @param config объект с настройками отображения
 /// @return TeX-строка умножения
 string getMulOperationTeX(Node* node, const Config& config);
+
+/// @brief Генерирует TeX для операции сложения
+/// @param node указатель на узел PLUS
+/// @param config объект с настройками отображения
+/// @return TeX-строка сложения
+string getPlusOperationTeX(Node* node, const Config& config);
+

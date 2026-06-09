@@ -690,38 +690,9 @@ string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config&
         return getMulOperationTeX(node, config);
     }
 
-            // 4. Если узел является оператором сложения (PLUS), параметр отображения arrSum имеет значение combineInSum 
-            // и функция-детектор параметра отображения arrSum вернула истинное значение (isArrOperation)
+            // 4. Если узел является оператором сложения (PLUS)
     case PLUS: {
-        if (arrSumVal == "combineInSum") {
-            string arrayName;
-            int startIndex = 0;
-            int endIndex = 0;
-            vector<int> indexes;
-            bool arrayNameFound = false;
-            if (isArrOperation(node, PLUS, arrayName, indexes, arrayNameFound))
-            {
-                // 4.1. Найти минимальный и максимальный индексы элементов массива
-                startIndex = *min_element(indexes.begin(), indexes.end());
-                endIndex = *max_element(indexes.begin(), indexes.end());
-
-                // 4.3. Если индексы образуют непрерывную последовательность
-                if (isValidIndexRange(indexes, startIndex, endIndex)) {
-                    // 4.3.1. Сгенерировать ТеХ-отображение узла как сумму элементов массива
-                    result = "\\sum_{i=" + to_string(startIndex) + "}^{" + to_string(endIndex) + "} " + arrayName + "_{i}";
-                    return result;
-                }
-
-
-            }
-        }
-
-        // 4.4. Иначе сгенерировать ТеХ-отображение узла: 
-        // строка левого потомка с учётом скобок + «+» + строка правого потомка с учётом скобок (getChildTexWithParens)
-        string leftStr = getChildTexWithParens(node, node->left, false, config);
-        string rightStr = getChildTexWithParens(node, node->right, true, config);
-        result = leftStr + " + " + rightStr;
-        return result;
+        return getPlusOperationTeX(node, config);
     }
 
              // 5. Если узел является оператором вычитания (MINUS)
@@ -1795,4 +1766,36 @@ string getMulOperationTeX(Node* node, const Config& config)
     string leftStr = getChildTexWithParens(node, node->left, false, config);
     string rightStr = getChildTexWithParens(node, node->right, true, config);
     return leftStr + " \\cdot " + rightStr;
+}
+
+string getPlusOperationTeX(Node* node, const Config& config)
+{
+    // 1. Получение настройки для суммы массива
+    string arrSumVal = config.paramMap.at("arrSum");
+
+    // 2. Проверка на arrSum (сумма элементов массива)
+    if (arrSumVal == "combineInSum")
+    {
+        string arrayName;
+        vector<int> indexes;
+        bool arrayNameFound = false;
+
+        if (isArrOperation(node, PLUS, arrayName, indexes, arrayNameFound))
+        {
+            // 2.1. Найти минимальный и максимальный индексы
+            int startIndex = *min_element(indexes.begin(), indexes.end());
+            int endIndex = *max_element(indexes.begin(), indexes.end());
+
+            // 2.2. Проверить непрерывность индексов
+            if (isValidIndexRange(indexes, startIndex, endIndex))
+            {
+                return "\\sum_{i=" + to_string(startIndex) + "}^{" + to_string(endIndex) + "} " + arrayName + "_{i}";
+            }
+        }
+    }
+
+    // 3. Обычное сложение 
+    string leftStr = getChildTexWithParens(node, node->left, false, config);
+    string rightStr = getChildTexWithParens(node, node->right, true, config);
+    return leftStr + " + " + rightStr;
 }
