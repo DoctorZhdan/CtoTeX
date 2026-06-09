@@ -1099,18 +1099,10 @@ string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config&
         return getTrigFunctionTeX(node, config);
     }
 
-             // 18. Если узел является оператором логарифма (LOG)
-    case LOG: {
-        // 18.1. Сгенерировать ТеХ-отображение узла
-        result = "\\ln(" + cToTex(node->left, type, false, config) + ")";
-        return result;
-    }
-
-            // 19. Если узел является оператором десятичного логарифма (LOG10)
+             // 13. Если узел является оператором логарифма 
+    case LOG:
     case LOG10: {
-        // 19.1. Сгенерировать ТеХ-отображение узла
-        result = "\\log_{10}(" + cToTex(node->left, type, false, config) + ")";
-        return result;
+        return getLogFunctionTeX(node, config);
     }
 
               // 20. Если узел является оператором экспоненты (EXP)
@@ -1770,7 +1762,6 @@ string getConstantTeX(const string& value)
     return value;
 }
 
-
 string getTrigFunctionTeX(Node* node, const Config& config)
 {
     // 1. Определение типа тригонометрической функции
@@ -1794,4 +1785,25 @@ string getTrigFunctionTeX(Node* node, const Config& config)
 
     // 4. Формирование итоговой строки: \sin(x)
     return funcName + " " + argStr;
+}
+
+string getLogFunctionTeX(Node* node, const Config& config)
+{
+    // 1. Определение типа логарифма
+    TokenType type = node->token.type;
+
+    // 2. Получение TeX-строки аргумента
+    string argStr = cToTex(node->left, type, false, config);
+
+    // 3. Формирование итоговой строки в зависимости от основания
+    if (type == LOG)
+    {
+        // Натуральный логарифм
+        return "\\ln(" + argStr + ")";
+    }
+    else 
+    {
+        // Десятичный логарифм
+        return "\\log_{10}(" + argStr + ")";
+    }
 }

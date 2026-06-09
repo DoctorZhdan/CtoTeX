@@ -533,3 +533,9 @@ string getConstantTeX(const string& value);
 /// @param config объект с настройками отображения
 /// @return TeX-строка тригонометрической функции
 string getTrigFunctionTeX(Node* node, const Config& config);
+
+/// @brief Генерирует TeX-представление логарифма
+/// @param node указатель на узел логарифма
+/// @param config объект с настройками отображения
+/// @return TeX-строка логарифма 
+string getLogFunctionTeX(Node* node, const Config& config);
