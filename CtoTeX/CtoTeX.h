@@ -485,3 +485,9 @@ bool parseConstant(const string& word, vector<Token>& tokens, int& nodeCount);
 /// @param nodeCount счётчик узлов 
 /// @return true, если слово обработано как элемент массива, иначе false
 bool parseArray(const string& word, vector<Token>& tokens, vector<Error>& errors, int& nodeCount);
+
+
+/// @brief Разбивает строку выражения на слова по пробелам
+/// @param expression входная строка
+/// @param wordList вектор для заполнения словами 
+void splitIntoWords(const string& expression, vector<string>& wordList);

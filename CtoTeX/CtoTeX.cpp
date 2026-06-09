@@ -184,25 +184,7 @@ bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<
 {
     // 1. Разбить строку expression на слова по пробелам, сохранить в список слов (wordList)
     vector<string> wordList;
-    string currentWord = "";
-    for (int i = 0; i < expression.size(); i++)
-    {
-        if (expression[i] == ' ')
-        {
-            if (!currentWord.empty())
-            {
-                wordList.push_back(currentWord);
-                currentWord = "";
-            }
-        }
-        else {
-            currentWord += expression[i];
-        }
-    }
-    if (!currentWord.empty())
-    {
-        wordList.push_back(currentWord);
-    }
+    splitIntoWords(expression, wordList);
 
     // 2. Установить нулевое значение счётчика узлов (nodeCount = 0)
     int nodeCount = 0;
@@ -1756,4 +1738,35 @@ bool parseArray(const string& word, vector<Token>& tokens, vector<Error>& errors
     nodeCount += 3;
 
     return true;
+}
+
+void splitIntoWords(const string& expression, vector<string>& wordList)
+{
+    string currentWord = ""; 
+
+    // Для каждого символа строки
+    for (int i = 0; i < expression.size(); i++)
+    {
+        // Если встретили пробел
+        if (expression[i] == ' ')
+        {
+            // Если текущее слово пустое, добавляем слово в список
+            if (!currentWord.empty())
+            {
+                wordList.push_back(currentWord);
+                currentWord = "";  
+            }
+        }
+        else
+        {
+            // Иначе добавляем символ к текущему слову
+            currentWord += expression[i];
+        }
+    }
+
+    // Добавляем последнее слово, если оно есть
+    if (!currentWord.empty())
+    {
+        wordList.push_back(currentWord);
+    }
 }
