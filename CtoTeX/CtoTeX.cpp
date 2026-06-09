@@ -229,37 +229,12 @@ bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<
             }
         }
         
-
-        // 3.2. Если слово входит в список допустимых констант (allowedConstants): 
-        if (!processed && allowedConstants.find(word) != allowedConstants.end())
+        // 3.2. Обработка константы
+        if (!processed && parseConstant(word, tokens, nodeCount))
         {
-            // 3.2.1 Если вектор ошибок пуст
-            if (errors.empty())
-            {
-                Token t;
-                t.type = CONSTANT;
-                t.value = word;
-
-                // 3.2.1.1 Если слово совпадает с "true" или "false", создать токен типа CONSTANT и установить логическое значение типа операнда (operandType = LOGICAL)
-                if (word == "true" || word == "false")
-                {
-                    t.operandType = LOGICAL;
-                }
-                // 3.2.1.2 Иначе создать токен типа CONSTANT и установить арифметическое значение типа операнда (operandType = ARITHMETIC)
-                else
-                {
-                    t.operandType = ARITHMETIC;
-                }
-
-                // 3.2.1.3 Добавить созданный токен в вектор токенов (tokens)
-                tokens.push_back(t);
-
-                // 3.2.1.4 Инкрементировать значение счётчика узлов
-                nodeCount++;
-            }
-            // 3.2.2 Перейти к обработке следующего слова
             processed = true;
         }
+
 
         // 3.4 Если слово содержит '[' и ']'
         if (!processed && word.find('[') != string::npos && word.find(']') != string::npos)
@@ -342,7 +317,7 @@ bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<
             }
         }
 
-        // Обработка переменной
+        // 3.5. Обработка переменной
         if (!processed)
         {
             if (parseVariable(word, tokens, errors, nodeCount))
@@ -351,7 +326,7 @@ bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<
             }
         }
 
-        // Обработка числа
+        // 3.6. Обработка числа
         if (!processed)
         {
             if (parseNumber(word, tokens, errors, nodeCount))
@@ -1760,6 +1735,33 @@ bool parseVariable(const string& word, vector<Token>& tokens, vector<Error>& err
         tokens.push_back({ VARIABLE, word, ARITHMETIC });
         nodeCount++;
     }
+
+    return true;
+}
+
+
+bool parseConstant(const string& word, vector<Token>& tokens, int& nodeCount)
+{
+    // Проверка, входит ли слово в список допустимых констант
+    if (allowedConstants.find(word) == allowedConstants.end())
+        return false;
+
+    Token t;
+    t.type = CONSTANT;
+    t.value = word;
+
+    // Определение типа операнда
+    if (word == "true" || word == "false")
+    {
+        t.operandType = LOGICAL;
+    }
+    else
+    {
+        t.operandType = ARITHMETIC;
+    }
+
+    tokens.push_back(t);
+    nodeCount++;
 
     return true;
 }
