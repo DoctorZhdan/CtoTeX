@@ -1793,6 +1793,147 @@ namespace UnitTestsCtoTex
             delete root;
         }
 
+        TEST_METHOD(AllTrigFunctions)
+        {
+            // Сумма всех тригонометрических функций
+            string expr = "x #sin x #cos + x #tan + x #asin + x #acos + x #atan +";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Assert::IsTrue(errors.empty());
+
+            Config config;
+
+            string result = cToTex(root, UNKNOWN, false, config);
+
+            string expected = "\\sin x + \\cos x + \\tan x + \\arcsin x + \\arccos x + \\arctan x";
+            Assert::AreEqual(expected, result);
+
+            delete root;
+        } 
+
+        TEST_METHOD(TrigFunction_NegativePower_NegPow)
+        {
+            // Тригонометрическая функция в отрицательной степени 
+            string expr = "x #sin -2 #pow";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Assert::IsTrue(errors.empty());
+
+            Config config;
+            config.paramMap["trigFunNegPow"] = "negPow";  
+
+            string result = cToTex(root, UNKNOWN, false, config);
+
+            
+            string expected = "\\sin(x)^{-2}";
+            Assert::AreEqual(expected, result);
+
+            delete root;
+        }
+
+
+        TEST_METHOD(TrigFunction_MinusOnePower_DivNoNegPow)
+        {
+            // Тригонометрическая функция в степени -1 с настройкой trigFunMinusOnePow = divNoNegPow
+            string expr = "x #sin -1 #pow";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Assert::IsTrue(errors.empty());
+
+            Config config;
+            config.paramMap["trigFunMinusOnePow"] = "divNoNegPow";
+
+            string result = cToTex(root, UNKNOWN, false, config);
+
+            string expected = "\\frac{1}{\\sin x}";
+            Assert::AreEqual(expected, result);
+
+            delete root;
+        }
+
+
+        TEST_METHOD(TrigFunction_MinusOnePower_NegPow)
+        {
+            // Тригонометрическая функция в степени -1 с настройкой trigFunMinusOnePow = negPow 
+            string expr = "x #sin -1 #pow";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Assert::IsTrue(errors.empty());
+
+            Config config;
+            config.paramMap["trigFunMinusOnePow"] = "negPow";  
+
+            string result = cToTex(root, UNKNOWN, false, config);
+
+            
+            string expected = "\\sin x^{-1}";
+            Assert::AreEqual(expected, result);
+
+            delete root;
+        }
+
+
+        TEST_METHOD(TrigFunction_PositivePower_Default)
+        {
+            // Тригонометрическая функция в положительной степени с настройками trigFunNoNegPow = powAfterVar
+            string expr = "x #sin 2 #pow";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Assert::IsTrue(errors.empty());
+
+            Config config;
+
+            string result = cToTex(root, UNKNOWN, false, config);
+
+            string expected = "\\sin x^{2}";
+            Assert::AreEqual(expected, result);
+
+            delete root;
+        }
+
+        TEST_METHOD(Power_ZeroPointFive_WithoutChanges)
+        {
+            // x^{0.5} с настройкой zeroPointFivePow = withoutChanges 
+            string expr = "x 0.5 #pow";
+
+            Node* root = nullptr;
+            vector<Error> errors;
+
+            bool ok = buildTree(expr, root, operatorInfo, errors);
+            Assert::IsTrue(ok);
+            Assert::IsTrue(errors.empty());
+
+            Config config;
+            config.paramMap["zeroPointFivePow"] = "withoutChanges";  
+
+            string result = cToTex(root, UNKNOWN, false, config);
+
+            string expected = "x^{0.5}";
+            Assert::AreEqual(expected, result);
+
+            delete root;
+        }
+
 
     };
 

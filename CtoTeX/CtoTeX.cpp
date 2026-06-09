@@ -1433,7 +1433,7 @@ string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config&
                 else {
                     // 8.1.2.2. Иначе сгенерировать ТеХ-отображение узла:
                     // тригонометрическая функция + «(» + левый потомок тригонометрической функции + «)» + «^{» + число  + «}»
-                    temp = cToTex(node->left, type, false, config);
+                    temp = cToTex(node->left->left, type, false, config);
                     result = trigFunc + "(" + temp + ")^{" + exponent + "}";
                     return result;
                 }
@@ -1444,7 +1444,7 @@ string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config&
                     // 8.1.3.1. Сгенерировать ТеХ-отображение узла:
                     // «\frac{1}{» + тригонометрическая функция + левый потомок тригонометрической функции (getChildTexWithParens) + «}» 
                     temp = getChildTexWithParens(node->left, node->left->left, false, config);
-                    result = "\\frac{1}{" + trigFunc + temp + "}";
+                    result = "\\frac{1}{" + trigFunc + " " + temp + "}";
                     return result;
                 }
                 // 8.1.3.2.	Иначе если правый потомок является числом -1 
@@ -1459,8 +1459,8 @@ string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config&
                 }
                 // 8.1.3.3.	Иначе сгенерировать ТеХ-отображение узла как тригонометрическую функцию в степени -1
                 else {
-                    temp = getChildTexWithParens(node, node->left, false, config);
-                    result = trigFunc + temp + "^{-1}";
+                    temp = getChildTexWithParens(node->left, node->left->left, false, config);
+                    result = trigFunc + " " + temp + "^{-1}";
                     return result;
                 }
             }
