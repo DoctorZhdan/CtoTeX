@@ -321,92 +321,14 @@ bool buildTree(const string& expression, Node*& root, const map<TokenType, Opera
             Node* newNode = nullptr;
 
             // 4.2.2. Если арность равна 2:
-            if (operatorFound && arity == 2) {
-
-                // 4.2.2.1. Если в nodeStack меньше 2 узлов
-                if (nodeStack.size() < 2) {
-                    // 4.2.2.1.1. Добавить ошибку NotEnoughOperands в вектор ошибок
-                    Error err;
-                    err.code = NotEnoughOperands;
-                    errors.push_back(err);
-                }
-                else {
-                    // 4.2.2.2. Извлечь из стека right узел
-                    Node* right = nodeStack.top();
-                    nodeStack.pop();
-
-                    // 4.2.2.3. Извлечь из стека left узел
-                    Node* left = nodeStack.top();
-                    nodeStack.pop();
-
-                    // 4.2.2.4. Если типы операндов и операции не совместимы между собой
-                    auto opIt = operationTypes.find(token.type);
-
-                    if (opIt != operationTypes.end()) {
-                        bool compatible = false;
-
-                        for (const auto& sig : opIt->second.allowedSignatures) {
-                            if (sig.size() == 2) {
-                                if (sig[0] == left->token.operandType &&
-                                    sig[1] == right->token.operandType) {
-                                    compatible = true;
-                                }
-                            }
-                        }
-
-                        if (!compatible) {
-                            // 4.2.2.4.1. Добавить ошибку MismatchedOperandTypes в вектор ошибок
-                            Error err;
-                            err.code = MismatchedOperandTypes;
-                            errors.push_back(err);
-                        }
-                    }
-
-                    // 4.2.2.5. Создать новый узел с токеном, установить left и right
-                    newNode = new Node(token, left, right);
-                }
+            if (operatorFound && arity == 2)
+            {
+                newNode = processBinaryOperator(token, nodeStack, errors);
             }
-
             // 4.2.3. Если арность равна 1:
-            else if (operatorFound && arity == 1) {
-
-                // 4.2.3.1. Если в nodeStack меньше 1 узла
-                if (nodeStack.size() < 1) {
-                    // 4.2.3.1.1. Добавить ошибку NotEnoughOperands в вектор ошибок
-                    Error err;
-                    err.code = NotEnoughOperands;
-                    errors.push_back(err);
-                }
-                else {
-                    // 4.2.3.2. Извлечь из стека child узел
-                    Node* child = nodeStack.top();
-                    nodeStack.pop();
-
-                    // 4.2.3.3. Если типы операнда и операции несовместимы
-                    auto opIt = operationTypes.find(token.type);
-
-                    if (opIt != operationTypes.end()) {
-                        bool compatible = false;
-
-                        for (const auto& sig : opIt->second.allowedSignatures) {
-                            if (sig.size() == 1) {
-                                if (sig[0] == child->token.operandType) {
-                                    compatible = true;
-                                }
-                            }
-                        }
-
-                        if (!compatible) {
-                            // 4.2.3.3.1. Добавить ошибку MismatchedOperandTypes в вектор ошибок
-                            Error err;
-                            err.code = MismatchedOperandTypes;
-                            errors.push_back(err);
-                        }
-                    }
-
-                    // 4.2.3.4. Создать новый узел с токеном, установить left = child, right = nullptr
-                    newNode = new Node(token, child);
-                }
+            else if (operatorFound && arity == 1)
+            {
+                newNode = processUnaryOperator(token, nodeStack, errors);
             }
 
             // 4.2.4. Положить новый узел в nodeStack
@@ -1701,19 +1623,20 @@ bool parseArray(const string& word, vector<Token>& tokens, vector<Error>& errors
     }
 
     // 4. Проверка индекса 
+    bool hasError = false;
     for (char c : indexStr)
     {
-        if (!isdigit(c))
+        if (!hasError && !isdigit(c))
         {
             errors.push_back({ InvalidSymbolSequence, 0, (int)indexStr.size(), indexStr });
-            break;
+            hasError = true;
         }
     }
 
     // 5. Если есть ошибки, не создаём токены
     if (!errors.empty())
     {
-        return true;  
+        return true;
     }
 
     // 6. Создание трёх токенов: имя массива, индекс, оператор индексации
@@ -1769,4 +1692,93 @@ void splitIntoWords(const string& expression, vector<string>& wordList)
     {
         wordList.push_back(currentWord);
     }
+}
+
+Node* processBinaryOperator(const Token& token, stack<Node*>& nodeStack, vector<Error>& errors)
+{
+    // 1. Проверка наличия двух операндов в стеке
+    if (nodeStack.size() < 2)
+    {
+        Error err;
+        err.code = NotEnoughOperands;
+        errors.push_back(err);
+        return nullptr;
+    }
+
+    // 2. Извлечение операндов
+    Node* right = nodeStack.top();
+    nodeStack.pop();
+    Node* left = nodeStack.top();
+    nodeStack.pop();
+
+    // 3. Проверка совместимости типов
+    auto opIt = operationTypes.find(token.type);
+    if (opIt != operationTypes.end())
+    {
+        bool compatible = false;
+        for (const auto& sig : opIt->second.allowedSignatures)
+        {
+            if (!compatible && sig.size() == 2 &&
+                sig[0] == left->token.operandType &&
+                sig[1] == right->token.operandType)
+            {
+                compatible = true;
+            }
+        }
+
+        if (!compatible)
+        {
+            Error err;
+            err.code = MismatchedOperandTypes;
+            errors.push_back(err);
+            delete left;
+            delete right;
+            return nullptr;
+        }
+    }
+
+    // 4. Создание нового узла
+    return new Node(token, left, right);
+}
+
+Node* processUnaryOperator(const Token& token, stack<Node*>& nodeStack, vector<Error>& errors)
+{
+    // 1. Проверка наличия одного операнда в стеке
+    if (nodeStack.size() < 1)
+    {
+        Error err;
+        err.code = NotEnoughOperands;
+        errors.push_back(err);
+        return nullptr;
+    }
+
+    // 2. Извлечение операнда
+    Node* child = nodeStack.top();
+    nodeStack.pop();
+
+    // 3. Проверка совместимости типа
+    auto opIt = operationTypes.find(token.type);
+    if (opIt != operationTypes.end())
+    {
+        bool compatible = false;
+        for (const auto& sig : opIt->second.allowedSignatures)
+        {
+            if (!compatible && sig.size() == 1 && sig[0] == child->token.operandType)
+            {
+                compatible = true;
+            }
+        }
+
+        if (!compatible)
+        {
+            Error err;
+            err.code = MismatchedOperandTypes;
+            errors.push_back(err);
+            delete child;
+            return nullptr;
+        }
+    }
+
+    // 4. Создание нового узла
+    return new Node(token, child);
 }

@@ -491,3 +491,19 @@ bool parseArray(const string& word, vector<Token>& tokens, vector<Error>& errors
 /// @param expression входная строка
 /// @param wordList вектор для заполнения словами 
 void splitIntoWords(const string& expression, vector<string>& wordList);
+
+
+/// @brief Обрабатывает бинарный оператор: извлекает два операнда из стека, проверяет типы, создаёт узел
+/// @param token токен оператора
+/// @param nodeStack стек узлов
+/// @param errors вектор ошибок
+/// @return указатель на новый узел или nullptr при ошибке
+Node* processBinaryOperator(const Token& token, stack<Node*>& nodeStack, vector<Error>& errors);
+
+
+/// @brief Обрабатывает унарный оператор: извлекает один операнд из стека, проверяет тип, создаёт узел
+/// @param token токен оператора
+/// @param nodeStack стек узлов
+/// @param errors вектор ошибок
+/// @return указатель на новый узел или nullptr при ошибке
+Node* processUnaryOperator(const Token& token, stack<Node*>& nodeStack, vector<Error>& errors);
