@@ -570,3 +570,10 @@ string getTrigFunctionName(TokenType type);
 /// @return true, если правый потомок является делением двух чисел, иначе false
 bool getExponentFraction(Node* node, string& numerator, string& denominator);
 
+/// @brief Проверяет, что индексы массива образуют корректную непрерывную последовательность
+/// @param indexes вектор индексов
+/// @param startIndex минимальный индекс
+/// @param endIndex максимальный индекс
+/// @return true, если индексы непрерывны, нет пропусков и дубликатов
+bool isValidIndexRange(const vector<int>& indexes, int startIndex, int endIndex);
+

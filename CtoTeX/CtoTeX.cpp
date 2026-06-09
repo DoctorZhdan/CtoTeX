@@ -713,48 +713,8 @@ string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config&
                 startIndex = *min_element(indexes.begin(), indexes.end());
                 endIndex = *max_element(indexes.begin(), indexes.end());
 
-                // 3.2.2. Проверить, что все индексы образуют непрерывную последовательность
-                bool isCorrect = true;
-
-                // Размер диапазона
-                if ((endIndex - startIndex + 1) != indexes.size())
-                {
-                    isCorrect = false;
-                }
-
-                // Непрерывность
-                for (int i = startIndex; i <= endIndex; i++)
-                {
-                    bool continuity = false;
-
-                    for (int val : indexes)
-                    {
-                        if (val == i)
-                        {
-                            continuity = true;
-                        }
-                    }
-
-                    if (!continuity)
-                    {
-                        isCorrect = false;
-                    }
-                }
-
-                // Дубликаты
-                for (int i = 0; i < indexes.size(); i++)
-                {
-                    for (int j = i + 1; j < indexes.size(); j++)
-                    {
-                        if (indexes[i] == indexes[j])
-                        {
-                            isCorrect = false;
-                        }
-                    }
-                }
-
                 // 3.2.3. Если индексы образуют непрерывную последовательность
-                if (isCorrect) {
+                if (isValidIndexRange(indexes, startIndex, endIndex)) {
                     // 3.2.3.1. Сгенерировать ТеХ-отображение узла как произведение элементов массива
                     result = "\\prod_{i=" + to_string(startIndex) + "}^{" + to_string(endIndex) + "} " + arrayName + "_{i}";
                     return result;
@@ -784,48 +744,8 @@ string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config&
                 startIndex = *min_element(indexes.begin(), indexes.end());
                 endIndex = *max_element(indexes.begin(), indexes.end());
 
-                // 4.2. Проверить, что все индексы образуют непрерывную последовательность
-                bool isCorrect = true;
-
-                // Размер диапазона
-                if ((endIndex - startIndex + 1) != indexes.size())
-                {
-                    isCorrect = false;
-                }
-
-                // Непрерывность
-                for (int i = startIndex; i <= endIndex; i++)
-                {
-                    bool continuity = false;
-
-                    for (int val : indexes)
-                    {
-                        if (val == i)
-                        {
-                            continuity = true;
-                        }
-                    }
-
-                    if (!continuity)
-                    {
-                        isCorrect = false;
-                    }
-                }
-
-                // Дубликаты
-                for (int i = 0; i < indexes.size(); i++)
-                {
-                    for (int j = i + 1; j < indexes.size(); j++)
-                    {
-                        if (indexes[i] == indexes[j])
-                        {
-                            isCorrect = false;
-                        }
-                    }
-                }
-
                 // 4.3. Если индексы образуют непрерывную последовательность
-                if (isCorrect) {
+                if (isValidIndexRange(indexes, startIndex, endIndex)) {
                     // 4.3.1. Сгенерировать ТеХ-отображение узла как сумму элементов массива
                     result = "\\sum_{i=" + to_string(startIndex) + "}^{" + to_string(endIndex) + "} " + arrayName + "_{i}";
                     return result;
@@ -1829,6 +1749,47 @@ bool getExponentFraction(Node* node, string& numerator, string& denominator)
     // 3. Извлечение значений
     numerator = numeratorNode->token.value;
     denominator = denominatorNode->token.value;
+
+    return true;
+}
+
+bool isValidIndexRange(const vector<int>& indexes, int startIndex, int endIndex)
+{
+    // 1. Проверка размера диапазона
+    if ((endIndex - startIndex + 1) != (int)indexes.size())
+    {
+        return false;
+    }
+
+    // 2. Проверка непрерывности (все индексы от startIndex до endIndex присутствуют)
+    for (int i = startIndex; i <= endIndex; i++)
+    {
+        bool found = false;
+        for (int val : indexes)
+        {
+            if (val == i)
+            {
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+        {
+            return false;
+        }
+    }
+
+    // 3. Проверка на дубликаты
+    for (size_t i = 0; i < indexes.size(); i++)
+    {
+        for (size_t j = i + 1; j < indexes.size(); j++)
+        {
+            if (indexes[i] == indexes[j])
+            {
+                return false;
+            }
+        }
+    }
 
     return true;
 }
