@@ -1089,52 +1089,14 @@ string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config&
         return result;
     }
 
-            // 12. Если узел является оператором синуса (SIN)
-    case SIN: {
-        // 12.1. Сгенерировать ТеХ-отображение узла
-        temp = getChildTexWithParens(node, node->left, false, config);
-        result = "\\sin " + temp;
-        return result;
-    }
-
-            // 13. Если узел является оператором косинуса (COS)
-    case COS: {
-        // 13.1. Сгенерировать ТеХ-отображение узла
-        temp = getChildTexWithParens(node, node->left, false, config);
-        result = "\\cos " + temp;
-        return result;
-    }
-
-            // 14. Если узел является оператором тангенса (TAN)
-    case TAN: {
-        // 14.1. Сгенерировать ТеХ-отображение узла
-        temp = getChildTexWithParens(node, node->left, false, config);
-        result = "\\tan " + temp;
-        return result;
-    }
-
-            // 15. Если узел является оператором арксинуса (ASIN)
-    case ASIN: {
-        // 15.1. Сгенерировать ТеХ-отображение узла
-        temp = getChildTexWithParens(node, node->left, false, config);
-        result = "\\arcsin " + temp;
-        return result;
-    }
-
-             // 16. Если узел является оператором арккосинуса (ACOS)
-    case ACOS: {
-        // 16.1. Сгенерировать ТеХ-отображение узла
-        temp = getChildTexWithParens(node, node->left, false, config);
-        result = "\\arccos " + temp;
-        return result;
-    }
-
-             // 17. Если узел является оператором арктангенса (ATAN)
+            // 12. Если узел является тригонометрической функцией
+    case SIN:
+    case COS:
+    case TAN:
+    case ASIN:
+    case ACOS:
     case ATAN: {
-        // 17.1. Сгенерировать ТеХ-отображение узла
-        temp = getChildTexWithParens(node, node->left, false, config);
-        result = "\\arctan " + temp;
-        return result;
+        return getTrigFunctionTeX(node, config);
     }
 
              // 18. Если узел является оператором логарифма (LOG)
@@ -1806,4 +1768,30 @@ string getConstantTeX(const string& value)
     if (value == "true") return "true";
     if (value == "false") return "false";
     return value;
+}
+
+
+string getTrigFunctionTeX(Node* node, const Config& config)
+{
+    // 1. Определение типа тригонометрической функции
+    TokenType type = node->token.type;
+    string funcName;
+
+    // 2. Выбор соответствующей TeX-команды
+    switch (type)
+    {
+    case SIN:  funcName = "\\sin";   break;
+    case COS:  funcName = "\\cos";   break;
+    case TAN:  funcName = "\\tan";   break;
+    case ASIN: funcName = "\\arcsin"; break;
+    case ACOS: funcName = "\\arccos"; break;
+    case ATAN: funcName = "\\arctan"; break;
+    default:   return "";            
+    }
+
+    // 3. Получение TeX-строки аргумента с учётом скобок
+    string argStr = getChildTexWithParens(node, node->left, false, config);
+
+    // 4. Формирование итоговой строки: \sin(x)
+    return funcName + " " + argStr;
 }

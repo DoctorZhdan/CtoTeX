@@ -527,3 +527,9 @@ bool comparePrecedence(int parentPrec, int childPrec, bool parentLeftAssoc, bool
 /// @param value имя константы 
 /// @return TeX-представление константы
 string getConstantTeX(const string& value);
+
+/// @brief Генерирует TeX-представление тригонометрической функции
+/// @param node указатель на узел тригонометрической функции
+/// @param config объект с настройками отображения
+/// @return TeX-строка тригонометрической функции
+string getTrigFunctionTeX(Node* node, const Config& config);
