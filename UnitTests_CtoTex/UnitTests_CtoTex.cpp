@@ -605,6 +605,42 @@ namespace UnitTestsCtoTex
             delete root;
         }
 
+        TEST_METHOD(ArrayIndexRightChildInvalid)
+        {
+            // Правый потомок ARRAY_INDEX не является числом
+            Token arrayToken;
+            arrayToken.type = ARRAY_INDEX;
+            arrayToken.value = "a[i]";
+            arrayToken.operandType = ARITHMETIC;
+
+            Token varToken;
+            varToken.type = VARIABLE;
+            varToken.value = "a";
+            varToken.operandType = ARITHMETIC;
+
+            Token invalidToken;
+            invalidToken.type = VARIABLE;  
+            invalidToken.value = "x";
+            invalidToken.operandType = ARITHMETIC;
+
+            Node* arrayNode = new Node(arrayToken);
+            Node* leftNode = new Node(varToken);
+            Node* rightNode = new Node(invalidToken);
+
+            arrayNode->left = leftNode;
+            arrayNode->right = rightNode;
+
+            string arrayName;
+            vector<int> indexes;
+            bool arrayNameFound = false;
+
+            bool result = isArrOperation(arrayNode, PLUS, arrayName, indexes, arrayNameFound);
+            Assert::IsFalse(result);
+
+            delete arrayNode;
+         
+        }
+
 
     };
 
