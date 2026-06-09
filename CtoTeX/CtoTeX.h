@@ -520,3 +520,12 @@ void processOperand(const Token& token, stack<Node*>& nodeStack, int& nodeCount,
 /// @param nodeStack стек узлов
 /// @param errors вектор ошибок
 void checkStackState(stack<Node*>& nodeStack, vector<Error>& errors);
+
+
+/// @brief Сравнивает приоритеты parent и child, определяет необходимость скобок
+/// @param parentPrec приоритет родительской операции
+/// @param childPrec приоритет дочерней операции
+/// @param parentLeftAssoc ассоциативность родительской операции
+/// @param isRightChild флаг правого потомка
+/// @return true если скобки нужны, false если нет
+bool comparePrecedence(int parentPrec, int childPrec, bool parentLeftAssoc, bool isRightChild);

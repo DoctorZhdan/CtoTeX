@@ -432,33 +432,8 @@ bool needsParentheses(Node* parent, Node* child, bool isRightChild) {
     int childPrec = childIt->second.precedence;
     bool parentLeftAssoc = parentIt->second.leftAssoc;
 
-    // 5. Если приоритет потомка выше
-    if (childPrec < parentPrec) {
-        // 5.1. Вернуть false
-        return false;
-    }
-
-    // 6. Если приоритет потомка ниже
-    if (childPrec > parentPrec) {
-        // 6.1. Вернуть true
-        return true;
-    }
-
-    // 7. Если приоритеты равны
-    // 7.1. Если текущая операция левоассоциативная (parentLeftAssoc == true)
-    if (parentLeftAssoc)
-    {
-        // 7.1.1. Вернуть isRightChild
-        return isRightChild;
-    }
-    // 7.2. Если текущая операция правоассоциативная (parentLeftAssoc == false)
-    else {
-        // 7.2.1. Вернуть !isRightChild
-        return !isRightChild;
-    }
-
-    // 8. Вернуть false
-    return false;
+    // 5. Сравнение приоритетов 
+    return comparePrecedence(parentPrec, childPrec, parentLeftAssoc, isRightChild);
 }
 
 string getChildTexWithParens(Node* parent, Node* child, bool isRightChild, const Config& config) {
@@ -1793,5 +1768,35 @@ void checkStackState(stack<Node*>& nodeStack, vector<Error>& errors)
         Error err;
         err.code = TooManyOperands;
         errors.push_back(err);
+    }
+}
+
+
+
+
+bool comparePrecedence(int parentPrec, int childPrec, bool parentLeftAssoc, bool isRightChild)
+{
+    // 1. Если приоритет потомка выше
+    if (childPrec < parentPrec)
+    {
+        return false;
+    }
+
+    // 2. Если приоритет потомка ниже
+    if (childPrec > parentPrec)
+    {
+        return true;
+    }
+
+    // 3. Если приоритеты равны
+    // 3.1. Левоассоциативная операция
+    if (parentLeftAssoc)
+    {
+        return isRightChild;
+    }
+    // 3.2. Правоассоциативная операция
+    else
+    {
+        return !isRightChild;
     }
 }
