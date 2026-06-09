@@ -507,3 +507,11 @@ Node* processBinaryOperator(const Token& token, stack<Node*>& nodeStack, vector<
 /// @param errors вектор ошибок
 /// @return указатель на новый узел или nullptr при ошибке
 Node* processUnaryOperator(const Token& token, stack<Node*>& nodeStack, vector<Error>& errors);
+
+
+/// @brief Обрабатывает токен-операнд (число, переменная, константа)
+/// @param token токен для обработки
+/// @param nodeStack стек узлов
+/// @param nodeCount счётчик узлов
+/// @param errors вектор ошибок
+void processOperand(const Token& token, stack<Node*>& nodeStack, int& nodeCount, vector<Error>& errors);

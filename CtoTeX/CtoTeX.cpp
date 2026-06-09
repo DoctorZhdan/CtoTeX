@@ -281,22 +281,7 @@ bool buildTree(const string& expression, Node*& root, const map<TokenType, Opera
         // 4.1. Если токен имеет тип NUMBER или VARIABLE или CONSTANT (токен является операндом):
         if (token.type == NUMBER || token.type == VARIABLE || token.type == CONSTANT) {
 
-            // 4.1.1. Создать новый узел Node с этим токеном
-            Node* newNode = new Node(token);
-
-            // 4.1.2. Положить узел в nodeStack
-            nodeStack.push(newNode);
-
-            // 4.1.3. Увеличить nodeCount на 1
-            nodeCount++;
-
-            // 4.1.4. Если nodeCount > 1000
-            if (nodeCount > 1000) {
-                // 4.1.4.1. Добавить ошибку TooManyNodes в вектор ошибок
-                Error err;
-                err.code = TooManyNodes;
-                errors.push_back(err);
-            }
+            processOperand(token, nodeStack, nodeCount, errors);
         }
 
         // 4.2. Если токен имеет тип какого-либо оператора (токен является оператором):
@@ -1694,6 +1679,8 @@ void splitIntoWords(const string& expression, vector<string>& wordList)
     }
 }
 
+
+
 Node* processBinaryOperator(const Token& token, stack<Node*>& nodeStack, vector<Error>& errors)
 {
     // 1. Проверка наличия двух операндов в стеке
@@ -1781,4 +1768,24 @@ Node* processUnaryOperator(const Token& token, stack<Node*>& nodeStack, vector<E
 
     // 4. Создание нового узла
     return new Node(token, child);
+}
+
+void processOperand(const Token& token, stack<Node*>& nodeStack, int& nodeCount, vector<Error>& errors)
+{
+    // 1. Создать новый узел Node с этим токеном
+    Node* newNode = new Node(token);
+
+    // 2. Положить узел в nodeStack
+    nodeStack.push(newNode);
+
+    // 3. Увеличить nodeCount на 1
+    nodeCount++;
+
+    // 4. Если nodeCount > 1000
+    if (nodeCount > 1000)
+    {
+        Error err;
+        err.code = TooManyNodes;
+        errors.push_back(err);
+    }
 }
