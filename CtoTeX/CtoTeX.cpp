@@ -235,86 +235,10 @@ bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<
             processed = true;
         }
 
-
-        // 3.4 Если слово содержит '[' и ']'
-        if (!processed && word.find('[') != string::npos && word.find(']') != string::npos)
+        // 3.4. Обработка элемента массива
+        if (!processed && parseArray(word, tokens, errors, nodeCount))
         {
-            // 3.4.1 Найти позиции '[' и ']'
-            size_t l = word.find('[');
-            size_t r = word.find(']');
-
-            // 3.4.2 Проверка корректности
-            if (r == string::npos || l > r || r != word.size() - 1)
-            {
-                // 3.4.2.1 ошибка
-                errors.push_back({ InvalidSymbolSequence, 0, (int)word.size(), word });
-                // 3.4.2.2 перейти дальше
-                processed = true;
-
-            }
-            else
-            {
-
-                // 3.4.3 Имя массива
-                string name = word.substr(0, l);
-
-                // 3.4.4 Индекс
-                string indexStr = word.substr(l + 1, r - l - 1);
-
-                // 3.4.5 Проверка имени массива
-                if (name.empty() || !isalpha(name[0]))
-                {
-                    errors.push_back({ InvalidSymbol, 0, (int)name.size(), name });
-                }
-
-                for (int j = 1; j < name.size(); j++)
-                {
-                    if (!isalnum(name[j]))
-                    {
-                        errors.push_back({ InvalidSymbol, j, 1, name });
-                    }
-                }
-
-                // 3.4.6 Проверка индекса
-                for (char c : indexStr)
-                {
-                    if (!isdigit(c))
-                    {
-                        errors.push_back({ InvalidSymbolSequence, 0, (int)indexStr.size(), indexStr });
-                    }
-                }
-
-                // 3.4.7 Если ошибок нет
-                if (errors.empty())
-                {
-                    // Токен для имени массива
-                    Token arrayToken;
-                    arrayToken.type = VARIABLE;
-                    arrayToken.value = name;
-                    arrayToken.operandType = ARITHMETIC;
-                    tokens.push_back(arrayToken);
-
-                    // Токен для индекса
-                    Token indexToken;
-                    indexToken.type = NUMBER;
-                    indexToken.value = indexStr;
-                    indexToken.operandType = ARITHMETIC;
-                    tokens.push_back(indexToken);
-
-                    // Токен для оператора индексации
-                    Token indexOpToken;
-                    indexOpToken.type = ARRAY_INDEX;
-                    indexOpToken.value = "a[i]";
-                    indexOpToken.operandType = ARITHMETIC;
-                    tokens.push_back(indexOpToken);
-
-                    // 3.4.7.5 увеличить счётчик
-                    nodeCount += 3;
-                }
-
-                // 3.4.8 перейти дальше
-                processed = true;
-            }
+            processed = true;
         }
 
         // 3.5. Обработка переменной
@@ -1739,7 +1663,6 @@ bool parseVariable(const string& word, vector<Token>& tokens, vector<Error>& err
     return true;
 }
 
-
 bool parseConstant(const string& word, vector<Token>& tokens, int& nodeCount)
 {
     // Проверка, входит ли слово в список допустимых констант
@@ -1762,6 +1685,75 @@ bool parseConstant(const string& word, vector<Token>& tokens, int& nodeCount)
 
     tokens.push_back(t);
     nodeCount++;
+
+    return true;
+}
+
+bool parseArray(const string& word, vector<Token>& tokens, vector<Error>& errors, int& nodeCount)
+{
+    // 1. Проверка наличия символов '[' и ']'
+    size_t l = word.find('[');
+    size_t r = word.find(']');
+
+    if (l == string::npos || r == string::npos || l > r || r != word.size() - 1)
+    {
+        return false;
+    }
+
+    // 2. Извлечение имени массива и индекса
+    string name = word.substr(0, l);
+    string indexStr = word.substr(l + 1, r - l - 1);
+
+    // 3. Проверка имени массива
+    if (name.empty() || !isalpha(name[0]))
+    {
+        errors.push_back({ InvalidSymbol, 0, (int)name.size(), name });
+    }
+
+    for (size_t j = 1; j < name.size(); j++)
+    {
+        if (!isalnum(name[j]))
+        {
+            errors.push_back({ InvalidSymbol, (int)j, 1, name });
+        }
+    }
+
+    // 4. Проверка индекса 
+    for (char c : indexStr)
+    {
+        if (!isdigit(c))
+        {
+            errors.push_back({ InvalidSymbolSequence, 0, (int)indexStr.size(), indexStr });
+            break;
+        }
+    }
+
+    // 5. Если есть ошибки, не создаём токены
+    if (!errors.empty())
+    {
+        return true;  
+    }
+
+    // 6. Создание трёх токенов: имя массива, индекс, оператор индексации
+    Token arrayToken;
+    arrayToken.type = VARIABLE;
+    arrayToken.value = name;
+    arrayToken.operandType = ARITHMETIC;
+    tokens.push_back(arrayToken);
+
+    Token indexToken;
+    indexToken.type = NUMBER;
+    indexToken.value = indexStr;
+    indexToken.operandType = ARITHMETIC;
+    tokens.push_back(indexToken);
+
+    Token indexOpToken;
+    indexOpToken.type = ARRAY_INDEX;
+    indexOpToken.value = "a[i]";
+    indexOpToken.operandType = ARITHMETIC;
+    tokens.push_back(indexOpToken);
+
+    nodeCount += 3;
 
     return true;
 }

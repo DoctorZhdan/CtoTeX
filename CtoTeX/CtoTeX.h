@@ -476,3 +476,12 @@ bool parseVariable(const string& word, vector<Token>& tokens, vector<Error>& err
 /// @param nodeCount счЄтчик узлов
 /// @return true, если слово обработано как константа, иначе false
 bool parseConstant(const string& word, vector<Token>& tokens, int& nodeCount);
+
+
+/// @brief ѕровер€ет, €вл€етс€ ли слово индексацией массива и добавл€ет соответствующие токены
+/// @param word текущее слово 
+/// @param tokens вектор токенов 
+/// @param errors вектор ошибок
+/// @param nodeCount счЄтчик узлов 
+/// @return true, если слово обработано как элемент массива, иначе false
+bool parseArray(const string& word, vector<Token>& tokens, vector<Error>& errors, int& nodeCount);
