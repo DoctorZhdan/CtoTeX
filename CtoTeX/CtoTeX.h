@@ -135,16 +135,39 @@ const map<string, set<string>> allowedConfigParams = {
 
 /// @brief Типы токенов
 enum TokenType {
-    NUMBER, VARIABLE, CONSTANT,
-    PLUS, MINUS, MUL, DIV, UMINUS,      ///< арифметика
-    POW, SQRT, CBRT,                    ///< степень и корни
-    SIN, COS, TAN, ASIN, ACOS, ATAN,    ///< тригонометрия
-    LOG, LOG10, EXP,                    ///< логарифмы и экспонента
-    ABS, FABS,                          ///< модуль
-    EQ, NEQ, LT, GT, LE, GE,            ///< сравнения
-    LAND, LOR, LNOT,                    ///< логические
-    ARRAY_INDEX,                        ///< индексация
-    UNKNOWN                             ///< неопределён (используется для корневого узла)
+    NUMBER,                             ///< число (целое или вещественное)
+    VARIABLE,                           ///< переменная (идентификатор)
+    CONSTANT,                           ///< константа (pi, e, phi, i, true, false)
+    PLUS,                               ///< бинарное сложение (+)
+    MINUS,                              ///< бинарное вычитание (-)
+    MUL,                                ///< бинарное умножение (*)
+    DIV,                                ///< бинарное деление (/)
+    UMINUS,                             ///< унарный минус (-_)
+    POW,                                ///< возведение в степень (#pow)
+    SQRT,                               ///< квадратный корень (#sqrt)
+    CBRT,                               ///< кубический корень (#cbrt)
+    SIN,                                ///< синус (#sin)
+    COS,                                ///< косинус (#cos)
+    TAN,                                ///< тангенс (#tan)
+    ASIN,                               ///< арксинус (#asin)
+    ACOS,                               ///< арккосинус (#acos)
+    ATAN,                               ///< арктангенс (#atan)
+    LOG,                                ///< натуральный логарифм (#log)
+    LOG10,                              ///< десятичный логарифм (#log10)
+    EXP,                                ///< экспонента (#exp)
+    ABS,                                ///< модуль (#abs)
+    FABS,                               ///< модуль (#fabs)
+    EQ,                                 ///< равно (==)
+    NEQ,                                ///< не равно (!=)
+    LT,                                 ///< меньше (<)
+    GT,                                 ///< больше (>)
+    LE,                                 ///< меньше или равно (<=)
+    GE,                                 ///< больше или равно (>=)
+    LAND,                               ///< логическое И (&&)
+    LOR,                                ///< логическое ИЛИ (||)
+    LNOT,                               ///< логическое НЕ (!)
+    ARRAY_INDEX,                        ///< индексация массива (a[i])
+    UNKNOWN                             ///< неопределённый тип (для корневого узла)
 };
 
 /// @brief Типы операндов
@@ -344,254 +367,249 @@ const map<TokenType, OperatorInfo> operatorInfo = {
 };
 
 /// @brief Функция валидации файла конфигурации с параметрами отображения
-/// @param filename путь к файлу с параметрами отображения
-/// @param config структура для сохранения параметров и их значений
-/// @param errors вектор для сбора ошибок
+/// @param[in] filename путь к файлу с параметрами отображения
+/// @param[out] config структура для сохранения параметров и их значений
+/// @param[out] errors вектор для сбора ошибок
 /// @return true при успешной валидации, false при наличии ошибок
 bool validateConfigFile(const string& filename, Config& config, vector<Error>& errors);
 
 /// @brief Функция чтения входных файлов (выражения и конфигурации)
-/// @param exprFilename путь к файлу с выражением
-/// @param configFilename путь к файлу конфигурации
-/// @param expression строка для сохранения прочитанного выражения
-/// @param config объект для сохранения параметров отображения
-/// @param errors вектор для сбора ошибок
+/// @param[in] exprFilename путь к файлу с выражением
+/// @param[in] configFilename путь к файлу конфигурации
+/// @param[out] expression строка для сохранения прочитанного выражения
+/// @param[out] config объект для сохранения параметров отображения
+/// @param[out] errors вектор для сбора ошибок
 /// @return true при успешном чтении, false при наличии ошибок
 bool readInputFiles(const string& exprFilename, const string& configFilename, string& expression, Config& config, vector<Error>& errors);
 
 /// @brief Функция вывода ошибок из вектора в консоль
-/// @param errors вектор с ошибками
+/// @param[in] errors вектор с ошибками
 void printErrors(const vector<Error>& errors);
 
 /// @brief Функция разбиения строки выражения на токены
-/// @param expression строка с выражением в обратной польской записи
-/// @param tokens вектор для заполнения токенами
-/// @param errors вектор для сбора ошибок
+/// @param[in] expression строка с выражением в обратной польской записи
+/// @param[out] tokens вектор для заполнения токенами
+/// @param[out] errors вектор для сбора ошибок
 /// @return true при успешной токенизации, false при наличии ошибок
 bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<Error>& errors);
 
 /// @brief Функция построения дерева разбора из строки выражения
-/// @param expression строка с выражением в обратной польской записи
-/// @param root указатель на корень построенного дерева
-/// @param operatorInfo словарь операторов с информацией о них 
-/// @param errors вектор для сбора ошибок
+/// @param[in] expression строка с выражением в обратной польской записи
+/// @param[out] root указатель на корень построенного дерева
+/// @param[in] operatorInfo словарь операторов с информацией о них 
+/// @param[out] errors вектор для сбора ошибок
 /// @return true при успешном построении дерева, false при наличии ошибок
 bool buildTree(const string& expression, Node*& root, const map<TokenType, OperatorInfo>& operatorInfo, vector<Error>& errors);
 
 /// @brief Функция сохранения TeX-строки в выходной файл
-/// @param filename путь к выходному файлу
-/// @param texString сгенерированная TeX-строка
-/// @param errors вектор для сбора ошибок
+/// @param[in] filename путь к выходному файлу
+/// @param[in] texString сгенерированная TeX-строка
+/// @param[out] errors вектор для сбора ошибок
 /// @return true при успешной записи, false при наличии ошибок
 bool saveToOutFile(const string& filename, const string& texString, vector<Error>& errors);
 
 /// @brief Функция определения необходимости добавления скобок вокруг дочернего узла
-/// @param parent указатель на текущий узел (текущая операция)
-/// @param child указатель на дочерний узел (потомок, для которого проверяем)
-/// @param isRightChild true, если потомок является правым, false — если левым
+/// @param[in] parent указатель на текущий узел (текущая операция)
+/// @param[in] child указатель на дочерний узел (потомок, для которого проверяем)
+/// @param[in] isRightChild true, если потомок является правым, false — если левым
 /// @return true, если вокруг строки дочернего узла необходимо добавить круглые скобки, false — если скобки не требуются
 bool needsParentheses(Node* parent, Node* child, bool isRightChild);
 
 /// @brief Функция получения TeX-строки дочернего узла с добавлением скобок при необходимости
-/// @param parent указатель на текущий узел (текущая операция)
-/// @param child указатель на дочерний узел (потомок, для которого получаем строку)
-/// @param isRightChild true, если потомок является правым, false — если левым
-/// @param config объект структуры Config, содержащий параметры отображения
+/// @param[in] parent указатель на текущий узел (текущая операция)
+/// @param[in] child указатель на дочерний узел (потомок, для которого получаем строку)
+/// @param[in] isRightChild true, если потомок является правым, false — если левым
+/// @param[in] config объект структуры Config, содержащий параметры отображения
 /// @return TeX-строка дочернего узла, дополненная круглыми скобками при необходимости
 string getChildTexWithParens(Node* parent, Node* child, bool isRightChild, const Config& config);
 
 /// @brief Функция проверки, является ли поддерево цепочкой умножений одинаковых операндов
-/// @param node указатель на текущий узел дерева (проверяемое поддерево)
-/// @param operandStr строка для сохранения строкового представления операнда
-/// @param varCount целое число для сохранения количества одинаковых операндов в цепочке умножений
-/// @param config объект структуры Config, содержащий параметры отображения
+/// @param[in] node указатель на текущий узел дерева (проверяемое поддерево)
+/// @param[out] operandStr строка для сохранения строкового представления операнда
+/// @param[out] varCount целое число для сохранения количества одинаковых операндов в цепочке умножений
+/// @param[in] config объект структуры Config, содержащий параметры отображения
 /// @return true, если поддерево является цепочкой умножений одинаковых операндов, иначе false
 bool isMulIdenVar(Node* node, string& operandStr, int& varCount, const Config& config);
 
 /// @brief Функция проверки, является ли узел делением двух логарифмов с одинаковым основанием
-/// @param node указатель на текущий узел дерева (оператор деления)
-/// @param base строка для сохранения основания логарифма (аргумент логарифма из знаменателя)
-/// @param argument строка для сохранения аргумента логарифма (аргумент логарифма из числителя)
-/// @param config объект структуры Config, содержащий параметры отображения
+/// @param[in] node указатель на текущий узел дерева (оператор деления)
+/// @param[out] base строка для сохранения основания логарифма (аргумент логарифма из знаменателя)
+/// @param[out] argument строка для сохранения аргумента логарифма (аргумент логарифма из числителя)
+/// @param[in] config объект структуры Config, содержащий параметры отображения
 /// @return true, если узел является делением двух логарифмов с одинаковым основанием, иначе false
 bool isLogDiv(Node* node, string& base, string& argument, const Config& config);
 
 /// @brief Функция проверки, является ли поддерево цепочкой операций с элементами массива
-/// @param node указатель на текущий узел дерева (проверяемое поддерево)
-/// @param opType ожидаемый тип оператора (MUL для умножения, PLUS для сложения)
-/// @param arrayName строка для сохранения имени массива (выходной параметр)
-/// @param indexes вектор для сбора индексов элементов массива 
-/// @param arrayNameFound флаг, указывающий, было ли уже найдено имя массива (для проверки совпадения)
+/// @param[in] node указатель на текущий узел дерева (проверяемое поддерево)
+/// @param[in] opType ожидаемый тип оператора (MUL для умножения, PLUS для сложения)
+/// @param[out] arrayName строка для сохранения имени массива
+/// @param[out] indexes вектор для сбора индексов элементов массива 
+/// @param[in/out] arrayNameFound флаг, указывающий, было ли уже найдено имя массива (для проверки совпадения)
 /// @return true, если поддерево является цепочкой операций opType с элементами массива, иначе false
 bool isArrOperation(Node* node, TokenType opType, string& arrayName, vector<int>& indexes, bool& arrayNameFound);
 
 /// @brief Рекурсивная функция генерации TeX-строки из дерева выражения
-/// @param node указатель на текущий узел дерева, для которого генерируется TeX-строка
-/// @param parentType тип операции родительского узла (значение UNKNOWN, если узел – корень)
-/// @param isRightChild флаг, указывающий, является ли текущий узел правым потомком (true) или левым/корнем (false)
-/// @param config объект структуры Config, содержащий параметры отображения 
+/// @param[in] node указатель на текущий узел дерева, для которого генерируется TeX-строка
+/// @param[in] parentType тип операции родительского узла (значение UNKNOWN, если узел – корень)
+/// @param[in] isRightChild флаг, указывающий, является ли текущий узел правым потомком (true) или левым/корнем (false)
+/// @param[in] config объект структуры Config, содержащий параметры отображения 
 /// @return сгенерированная TeX-строка
 string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config& config);
 
-
-
-
-/// @brief Проверяет, является ли слово оператором или функцией, и при необходимости добавляет соответствующий токен
-/// @param word текущее слово (лексема), выделенное из входного выражения
-/// @param tokens вектор токенов, в который добавляется результат разбора
-/// @param nodeCount счётчик узлов (увеличивается при добавлении токена)
-/// @return true, если слово распознано как оператор/функция; false в противном случае
+/// @brief Проверяет, является ли слово оператором и добавляет соответствующий токен
+/// @param[in] word текущее слово
+/// @param[out] tokens вектор токенов
+/// @param[in/out] nodeCount счётчик узлов 
+/// @return true, если слово распознано как оператор; false в противном случае
 bool parseOperator(const string& word, vector<Token>& tokens, int& nodeCount);
 
 /// @brief Проверяет корректность расположения операторов в слове 
-/// @param word текущее слово 
-/// @param errors вектор ошибок, в который добавляются найденные ошибки
-/// @param allowedOperations множество допустимых операторов
+/// @param[in] word текущее слово 
+/// @param[out] errors вектор ошибок
+/// @param[in] allowedOperations множество допустимых операторов
 /// @return true, если слово содержит ошибку, связанную с операторами; false в противном случае
 bool checkOperatorSpacing(const string& word, vector<Error>& errors, const set<string>& allowedOperations);
 
 /// @brief Проверяет, является ли слово числом и добавляет токен
-/// @param word текущее слово 
-/// @param tokens вектор токенов 
-/// @param errors вектор ошибок
-/// @param nodeCount счётчик узлов 
+/// @param[in] word текущее слово 
+/// @param[out] tokens вектор токенов 
+/// @param[out] errors вектор ошибок
+/// @param[in/out] nodeCount счётчик узлов 
 /// @return true, если слово обработано как число, иначе false
 bool parseNumber(const string& word, vector<Token>& tokens, vector<Error>& errors, int& nodeCount);
 
 /// @brief Проверяет, является ли слово переменной и добавляет токен
-/// @param word текущее слово 
-/// @param tokens вектор токенов 
-/// @param errors вектор ошибок 
-/// @param nodeCount счётчик узлов 
+/// @param[in] word текущее слово 
+/// @param[out] tokens вектор токенов 
+/// @param[out] errors вектор ошибок 
+/// @param[in/out] nodeCount счётчик узлов 
 /// @return true, если слово обработано как переменная, иначе false
 bool parseVariable(const string& word, vector<Token>& tokens, vector<Error>& errors, int& nodeCount);
 
 /// @brief Проверяет, является ли слово константой и добавляет токен
-/// @param word текущее слово
-/// @param tokens вектор токенов
-/// @param nodeCount счётчик узлов
+/// @param[in] word текущее слово
+/// @param[out] tokens вектор токенов
+/// @param[in/out] nodeCount счётчик узлов
 /// @return true, если слово обработано как константа, иначе false
 bool parseConstant(const string& word, vector<Token>& tokens, int& nodeCount);
 
 /// @brief Проверяет, является ли слово индексацией массива и добавляет соответствующие токены
-/// @param word текущее слово 
-/// @param tokens вектор токенов 
-/// @param errors вектор ошибок
-/// @param nodeCount счётчик узлов 
+/// @param[in] word текущее слово 
+/// @param[out] tokens вектор токенов 
+/// @param[out] errors вектор ошибок
+/// @param[in/out] nodeCount счётчик узлов 
 /// @return true, если слово обработано как элемент массива, иначе false
 bool parseArray(const string& word, vector<Token>& tokens, vector<Error>& errors, int& nodeCount);
 
 /// @brief Разбивает строку выражения на слова по пробелам
-/// @param expression входная строка
-/// @param wordList вектор для заполнения словами 
+/// @param[in] expression входная строка
+/// @param[out] wordList вектор для заполнения словами 
 void splitIntoWords(const string& expression, vector<string>& wordList);
 
-
 /// @brief Обрабатывает бинарный оператор: извлекает два операнда из стека, проверяет типы, создаёт узел
-/// @param token токен оператора
-/// @param nodeStack стек узлов
-/// @param errors вектор ошибок
+/// @param[in] token токен оператора
+/// @param[in/out] nodeStack стек узлов
+/// @param[out] errors вектор ошибок
 /// @return указатель на новый узел или nullptr при ошибке
 Node* processBinaryOperator(const Token& token, stack<Node*>& nodeStack, vector<Error>& errors);
 
 /// @brief Обрабатывает унарный оператор: извлекает один операнд из стека, проверяет тип, создаёт узел
-/// @param token токен оператора
-/// @param nodeStack стек узлов
-/// @param errors вектор ошибок
+/// @param[in] token токен оператора
+/// @param[in/out] nodeStack стек узлов
+/// @param[out] errors вектор ошибок
 /// @return указатель на новый узел или nullptr при ошибке
 Node* processUnaryOperator(const Token& token, stack<Node*>& nodeStack, vector<Error>& errors);
 
-/// @brief Обрабатывает токен-операнд (число, переменная, константа)
-/// @param token токен для обработки
-/// @param nodeStack стек узлов
-/// @param nodeCount счётчик узлов
-/// @param errors вектор ошибок
+/// @brief Обрабатывает токен-операнд 
+/// @param[in] token токен для обработки
+/// @param[in/out] nodeStack стек узлов
+/// @param[in/out] nodeCount счётчик узлов
+/// @param[out] errors вектор ошибок
 void processOperand(const Token& token, stack<Node*>& nodeStack, int& nodeCount, vector<Error>& errors);
 
 /// @brief Проверяет состояние стека после обработки всех токенов
-/// @param nodeStack стек узлов
-/// @param errors вектор ошибок
+/// @param[in] nodeStack стек узлов
+/// @param[out] errors вектор ошибок
 void checkStackState(stack<Node*>& nodeStack, vector<Error>& errors);
 
-
 /// @brief Сравнивает приоритеты parent и child, определяет необходимость скобок
-/// @param parentPrec приоритет родительской операции
-/// @param childPrec приоритет дочерней операции
-/// @param parentLeftAssoc ассоциативность родительской операции
-/// @param isRightChild флаг правого потомка
+/// @param[in] parentPrec приоритет родительской операции
+/// @param[in] childPrec приоритет дочерней операции
+/// @param[in] parentLeftAssoc ассоциативность родительской операции
+/// @param[in] isRightChild флаг правого потомка
 /// @return true если скобки нужны, false если нет
 bool comparePrecedence(int parentPrec, int childPrec, bool parentLeftAssoc, bool isRightChild);
 
-
 /// @brief Преобразует имя константы в TeX-представление
-/// @param value имя константы 
+/// @param[in] value имя константы 
 /// @return TeX-представление константы
 string getConstantTeX(const string& value);
 
 /// @brief Генерирует TeX-представление тригонометрической функции
-/// @param node указатель на узел тригонометрической функции
-/// @param config объект с настройками отображения
+/// @param[in] node указатель на узел тригонометрической функции
+/// @param[in] config объект с настройками отображения
 /// @return TeX-строка тригонометрической функции
 string getTrigFunctionTeX(Node* node, const Config& config);
 
 /// @brief Генерирует TeX-представление логарифма
-/// @param node указатель на узел логарифма
-/// @param config объект с настройками отображения
+/// @param[in] node указатель на узел логарифма
+/// @param[in] config объект с настройками отображения
 /// @return TeX-строка логарифма 
 string getLogFunctionTeX(Node* node, const Config& config);
 
 /// @brief Генерирует TeX для тригонометрической функции, возведённой в степень
-/// @param node указатель на узел POW (левый потомок — тригонометрическая функция)
-/// @param config объект с настройками отображения
+/// @param[in] node указатель на узел POW (левый потомок — тригонометрическая функция)
+/// @param[in] config объект с настройками отображения
 /// @return TeX-строка 
 string getTrigPowerTeX(Node* node, const Config& config);
 
 /// @brief Генерирует TeX для дробной степени 
-/// @param node указатель на узел POW
-/// @param config объект с настройками отображения
+/// @param[in] node указатель на узел POW
+/// @param[in] config объект с настройками отображения
 /// @return TeX-строка
 string* getFractionPowerTeX(Node* node, const Config& config, TokenType type);
 
 /// @brief Генерирует TeX для положительной степени
-/// @param node указатель на узел POW
-/// @param config объект с настройками отображения
+/// @param[in] node указатель на узел POW
+/// @param[in] config объект с настройками отображения
 /// @return TeX-строка 
 string getRegularPowerTeX(Node* node, const Config& config, TokenType type);
 
 /// @brief Возвращает TeX-имя тригонометрической функции
-/// @param type тип узла
+/// @param[in] type тип узла
 /// @return TeX-имя функции
 string getTrigFunctionName(TokenType type);
 
 /// @brief Извлекает числитель и знаменатель из узла-деления в показателе степени
-/// @param node указатель на узел POW
-/// @param numerator выходной параметр для числителя
-/// @param denominator выходной параметр для знаменателя
+/// @param[in] node указатель на узел POW
+/// @param[out] numerator выходной параметр для числителя
+/// @param[out] denominator выходной параметр для знаменателя
 /// @return true, если правый потомок является делением двух чисел, иначе false
 bool getExponentFraction(Node* node, string& numerator, string& denominator);
 
 /// @brief Проверяет, что индексы массива образуют корректную непрерывную последовательность
-/// @param indexes вектор индексов
-/// @param startIndex минимальный индекс
-/// @param endIndex максимальный индекс
+/// @param[in] indexes вектор индексов
+/// @param[in] startIndex минимальный индекс
+/// @param[in] endIndex максимальный индекс
 /// @return true, если индексы непрерывны, нет пропусков и дубликатов
 bool isValidIndexRange(const vector<int>& indexes, int startIndex, int endIndex);
 
 /// @brief Генерирует TeX для операции умножения
-/// @param node указатель на узел MUL
-/// @param config объект с настройками отображения
+/// @param[in] node указатель на узел MUL
+/// @param[in] config объект с настройками отображения
 /// @return TeX-строка умножения
 string getMulOperationTeX(Node* node, const Config& config);
 
 /// @brief Генерирует TeX для операции сложения
-/// @param node указатель на узел PLUS
-/// @param config объект с настройками отображения
+/// @param[in] node указатель на узел PLUS
+/// @param[in] config объект с настройками отображения
 /// @return TeX-строка сложения
 string getPlusOperationTeX(Node* node, const Config& config);
 
 /// @brief Генерирует TeX для операции деления
-/// @param node указатель на узел DIV
-/// @param config объект с настройками отображения
-/// @param type тип узла 
+/// @param[in] node указатель на узел DIV
+/// @param[in] config объект с настройками отображения
+/// @param[in] type тип узла 
 /// @return TeX-строка деления
 string getDivOperationTeX(Node* node, const Config& config, TokenType type);
+

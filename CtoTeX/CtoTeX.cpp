@@ -720,7 +720,7 @@ string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config&
 
             // 8. Если узел является оператором возведения в степень (POW)
     case POW: {
-        // 1. Проверка на тригонометрическую функцию
+        // 8.1. Проверка на тригонометрическую функцию
         TokenType leftType = node->left->token.type;
         bool isTrig = (leftType == SIN || leftType == COS || leftType == TAN ||
             leftType == ASIN || leftType == ACOS || leftType == ATAN);
@@ -729,7 +729,7 @@ string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config&
             return getTrigPowerTeX(node, config);
         }
 
-        // 2. Проверка на дробную степень
+        // 8.2. Проверка на дробную степень
         string* fractionResult = getFractionPowerTeX(node, config, type);
         if (fractionResult != nullptr)
         {
@@ -738,7 +738,7 @@ string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config&
             return result;
         }
 
-        // 3. Обычная степень
+        // 8.3. Обычная степень
         return getRegularPowerTeX(node, config, type);
     }
 
@@ -775,7 +775,7 @@ string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config&
     }
 
             // 12. Если узел является тригонометрической функцией
-    case SIN:
+    case SIN: 
     case COS:
     case TAN:
     case ASIN:
@@ -790,96 +790,96 @@ string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config&
         return getLogFunctionTeX(node, config);
     }
 
-              // 20. Если узел является оператором экспоненты (EXP)
+              // 14. Если узел является оператором экспоненты (EXP)
     case EXP: {
-        // 20.1. Сгенерировать ТеХ-отображение узла
+        // 14.1. Сгенерировать ТеХ-отображение узла
         result = "e^{" + cToTex(node->left, type, false, config) + "}";
         return result;
     }
 
-            // 21. Если узел является оператором модуля (ABS или FABS)
+            // 15. Если узел является оператором модуля (ABS или FABS)
     case ABS:
     case FABS: {
-        // 21.1. Сгенерировать ТеХ-отображение узла
+        // 15.1. Сгенерировать ТеХ-отображение узла
         result = "|" + cToTex(node->left, type, false, config) + "|";
         return result;
     }
 
-             // 22. Если узел является оператором равенства (EQ)
+             // 16. Если узел является оператором равенства (EQ)
     case EQ: {
-        // 22.1. Сгенерировать ТеХ-отображение узла
+        // 16.1. Сгенерировать ТеХ-отображение узла
         string leftStr = getChildTexWithParens(node, node->left, false, config);
         string rightStr = getChildTexWithParens(node, node->right, true, config);
         result = leftStr + " = " + rightStr;
         return result;
     }
 
-           // 23. Если узел является оператором неравенства (NEQ)
+           // 17. Если узел является оператором неравенства (NEQ)
     case NEQ: {
-        // 23.1. Сгенерировать ТеХ-отображение узла
+        // 17.1. Сгенерировать ТеХ-отображение узла
         string leftStr = getChildTexWithParens(node, node->left, false, config);
         string rightStr = getChildTexWithParens(node, node->right, true, config);
         result = leftStr + " \\neq " + rightStr;
         return result;
     }
 
-            // 24. Если узел является оператором меньше (LT)
+            // 18. Если узел является оператором меньше (LT)
     case LT: {
-        // 24.1. Сгенерировать ТеХ-отображение узла
+        // 18.1. Сгенерировать ТеХ-отображение узла
         string leftStr = getChildTexWithParens(node, node->left, false, config);
         string rightStr = getChildTexWithParens(node, node->right, true, config);
         result = leftStr + " < " + rightStr;
         return result;
     }
 
-           // 25. Если узел является оператором больше (GT)
+           // 19. Если узел является оператором больше (GT)
     case GT: {
-        // 25.1. Сгенерировать ТеХ-отображение узла
+        // 19.1. Сгенерировать ТеХ-отображение узла
         string leftStr = getChildTexWithParens(node, node->left, false, config);
         string rightStr = getChildTexWithParens(node, node->right, true, config);
         result = leftStr + " > " + rightStr;
         return result;
     }
 
-           // 26. Если узел является оператором меньше или равно (LE)
+           // 20. Если узел является оператором меньше или равно (LE)
     case LE: {
-        // 26.1. Сгенерировать ТеХ-отображение узла
+        // 20.1. Сгенерировать ТеХ-отображение узла
         string leftStr = getChildTexWithParens(node, node->left, false, config);
         string rightStr = getChildTexWithParens(node, node->right, true, config);
         result = leftStr + " \\leq " + rightStr;
         return result;
     }
 
-           // 27. Если узел является оператором больше или равно (GE)
+           // 21. Если узел является оператором больше или равно (GE)
     case GE: {
-        // 27.1. Сгенерировать ТеХ-отображение узла
+        // 21.1. Сгенерировать ТеХ-отображение узла
         string leftStr = getChildTexWithParens(node, node->left, false, config);
         string rightStr = getChildTexWithParens(node, node->right, true, config);
         result = leftStr + " \\geq " + rightStr;
         return result;
     }
 
-           // 28. Если узел является логическим оператором AND (LAND)
+           // 22. Если узел является логическим оператором AND (LAND)
     case LAND: {
-        // 28.1. Сгенерировать ТеХ-отображение узла
+        // 22.1. Сгенерировать ТеХ-отображение узла
         string leftStr = getChildTexWithParens(node, node->left, false, config);
         string rightStr = getChildTexWithParens(node, node->right, true, config);
         result = leftStr + " \\land " + rightStr;
         return result;
     }
 
-             // 29. Если узел является логическим оператором OR (LOR)
+             // 23. Если узел является логическим оператором OR (LOR)
     case LOR: {
-        // 29.1. Сгенерировать ТеХ-отображение узла
+        // 23.1. Сгенерировать ТеХ-отображение узла
         string leftStr = getChildTexWithParens(node, node->left, false, config);
         string rightStr = getChildTexWithParens(node, node->right, true, config);
         result = leftStr + " \\lor " + rightStr;
         return result;
     }
 
-            // 30. Если узел является оператором логического отрицания (LNOT)
+            // 24. Если узел является оператором логического отрицания (LNOT)
     case LNOT: {
-        // 30.1. Сгенерировать ТеХ-отображение узла
+        // 24.1. Сгенерировать ТеХ-отображение узла
         string childStr = getChildTexWithParens(node, node->left, false, config);
         result = "\\lnot " + childStr;
         return result;
@@ -892,8 +892,8 @@ string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config&
 
 
 /// @brief Главная функция программы
-/// @param argc количество аргументов командной строки
-/// @param argv массив аргументов командной строки
+/// @param[in] argc количество аргументов командной строки
+/// @param[in] argv массив аргументов командной строки
 /// @return 0 при успешном завершении, 1 при ошибке
 int main(int argc, char* argv[]) {
 
@@ -1438,12 +1438,17 @@ bool comparePrecedence(int parentPrec, int childPrec, bool parentLeftAssoc, bool
 
 string getConstantTeX(const string& value)
 {
-    if (value == "pi") return "\\pi";
-    if (value == "phi") return "\\varphi";
-    if (value == "e") return "e";
-    if (value == "i") return "i";
-    if (value == "true") return "true";
-    if (value == "false") return "false";
+    // 1. Проверка на математические константы
+    if (value == "pi") return "\\pi";      // число пи
+    if (value == "phi") return "\\varphi"; // число фи (золотое сечение)
+    if (value == "e") return "e";          // число Эйлера
+    if (value == "i") return "i";          // мнимая единица
+
+    // 2. Проверка на логические константы
+    if (value == "true") return "true";    
+    if (value == "false") return "false";  
+
+    // 3. Если не константа, возвращаем исходное значение
     return value;
 }
 
@@ -1468,7 +1473,7 @@ string getTrigFunctionTeX(Node* node, const Config& config)
     // 3. Получение TeX-строки аргумента с учётом скобок
     string argStr = getChildTexWithParens(node, node->left, false, config);
 
-    // 4. Формирование итоговой строки: \sin(x)
+    // 4. Формирование итоговой строки
     return funcName + " " + argStr;
 }
 
@@ -1625,8 +1630,14 @@ string* getFractionPowerTeX(Node* node, const Config& config, TokenType type)
 
 string getRegularPowerTeX(Node* node, const Config& config, TokenType type)
 {
+    // 1. Получение TeX-строки показателя степени (правый потомок)
     string exponent = cToTex(node->right, type, true, config);
-    return cToTex(node->left, type, false, config) + "^{" + exponent + "}";
+
+    // 2. Получение TeX-строки основания (левый потомок)
+    string base = cToTex(node->left, type, false, config);
+
+    // 3. Формирование итоговой строки
+    return base + "^{" + exponent + "}";
 }
 
 string getTrigFunctionName(TokenType type)
