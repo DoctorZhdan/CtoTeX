@@ -1,1 +1,1 @@
-(a + b) \cdot (c - d) + \frac{e}{f} - \sin x^{2}
+\frac{\sin x^{2} + \cos x^{2}}{y}

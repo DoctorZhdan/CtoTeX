@@ -193,8 +193,64 @@ bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<
     for (int i = 0; i < wordList.size(); i++)
     {
         string word = wordList[i];
-        bool processed = false; // processed - флаг того, что слово уже распознано как что-то допустимое
+        bool processed = false; // флаг того, что слово уже распознано как что-то допустимое
 
+        // Проверка на допустимые символы
+        bool hasInvalid = false;          // Флаг того, есть ли в слове недопустимые символы
+        int invalidCount = 0;             // Общее количество недопустимых символов в слове
+        int maxSequenceLength = 0;        // Максимальная длина непрерывной последовательности недопустимых символов
+        int currentSequenceLength = 0;    // Текущая длина последовательности недопустимых символов 
+
+        // Перебираем каждый символ слова
+        for (char ch : word)
+        {
+            // Проверяем, является ли символ допустимым
+            bool isValid = isalnum(ch) || ch == '.' || ch == '#' || ch == '_' ||
+                ch == '[' || ch == ']' || ch == '=' || ch == '!' ||
+                ch == '<' || ch == '>' || ch == '&' || ch == '|' ||
+                ch == '+' || ch == '-' || ch == '*' || ch == '/';
+
+            // Если символ недопустимый
+            if (!isValid)
+            {
+                hasInvalid = true;                   // Отмечаем, что есть недопустимый символ
+                invalidCount++;                      // Увеличиваем счётчик недопустимых символов
+                currentSequenceLength++;             // Увеличиваем длину текущей последовательности
+                if (currentSequenceLength > maxSequenceLength)
+                {
+                    maxSequenceLength = currentSequenceLength;  // Обновляем максимальную длину
+                }
+            }
+            else
+            {
+                currentSequenceLength = 0;           // Последовательность прервалась, сбрасываем счётчик
+            }
+        }
+
+        // Если в слове есть недопустимые символы
+        if (hasInvalid)
+        {
+            Error err;
+            // Определяем тип ошибки:
+            // если подряд идёт несколько недопустимых символов 
+            // или если всего больше одного недопустимого символа, это последовательность
+            
+            if (maxSequenceLength > 1 || invalidCount > 1)
+            {
+                err.code = InvalidSymbolSequence;    
+                err.length = maxSequenceLength;      
+            }
+            // иначе один недопустимый символ
+            else
+            {
+                err.code = InvalidSymbol;            
+                err.length = 1;                      
+            }
+            err.position = 0;                        
+            err.line = word;                         
+            errors.push_back(err);                   
+            processed = true;                        
+        }
 
         // Обработка операторов 
         if (parseOperator(word, tokens, nodeCount))

@@ -1,4 +1,0 @@
-mulIdenVar powVarN
-arrSum combineInSum
-trigFunNoNegPow powAfterVar
-logDiv logConverting

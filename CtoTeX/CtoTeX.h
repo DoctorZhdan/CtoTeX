@@ -136,7 +136,7 @@ const map<string, set<string>> allowedConfigParams = {
 /// @brief Типы токенов
 enum TokenType {
     NUMBER,                             ///< число (целое или вещественное)
-    VARIABLE,                           ///< переменная (идентификатор)
+    VARIABLE,                           ///< переменная
     CONSTANT,                           ///< константа (pi, e, phi, i, true, false)
     PLUS,                               ///< бинарное сложение (+)
     MINUS,                              ///< бинарное вычитание (-)
@@ -444,7 +444,7 @@ bool isLogDiv(Node* node, string& base, string& argument, const Config& config);
 /// @param[in] opType ожидаемый тип оператора (MUL для умножения, PLUS для сложения)
 /// @param[out] arrayName строка для сохранения имени массива
 /// @param[out] indexes вектор для сбора индексов элементов массива 
-/// @param[in/out] arrayNameFound флаг, указывающий, было ли уже найдено имя массива (для проверки совпадения)
+/// @param[in,out] arrayNameFound флаг, указывающий, было ли уже найдено имя массива (для проверки совпадения)
 /// @return true, если поддерево является цепочкой операций opType с элементами массива, иначе false
 bool isArrOperation(Node* node, TokenType opType, string& arrayName, vector<int>& indexes, bool& arrayNameFound);
 
@@ -459,7 +459,7 @@ string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config&
 /// @brief Проверяет, является ли слово оператором и добавляет соответствующий токен
 /// @param[in] word текущее слово
 /// @param[out] tokens вектор токенов
-/// @param[in/out] nodeCount счётчик узлов 
+/// @param[in,out] nodeCount счётчик узлов 
 /// @return true, если слово распознано как оператор; false в противном случае
 bool parseOperator(const string& word, vector<Token>& tokens, int& nodeCount);
 
@@ -474,7 +474,7 @@ bool checkOperatorSpacing(const string& word, vector<Error>& errors, const set<s
 /// @param[in] word текущее слово 
 /// @param[out] tokens вектор токенов 
 /// @param[out] errors вектор ошибок
-/// @param[in/out] nodeCount счётчик узлов 
+/// @param[in,out] nodeCount счётчик узлов 
 /// @return true, если слово обработано как число, иначе false
 bool parseNumber(const string& word, vector<Token>& tokens, vector<Error>& errors, int& nodeCount);
 
@@ -482,14 +482,14 @@ bool parseNumber(const string& word, vector<Token>& tokens, vector<Error>& error
 /// @param[in] word текущее слово 
 /// @param[out] tokens вектор токенов 
 /// @param[out] errors вектор ошибок 
-/// @param[in/out] nodeCount счётчик узлов 
+/// @param[in,out] nodeCount счётчик узлов 
 /// @return true, если слово обработано как переменная, иначе false
 bool parseVariable(const string& word, vector<Token>& tokens, vector<Error>& errors, int& nodeCount);
 
 /// @brief Проверяет, является ли слово константой и добавляет токен
 /// @param[in] word текущее слово
 /// @param[out] tokens вектор токенов
-/// @param[in/out] nodeCount счётчик узлов
+/// @param[in,out] nodeCount счётчик узлов
 /// @return true, если слово обработано как константа, иначе false
 bool parseConstant(const string& word, vector<Token>& tokens, int& nodeCount);
 
@@ -497,7 +497,7 @@ bool parseConstant(const string& word, vector<Token>& tokens, int& nodeCount);
 /// @param[in] word текущее слово 
 /// @param[out] tokens вектор токенов 
 /// @param[out] errors вектор ошибок
-/// @param[in/out] nodeCount счётчик узлов 
+/// @param[in,out] nodeCount счётчик узлов 
 /// @return true, если слово обработано как элемент массива, иначе false
 bool parseArray(const string& word, vector<Token>& tokens, vector<Error>& errors, int& nodeCount);
 
@@ -508,22 +508,22 @@ void splitIntoWords(const string& expression, vector<string>& wordList);
 
 /// @brief Обрабатывает бинарный оператор: извлекает два операнда из стека, проверяет типы, создаёт узел
 /// @param[in] token токен оператора
-/// @param[in/out] nodeStack стек узлов
+/// @param[in,out] nodeStack стек узлов
 /// @param[out] errors вектор ошибок
 /// @return указатель на новый узел или nullptr при ошибке
 Node* processBinaryOperator(const Token& token, stack<Node*>& nodeStack, vector<Error>& errors);
 
 /// @brief Обрабатывает унарный оператор: извлекает один операнд из стека, проверяет тип, создаёт узел
 /// @param[in] token токен оператора
-/// @param[in/out] nodeStack стек узлов
+/// @param[in,out] nodeStack стек узлов
 /// @param[out] errors вектор ошибок
 /// @return указатель на новый узел или nullptr при ошибке
 Node* processUnaryOperator(const Token& token, stack<Node*>& nodeStack, vector<Error>& errors);
 
 /// @brief Обрабатывает токен-операнд 
 /// @param[in] token токен для обработки
-/// @param[in/out] nodeStack стек узлов
-/// @param[in/out] nodeCount счётчик узлов
+/// @param[in,out] nodeStack стек узлов
+/// @param[in,out] nodeCount счётчик узлов
 /// @param[out] errors вектор ошибок
 void processOperand(const Token& token, stack<Node*>& nodeStack, int& nodeCount, vector<Error>& errors);
 
