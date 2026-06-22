@@ -1,1 +1,1 @@
-\log_{b}(a)
+\arctan x^{2}

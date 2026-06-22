@@ -135,7 +135,7 @@ using namespace std;
     // 2. ÐÐ¾Ð±Ð°Ð²Ð¸ÑÑ  Ð¾ÑÐ¸Ð±ÐºÑ InputFileNotExist Ð² Ð²ÐµÐºÑÐ¾Ñ Ð¾ÑÐ¸Ð±Ð¾Ðº, ÐµÑÐ»Ð¸ Ð½Ðµ ÑÐ´Ð°Ð»Ð¾ÑÑ Ð¾ÑÐºÑÑÑÑ ÑÐ°Ð¹Ð» Ñ Ð²ÑÑÐ°Ð¶ÐµÐ½Ð¸ÐµÐ¼ 
 <span style = "background-color:#dfd">    if (!exprFile.is_open())</span>
     {
-<span style = "background-color:#fdd">        Error err;
+<span style = "background-color:#dfd">        Error err;
         err.code = InputFileNotExist;
         err.line = exprFilename;
         errors.push_back(err);
@@ -1740,11 +1740,11 @@ string getTrigFunctionName(TokenType type)
     {
 <span style = "background-color:#dfd">    case SIN:  return "\\sin";
     case COS:  return "\\cos";
-    case TAN:  return "\\tan";</span>
-<span style = "background-color:#fdd">    case ASIN: return "\\arcsin";
+    case TAN:  return "\\tan";
+    case ASIN: return "\\arcsin";
     case ACOS: return "\\arccos";
-    case ATAN: return "\\arctan";
-    default:   return "";</span>
+    case ATAN: return "\\arctan";</span>
+<span style = "background-color:#fdd">    default:   return "";</span>
     }
 <span style = "background-color:#dfd">}</span>
 

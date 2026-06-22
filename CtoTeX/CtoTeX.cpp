@@ -6,7 +6,7 @@
 using namespace std;
 
 
-bool validateConfigFile(const string& filename, Config& config, vector<Error>& errors) {
+bool validateConfigFile(const string& filename, Config& config, unordered_set<Error, ErrorHash, ErrorEqual>& errors) {
     // 1. Открыть файл
     ifstream file(filename);
 
@@ -17,7 +17,7 @@ bool validateConfigFile(const string& filename, Config& config, vector<Error>& e
         Error err;
         err.code = InputFileNotExist;
         err.line = filename;
-        errors.push_back(err);
+        errors.insert(err);
         return false;
     }
 
@@ -40,7 +40,7 @@ bool validateConfigFile(const string& filename, Config& config, vector<Error>& e
             err.code = EmptyLine;
             err.line = line;
             err.position = 0;
-            errors.push_back(err);
+            errors.insert(err);
         }
         else {
             // 4.2. Разбить строку на два слова (по пробелу)
@@ -55,7 +55,7 @@ bool validateConfigFile(const string& filename, Config& config, vector<Error>& e
                 Error err;
                 err.code = MissingParamValue;
                 err.line = line;
-                errors.push_back(err);
+                errors.insert(err);
             }
             // 4.4. Если в строке больше 2 слов
             else if (lineStream >> extra)
@@ -64,7 +64,7 @@ bool validateConfigFile(const string& filename, Config& config, vector<Error>& e
                 Error err;
                 err.code = TooManyWords;
                 err.line = line;
-                errors.push_back(err);
+                errors.insert(err);
             }
             // 4.5. Если первое слово (параметр) не найдено в словаре допустимых значений параметров allowedConfigParams
             else if (allowedConfigParams.find(param) == allowedConfigParams.end())
@@ -73,7 +73,7 @@ bool validateConfigFile(const string& filename, Config& config, vector<Error>& e
                 Error err;
                 err.code = NonexistentParam;
                 err.line = line;
-                errors.push_back(err);
+                errors.insert(err);
             }
             // 4.6. Если второе слово (значение) не входит в набор допустимых значений для этого параметра
             else {
@@ -84,7 +84,7 @@ bool validateConfigFile(const string& filename, Config& config, vector<Error>& e
                     Error err;
                     err.code = InvalidParamValue;
                     err.line = line;
-                    errors.push_back(err);
+                    errors.insert(err);
                 }
                 // 4.7. Если данный параметр уже содержит значение
                 else if (processedParams.find(param) != processedParams.end())
@@ -93,7 +93,7 @@ bool validateConfigFile(const string& filename, Config& config, vector<Error>& e
                     Error err;
                     err.code = DuplicateParamValue;
                     err.line = line;
-                    errors.push_back(err);
+                    errors.insert(err);
                 }
                 else {
                     // 4.8. Добавить параметр в множество обработанных параметров
@@ -117,7 +117,7 @@ bool validateConfigFile(const string& filename, Config& config, vector<Error>& e
     return false;
 }
 
-bool readInputFiles(const string& exprFilename, const string& configFilename, string& expression, Config& config, vector<Error>& errors) {
+bool readInputFiles(const string& exprFilename, const string& configFilename, string& expression, Config& config, unordered_set<Error, ErrorHash, ErrorEqual>& errors) {
     // 1. Открыть файл с выражением
     ifstream exprFile(exprFilename);
 
@@ -127,7 +127,7 @@ bool readInputFiles(const string& exprFilename, const string& configFilename, st
         Error err;
         err.code = InputFileNotExist;
         err.line = exprFilename;
-        errors.push_back(err);
+        errors.insert(err);
         return false;
     }
 
@@ -144,7 +144,7 @@ bool readInputFiles(const string& exprFilename, const string& configFilename, st
     if (lines.size() != 1) {
         Error err;
         err.code = MultipleLinesInTreeFile;
-        errors.push_back(err);
+        errors.insert(err);
         return false;
     }
 
@@ -160,7 +160,7 @@ bool readInputFiles(const string& exprFilename, const string& configFilename, st
     return errors.empty();
 }
 
-void printErrors(const vector<Error>& errors) {
+void printErrors(const unordered_set<Error, ErrorHash, ErrorEqual>& errors) {
     // 1. Если вектор ошибок пуст
     if (errors.empty()) {
         // 1.1. Завершить выполнение
@@ -180,7 +180,7 @@ void printErrors(const vector<Error>& errors) {
     }
 }
 
-bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<Error>& errors)
+bool tokenizeExpression(const string& expression, vector<Token>& tokens, unordered_set<Error, ErrorHash, ErrorEqual>& errors)
 {
     // Проверка на несколько пробелов подряд (лишние пробелы между токенами)
     // Проходим по всей строке выражения
@@ -201,7 +201,7 @@ bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<
             if (spaceCount > 1)
             {
                 // Добавляем соответствующую ошибку
-                errors.push_back({ TooManySpaces, i, spaceCount, expression });
+                errors.insert({ TooManySpaces, i, spaceCount, expression });
             }
 
             // Пропускаем все пробелы в выражении
@@ -275,7 +275,7 @@ bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<
             }
             err.position = 0;                        
             err.line = word;                         
-            errors.push_back(err);                   
+            errors.insert(err);
             processed = true;                        
         }
 
@@ -328,7 +328,7 @@ bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<
         if (!processed)
         {
             // 3.8 Занести соответствующую ошибку в вектор ошибок
-            errors.push_back({ InvalidSymbol, 0, (int)word.size(), word });
+            errors.insert({ InvalidSymbol, 0, (int)word.size(), word });
 
             // 3.9 Перейти к обработке следующего слова
         }
@@ -345,7 +345,7 @@ bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<
     }
 }
 
-bool buildTree(const string& expression, Node*& root, const map<TokenType, OperatorInfo>& operatorInfo, vector<Error>& errors) {
+bool buildTree(const string& expression, Node*& root, const map<TokenType, OperatorInfo>& operatorInfo, unordered_set<Error, ErrorHash, ErrorEqual>& errors) {
     // 1. Разбить строку на токены (tokenizeExpression)
     vector<Token> tokens;
     if (!tokenizeExpression(expression, tokens, errors)) {
@@ -383,7 +383,7 @@ bool buildTree(const string& expression, Node*& root, const map<TokenType, Opera
                 Error err;
                 err.code = InvalidSymbol;
                 err.line = expression;
-                errors.push_back(err);
+                errors.insert(err);
             }
 
             Node* newNode = nullptr;
@@ -411,7 +411,7 @@ bool buildTree(const string& expression, Node*& root, const map<TokenType, Opera
                     // 4.2.6.1. Добавить ошибку TooManyNodes в вектор ошибок
                     Error err;
                     err.code = TooManyNodes;
-                    errors.push_back(err);
+                    errors.insert(err);
                 }
             }
         }
@@ -435,7 +435,7 @@ bool buildTree(const string& expression, Node*& root, const map<TokenType, Opera
     return true;
 }
 
-bool saveToOutFile(const string& filename, const string& texString, vector<Error>& errors) {
+bool saveToOutFile(const string& filename, const string& texString, unordered_set<Error, ErrorHash, ErrorEqual>& errors) {
     // 1. Открыть файл по пути filename для записи
     ofstream outFile(filename);
 
@@ -445,7 +445,7 @@ bool saveToOutFile(const string& filename, const string& texString, vector<Error
         Error err;
         err.code = OutputFileNotCreate;
         err.line = filename;
-        errors.push_back(err);
+        errors.insert(err);
         // 2.2. Вернуть false
         return false;
     }
@@ -460,7 +460,7 @@ bool saveToOutFile(const string& filename, const string& texString, vector<Error
         Error err;
         err.code = OutputFileNotCreate;
         err.line = filename;
-        errors.push_back(err);
+        errors.insert(err);
         // 4.2. Вернуть false
         outFile.close();
         return false;
@@ -993,7 +993,7 @@ int main(int argc, char* argv[]) {
 
     string expression; // Строка для хранения выражения из файла
     Config config; // Объект для хранения параметров отображения
-    vector<Error> errors; // Вектор для сбора ошибок
+    unordered_set<Error, ErrorHash, ErrorEqual> errors; // Вектор для сбора ошибок
 
     // Чтение входных файлов
     if (!readInputFiles(argv[1], argv[2], expression, config, errors)) {
@@ -1087,7 +1087,7 @@ bool parseOperator(const string& word, vector<Token>& tokens, int& nodeCount)
     return false;
 }
 
-bool checkOperatorSpacing(const string& word, vector<Error>& errors, const set<string>& allowedOperations)
+bool checkOperatorSpacing(const string& word, unordered_set<Error, ErrorHash, ErrorEqual>& errors, const set<string>& allowedOperations)
 {
     // 1. Подсчёт количества операторов в слове 
     int opCounter = 0;
@@ -1130,7 +1130,7 @@ bool checkOperatorSpacing(const string& word, vector<Error>& errors, const set<s
             err.length = word.size();
             err.line = word;
 
-            errors.push_back(err);
+            errors.insert(err);
             return true;
         }
     }
@@ -1138,7 +1138,7 @@ bool checkOperatorSpacing(const string& word, vector<Error>& errors, const set<s
     return false;
 }
 
-bool parseNumber(const string& word, vector<Token>& tokens, vector<Error>& errors, int& nodeCount)
+bool parseNumber(const string& word, vector<Token>& tokens, unordered_set<Error, ErrorHash, ErrorEqual>& errors, int& nodeCount)
 {
     // 1. Проверка, может ли слово быть числом
     bool isNumberStart = isdigit(word[0]) ||
@@ -1163,7 +1163,7 @@ bool parseNumber(const string& word, vector<Token>& tokens, vector<Error>& error
 
         else
         {
-            errors.push_back({ InvalidSymbolSequence, (int)i, 1, word });
+            errors.insert({ InvalidSymbolSequence, (int)i, 1, word });
         }
     }
 
@@ -1173,7 +1173,7 @@ bool parseNumber(const string& word, vector<Token>& tokens, vector<Error>& error
         int after = word.size() - dotPos - 1;
         if (after > 8)
         {
-            errors.push_back({ TooManyDecimalDigits, dotPos + 1, after, word });
+            errors.insert({ TooManyDecimalDigits, dotPos + 1, after, word });
         }
     }
 
@@ -1182,12 +1182,12 @@ bool parseNumber(const string& word, vector<Token>& tokens, vector<Error>& error
         double val = stod(word);
         if (val < -2e9 || val > 2e9)
         {
-            errors.push_back({ IntegerOverflow, -1, (int)word.size(), word });
+            errors.insert({ IntegerOverflow, -1, (int)word.size(), word });
         }
     }
     catch (...)
     {
-        errors.push_back({ InvalidSymbolSequence, -1, (int)word.size(), word });
+        errors.insert({ InvalidSymbolSequence, -1, (int)word.size(), word });
     }
 
     // 5. Если ошибок нет, добавляем токен
@@ -1200,7 +1200,7 @@ bool parseNumber(const string& word, vector<Token>& tokens, vector<Error>& error
     return true;
 }
 
-bool parseVariable(const string& word, vector<Token>& tokens, vector<Error>& errors, int& nodeCount)
+bool parseVariable(const string& word, vector<Token>& tokens, unordered_set<Error, ErrorHash, ErrorEqual>& errors, int& nodeCount)
 {
     // 1. Проверка: переменная должна начинаться с буквы
     if (!isalpha(word[0]))
@@ -1211,13 +1211,13 @@ bool parseVariable(const string& word, vector<Token>& tokens, vector<Error>& err
     // 2. Проверка допустимых символов
     for (size_t i = 1; i < word.size(); i++) {
         if (!isalnum(word[i])) {
-            errors.push_back({ InvalidSymbol, (int)i, 1, word });
+            errors.insert({ InvalidSymbol, (int)i, 1, word });
         }
     }
 
     // 3. Ограничение длины имени
     if (word.size() > 255) {
-        errors.push_back({ VariableNameTooLong, -1, (int)word.size(), word });
+        errors.insert({ VariableNameTooLong, -1, (int)word.size(), word });
     }
 
     // 4. Если ошибок нет, добавляем токен
@@ -1255,7 +1255,7 @@ bool parseConstant(const string& word, vector<Token>& tokens, int& nodeCount)
     return true;
 }
 
-bool parseArray(const string& word, vector<Token>& tokens, vector<Error>& errors, int& nodeCount)
+bool parseArray(const string& word, vector<Token>& tokens, unordered_set<Error, ErrorHash, ErrorEqual>& errors, int& nodeCount)
 {
     // 1. Проверка наличия символов '[' и ']'
     size_t l = word.find('[');
@@ -1273,14 +1273,14 @@ bool parseArray(const string& word, vector<Token>& tokens, vector<Error>& errors
     // 3. Проверка имени массива
     if (name.empty() || !isalpha(name[0]))
     {
-        errors.push_back({ InvalidSymbol, 0, (int)name.size(), name });
+        errors.insert({ InvalidSymbol, 0, (int)name.size(), name });
     }
 
     for (size_t j = 1; j < name.size(); j++)
     {
         if (!isalnum(name[j]))
         {
-            errors.push_back({ InvalidSymbol, (int)j, 1, name });
+            errors.insert({ InvalidSymbol, (int)j, 1, name });
         }
     }
 
@@ -1290,7 +1290,7 @@ bool parseArray(const string& word, vector<Token>& tokens, vector<Error>& errors
     {
         if (!hasError && !isdigit(c))
         {
-            errors.push_back({ InvalidSymbolSequence, 0, (int)indexStr.size(), indexStr });
+            errors.insert({ InvalidSymbolSequence, 0, (int)indexStr.size(), indexStr });
             hasError = true;
         }
     }
@@ -1358,14 +1358,14 @@ void splitIntoWords(const string& expression, vector<string>& wordList)
 
 
 
-Node* processBinaryOperator(const Token& token, stack<Node*>& nodeStack, vector<Error>& errors)
+Node* processBinaryOperator(const Token& token, stack<Node*>& nodeStack, unordered_set<Error, ErrorHash, ErrorEqual>& errors)
 {
     // 1. Проверка наличия двух операндов в стеке
     if (nodeStack.size() < 2)
     {
         Error err;
         err.code = NotEnoughOperands;
-        errors.push_back(err);
+        errors.insert(err);
         return nullptr;
     }
 
@@ -1394,7 +1394,7 @@ Node* processBinaryOperator(const Token& token, stack<Node*>& nodeStack, vector<
         {
             Error err;
             err.code = MismatchedOperandTypes;
-            errors.push_back(err);
+            errors.insert(err);
             delete left;
             delete right;
             return nullptr;
@@ -1405,14 +1405,14 @@ Node* processBinaryOperator(const Token& token, stack<Node*>& nodeStack, vector<
     return new Node(token, left, right);
 }
 
-Node* processUnaryOperator(const Token& token, stack<Node*>& nodeStack, vector<Error>& errors)
+Node* processUnaryOperator(const Token& token, stack<Node*>& nodeStack, unordered_set<Error, ErrorHash, ErrorEqual>& errors)
 {
     // 1. Проверка наличия одного операнда в стеке
     if (nodeStack.size() < 1)
     {
         Error err;
         err.code = NotEnoughOperands;
-        errors.push_back(err);
+        errors.insert(err);
         return nullptr;
     }
 
@@ -1437,7 +1437,7 @@ Node* processUnaryOperator(const Token& token, stack<Node*>& nodeStack, vector<E
         {
             Error err;
             err.code = MismatchedOperandTypes;
-            errors.push_back(err);
+            errors.insert(err);
             delete child;
             return nullptr;
         }
@@ -1447,7 +1447,7 @@ Node* processUnaryOperator(const Token& token, stack<Node*>& nodeStack, vector<E
     return new Node(token, child);
 }
 
-void processOperand(const Token& token, stack<Node*>& nodeStack, int& nodeCount, vector<Error>& errors)
+void processOperand(const Token& token, stack<Node*>& nodeStack, int& nodeCount, unordered_set<Error, ErrorHash, ErrorEqual>& errors)
 {
     // 1. Создать новый узел Node с этим токеном
     Node* newNode = new Node(token);
@@ -1463,18 +1463,18 @@ void processOperand(const Token& token, stack<Node*>& nodeStack, int& nodeCount,
     {
         Error err;
         err.code = TooManyNodes;
-        errors.push_back(err);
+        errors.insert(err);
     }
 }
 
-void checkStackState(stack<Node*>& nodeStack, vector<Error>& errors)
+void checkStackState(stack<Node*>& nodeStack, unordered_set<Error, ErrorHash, ErrorEqual>& errors)
 {
     // 1. Если стек пуст, в выражении не было операндов
     if (nodeStack.empty())
     {
         Error err;
         err.code = NotEnoughOperands;
-        errors.push_back(err);
+        errors.insert(err);
     }
 
     // 2. Если в стеке больше одного узла, в выражении остались лишние операнды
@@ -1482,7 +1482,7 @@ void checkStackState(stack<Node*>& nodeStack, vector<Error>& errors)
     {
         Error err;
         err.code = TooManyOperands;
-        errors.push_back(err);
+        errors.insert(err);
     }
 }
 

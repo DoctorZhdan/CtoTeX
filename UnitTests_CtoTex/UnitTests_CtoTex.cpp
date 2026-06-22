@@ -16,7 +16,7 @@ namespace UnitTestsCtoTex
             string expr = "a b + c *";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
 
@@ -40,7 +40,7 @@ namespace UnitTestsCtoTex
             string expr = "a b c + *";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
 
@@ -64,7 +64,7 @@ namespace UnitTestsCtoTex
             string expr = "a b * c +";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
 
@@ -88,7 +88,7 @@ namespace UnitTestsCtoTex
             string expr = "a b c - -";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
 
@@ -112,7 +112,7 @@ namespace UnitTestsCtoTex
             string expr = "a b + c #pow";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
 
@@ -136,7 +136,7 @@ namespace UnitTestsCtoTex
             string expr = "a b c + #pow";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
 
@@ -160,7 +160,7 @@ namespace UnitTestsCtoTex
             string expr = "a b + -_";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
 
@@ -184,7 +184,7 @@ namespace UnitTestsCtoTex
             string expr = "a b +";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
 
@@ -208,7 +208,7 @@ namespace UnitTestsCtoTex
             string expr = "true false || true &&";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
 
@@ -232,7 +232,7 @@ namespace UnitTestsCtoTex
             string expr = "true false && true ||";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
 
@@ -256,7 +256,7 @@ namespace UnitTestsCtoTex
             string expr = "true ! true &&";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
 
@@ -280,7 +280,7 @@ namespace UnitTestsCtoTex
             string expr = "true false || true false || &&";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
 
@@ -309,7 +309,7 @@ namespace UnitTestsCtoTex
             string expr = "a b + c d - * e f * +";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
 
@@ -334,7 +334,7 @@ namespace UnitTestsCtoTex
             string expr = "a +";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
 
@@ -342,8 +342,9 @@ namespace UnitTestsCtoTex
             Assert::IsTrue(!errors.empty());
 
             bool found = false;
-            for (size_t i = 0; i < errors.size(); ++i) {
-                if (errors[i].code == NotEnoughOperands) {
+            for (const auto& err : errors) {
+                if (err.code == NotEnoughOperands)
+                {
                     found = true;
                 }
             }
@@ -358,7 +359,7 @@ namespace UnitTestsCtoTex
             string expr = "a b c +";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
 
@@ -366,8 +367,9 @@ namespace UnitTestsCtoTex
             Assert::IsTrue(!errors.empty());
 
             bool found = false;
-            for (size_t i = 0; i < errors.size(); ++i) {
-                if (errors[i].code == TooManyOperands) {
+            for (const auto& err : errors) {
+                if (err.code == TooManyOperands) 
+                {
                     found = true;
                 }
             }
@@ -389,7 +391,7 @@ namespace UnitTestsCtoTex
             string expr = "a[1] a[2] +";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
 
             string name; vector<int> idx; bool found = false;
@@ -404,7 +406,7 @@ namespace UnitTestsCtoTex
             string expr = "a[1] a[2] *";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
 
             string name; vector<int> idx; bool found = false;
@@ -419,7 +421,7 @@ namespace UnitTestsCtoTex
             string expr = "a[1]";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
 
             string name; vector<int> idx; bool found = false;
@@ -434,7 +436,7 @@ namespace UnitTestsCtoTex
             string expr = "a[1] a[2] +";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
 
             string name; vector<int> idx; bool found = false;
@@ -449,7 +451,7 @@ namespace UnitTestsCtoTex
             string expr = "a[1] a[2] + a[3] +";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
 
             string name; vector<int> idx; bool found = false;
@@ -464,7 +466,7 @@ namespace UnitTestsCtoTex
             string expr = "a[1] a[2] +";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
 
             string name; vector<int> idx; bool found = false;
@@ -479,7 +481,7 @@ namespace UnitTestsCtoTex
             string expr = "a[1] b[2] +";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
 
             string name; vector<int> idx; bool found = false;
@@ -494,7 +496,7 @@ namespace UnitTestsCtoTex
             string expr = "a[1] a[2] +";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
 
             string name; vector<int> idx; bool found = false;
@@ -509,7 +511,7 @@ namespace UnitTestsCtoTex
             string expr = "a[1] a[2] * a[3] +";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
 
             string name; vector<int> idx; bool found = false;
@@ -524,7 +526,7 @@ namespace UnitTestsCtoTex
             string expr = "a[1] a[2] *";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
 
             string name; vector<int> idx; bool found = false;
@@ -548,7 +550,7 @@ namespace UnitTestsCtoTex
             string expr = "5 3 +";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
 
             string name; vector<int> idx; bool found = false;
@@ -563,7 +565,7 @@ namespace UnitTestsCtoTex
             string expr = "";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
 
@@ -571,8 +573,9 @@ namespace UnitTestsCtoTex
             Assert::IsTrue(!errors.empty());
 
             bool found = false;
-            for (size_t i = 0; i < errors.size(); ++i) {
-                if (errors[i].code == NotEnoughOperands) {
+            for (const auto& err : errors) {
+                if (err.code == NotEnoughOperands)
+                {
                     found = true;
                 }
             }
@@ -587,7 +590,7 @@ namespace UnitTestsCtoTex
             string expr = "a[1";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
 
@@ -595,8 +598,10 @@ namespace UnitTestsCtoTex
             Assert::IsTrue(!errors.empty());
 
             bool found = false;
-            for (size_t i = 0; i < errors.size(); ++i) {
-                if (errors[i].code == InvalidSymbol || errors[i].code == InvalidSymbolSequence) {
+            for (const auto& err : errors) {
+                if (err.code == InvalidSymbol ||
+                    err.code == InvalidSymbolSequence) 
+                {
                     found = true;
                 }
             }
@@ -655,7 +660,7 @@ namespace UnitTestsCtoTex
             string expr = "a #log b #log /";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
 
             string base, arg;
@@ -673,7 +678,7 @@ namespace UnitTestsCtoTex
             string expr = "a #log10 b #log10 /";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
 
             string base, arg;
@@ -691,7 +696,7 @@ namespace UnitTestsCtoTex
             string expr = "a #log b #log10 /";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
 
             string base, arg;
@@ -709,7 +714,7 @@ namespace UnitTestsCtoTex
             string expr = "a #log b #log +";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
 
             string base, arg;
@@ -727,7 +732,7 @@ namespace UnitTestsCtoTex
             string expr = "a b #log /";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
 
             string base, arg;
@@ -745,7 +750,7 @@ namespace UnitTestsCtoTex
             string expr = "a #log b /";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
 
             string base, arg;
@@ -774,7 +779,7 @@ namespace UnitTestsCtoTex
             string expr = "a #log /";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
 
@@ -782,8 +787,9 @@ namespace UnitTestsCtoTex
             Assert::IsTrue(!errors.empty());
 
             bool found = false;
-            for (size_t i = 0; i < errors.size(); ++i) {
-                if (errors[i].code == NotEnoughOperands) {
+            for (const auto& err : errors) {
+                if (err.code == NotEnoughOperands) 
+                {
                     found = true;
                 }
             }
@@ -798,7 +804,7 @@ namespace UnitTestsCtoTex
             string expr = "a #log b #log / c";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
 
@@ -806,8 +812,9 @@ namespace UnitTestsCtoTex
             Assert::IsTrue(!errors.empty());
 
             bool found = false;
-            for (size_t i = 0; i < errors.size(); ++i) {
-                if (errors[i].code == TooManyOperands) {
+            for (const auto& err : errors) {
+                if (err.code == TooManyOperands)
+                {
                     found = true;
                 }
             }
@@ -828,7 +835,7 @@ namespace UnitTestsCtoTex
             string expr = "x x * x *";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
 
             string operandStr;
@@ -848,7 +855,7 @@ namespace UnitTestsCtoTex
             string expr = "y";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
 
             string operandStr;
@@ -868,7 +875,7 @@ namespace UnitTestsCtoTex
             string expr = "x y *";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
 
             string operandStr;
@@ -886,7 +893,7 @@ namespace UnitTestsCtoTex
             string expr = "x x +";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
 
             string operandStr;
@@ -916,7 +923,7 @@ namespace UnitTestsCtoTex
             string expr = "a a *";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
 
             string operandStr;
@@ -936,7 +943,7 @@ namespace UnitTestsCtoTex
             string expr = "z z * z * z *";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             Assert::IsTrue(buildTree(expr, root, operatorInfo, errors));
 
             string operandStr;
@@ -956,7 +963,7 @@ namespace UnitTestsCtoTex
             string expr = "x @ x *";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
 
@@ -964,8 +971,9 @@ namespace UnitTestsCtoTex
             Assert::IsTrue(!errors.empty());
 
             bool found = false;
-            for (size_t i = 0; i < errors.size(); ++i) {
-                if (errors[i].code == InvalidSymbol) {
+            for (const auto& err : errors) {
+                if (err.code == InvalidSymbol) 
+                {
                     found = true;
                 }
             }
@@ -980,7 +988,7 @@ namespace UnitTestsCtoTex
             string expr = "x x*x";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
 
@@ -988,8 +996,9 @@ namespace UnitTestsCtoTex
             Assert::IsTrue(!errors.empty());
 
             bool found = false;
-            for (size_t i = 0; i < errors.size(); ++i) {
-                if (errors[i].code == OperatorNotSeparatedBySpaces) {
+            for (const auto& err : errors) {
+                if (err.code == OperatorNotSeparatedBySpaces)
+                {
                     found = true;
                 }
             }
@@ -1009,7 +1018,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "a b +";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Assert::IsTrue(errors.empty());
@@ -1024,7 +1033,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "a b -";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1038,7 +1047,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "a b *";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1052,7 +1061,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "a b /";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1066,7 +1075,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "a -_";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1080,7 +1089,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "x x x * *";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1095,7 +1104,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "a[1] a[2] a[3] * *";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1111,7 +1120,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "x 2 #pow";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1125,7 +1134,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "x 0.5 #pow";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1140,7 +1149,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "x 1 3 / #pow";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1155,7 +1164,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "x 2 3 / #pow";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1170,7 +1179,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "x #sqrt";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1184,7 +1193,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "x #sqrt";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1199,7 +1208,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "x #cbrt";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1213,7 +1222,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "x #sin";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1227,7 +1236,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "x #cos";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1241,7 +1250,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "x #tan";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1255,7 +1264,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "x #asin";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1269,7 +1278,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "x #acos";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1283,7 +1292,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "x #atan";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1297,7 +1306,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "x #sin 2 #pow";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1312,7 +1321,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "x #sin 2 #pow";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1327,7 +1336,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "x #sin -1 #pow";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1342,7 +1351,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "x #sin -2 #pow";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1357,7 +1366,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "x #log";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1371,7 +1380,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "x #log10";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1385,7 +1394,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "x #exp";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1399,7 +1408,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "a #log b #log /";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1414,7 +1423,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "x #abs";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1428,7 +1437,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "a b ==";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1442,7 +1451,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "a b !=";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1456,7 +1465,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "a b <";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1470,7 +1479,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "a b >";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1484,7 +1493,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "a b <=";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1498,7 +1507,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "a b >=";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1512,7 +1521,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "true false &&";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1526,7 +1535,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "true false ||";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1540,7 +1549,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "true !";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1554,7 +1563,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "a[5]";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1568,7 +1577,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "a[1] a[2] a[3] + +";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1584,7 +1593,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "10";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1598,7 +1607,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "x";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1612,7 +1621,7 @@ namespace UnitTestsCtoTex
         {
             string expr = "pi";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
             Config config;
@@ -1636,7 +1645,7 @@ namespace UnitTestsCtoTex
             string expr = "a b + c d - * x #sin 2 #pow -";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
 
@@ -1665,7 +1674,7 @@ namespace UnitTestsCtoTex
             string expr = "a b + c d - * e f / + x #sin 2 #pow - y #cos z[1] z[2] + * +";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
 
@@ -1691,14 +1700,16 @@ namespace UnitTestsCtoTex
         {
             string expr = "true 5 +";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsFalse(ok);
             Assert::IsTrue(!errors.empty());
 
             bool found = false;
-            for (size_t i = 0; i < errors.size(); ++i) {
-                if (errors[i].code == MismatchedOperandTypes || errors[i].code == ArithmeticWithLogical) {
+            for (const auto& err : errors) {
+                if (err.code == MismatchedOperandTypes ||
+                    err.code == ArithmeticWithLogical) 
+                {
                     found = true;
                 }
             }
@@ -1712,14 +1723,15 @@ namespace UnitTestsCtoTex
         {
             string expr = "3.123456789 2 +";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsFalse(ok);
             Assert::IsTrue(!errors.empty());
 
             bool found = false;
-            for (size_t i = 0; i < errors.size(); ++i) {
-                if (errors[i].code == TooManyDecimalDigits) {
+            for (const auto& err : errors) {
+                if (err.code == TooManyDecimalDigits) 
+                {
                     found = true;
                 }
             }
@@ -1733,14 +1745,16 @@ namespace UnitTestsCtoTex
         {
             string expr = "a 1.2345678934 + c d - * e f / + x #sin 2#pow - y #cos $ z[1] z[2] + * +";
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsFalse(ok);
             Assert::IsTrue(!errors.empty());
 
             bool found = false;
-            for (size_t i = 0; i < errors.size(); ++i) {
-                if (errors[i].code == TooManyDecimalDigits || errors[i].code == OperatorNotSeparatedBySpaces || errors[i].code == InvalidSymbol) {
+            for (const auto& err : errors) {
+                if (err.code == TooManyDecimalDigits ||
+                    err.code == OperatorNotSeparatedBySpaces ||
+                    err.code == InvalidSymbol) {
                     found = true;
                 }
             }
@@ -1757,7 +1771,7 @@ namespace UnitTestsCtoTex
             string expr = "a a * a * a * e #log f #log / + x #sin 2 #pow - y #cos z[1] z[2] + * +";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
 
@@ -1786,7 +1800,7 @@ namespace UnitTestsCtoTex
             string expr = "a[1] a[3] + a[5] +";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
 
@@ -1811,7 +1825,7 @@ namespace UnitTestsCtoTex
             string expr = "a[1] a[3] * a[5] *";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
 
@@ -1835,7 +1849,7 @@ namespace UnitTestsCtoTex
             string expr = "x #sin 2 #pow x #cos 2 #pow + x #tan 2 #pow + x #asin 2 #pow + x #acos 2 #pow + x #atan 2 #pow +";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
@@ -1858,7 +1872,7 @@ namespace UnitTestsCtoTex
             string expr = "x #sin -2 #pow";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
@@ -1883,7 +1897,7 @@ namespace UnitTestsCtoTex
             string expr = "x #sin -1 #pow";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
@@ -1907,7 +1921,7 @@ namespace UnitTestsCtoTex
             string expr = "x #sin -1 #pow";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
@@ -1932,7 +1946,7 @@ namespace UnitTestsCtoTex
             string expr = "x #sin 2 #pow";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);
@@ -1954,7 +1968,7 @@ namespace UnitTestsCtoTex
             string expr = "x 0.5 #pow";
 
             Node* root = nullptr;
-            vector<Error> errors;
+            unordered_set<Error, ErrorHash, ErrorEqual> errors;
 
             bool ok = buildTree(expr, root, operatorInfo, errors);
             Assert::IsTrue(ok);

@@ -323,6 +323,18 @@ a  b +
 102. Log10_Div  
 Success! TeX string written to temp.txt
 [PASS] 102. Log10_Div  
+103. Arcsin_pow  
+Success! TeX string written to temp.txt
+[PASS] 103. Arcsin_pow  
+104. Arccos_pow  
+Success! TeX string written to temp.txt
+[PASS] 104. Arccos_pow  
+105. Arctan_pow  
+Success! TeX string written to temp.txt
+[PASS] 105. Arctan_pow  
+106. the files do not exist 
+Неверно указан файл с входными данными. Возможно, файл не существует.
+ 
 ======================================== 
-Results: Passed=84 Failed=0 
+Results: Passed=87 Failed=0 
 ======================================== 

@@ -318,8 +318,17 @@ OpenCppCoverage.exe --sources "%SOURCES_DIR%" --export_type=binary:coverage_repo
 echo Running test 102...
 OpenCppCoverage.exe --sources "%SOURCES_DIR%" --export_type=binary:coverage_reports\test102.cov -- %EXE% tests\test102_expr.txt tests\test102_cfg.txt temp.txt
 
+echo Running test 103...
+OpenCppCoverage.exe --sources "%SOURCES_DIR%" --export_type=binary:coverage_reports\test103.cov -- %EXE% tests\test103_expr.txt tests\test103_cfg.txt temp.txt
 
+echo Running test 104...
+OpenCppCoverage.exe --sources "%SOURCES_DIR%" --export_type=binary:coverage_reports\test104.cov -- %EXE% tests\test104_expr.txt tests\test104_cfg.txt temp.txt
 
+echo Running test 105...
+OpenCppCoverage.exe --sources "%SOURCES_DIR%" --export_type=binary:coverage_reports\test105.cov -- %EXE% tests\test105_expr.txt tests\test105_cfg.txt temp.txt
+
+echo Running test 106...
+OpenCppCoverage.exe --sources "%SOURCES_DIR%" --export_type=binary:coverage_reports\test106.cov -- %EXE% tests\test1000_expr.txt tests\test1000_cfg.txt temp.txt
 
 
 :: --- ОБЪЕДИНЯЕМ ВСЕ .cov ФАЙЛЫ В ИТОГОВЫЙ ОТЧЁТ ---
@@ -427,6 +436,10 @@ OpenCppCoverage.exe ^
     --input_coverage=coverage_reports\test100.cov ^
     --input_coverage=coverage_reports\test101.cov ^
     --input_coverage=coverage_reports\test102.cov ^
+    --input_coverage=coverage_reports\test103.cov ^
+    --input_coverage=coverage_reports\test104.cov ^
+    --input_coverage=coverage_reports\test105.cov ^
+    --input_coverage=coverage_reports\test106.cov ^
     --export_type=html:coverage_reports\MergedReport
 
 echo Done! Open coverage_reports\MergedReport\index.html

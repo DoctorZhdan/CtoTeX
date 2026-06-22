@@ -5,6 +5,7 @@ using namespace std;
 #include <set>
 #include <vector>
 #include <stack>
+#include <unordered_set>
 
 
 
@@ -366,12 +367,38 @@ const map<TokenType, OperatorInfo> operatorInfo = {
     {LOR,  {9, true, 2, "\\lor"}}
 };
 
+
+/// @brief Хеш-функция для структуры Error
+struct ErrorHash {
+    size_t operator()(const Error& e) const {
+        // Комбинируем хеши всех полей
+        size_t h1 = hash<int>()(e.code);
+        size_t h2 = hash<int>()(e.position);
+        size_t h3 = hash<int>()(e.length);
+        size_t h4 = hash<string>()(e.line);
+
+        // XOR с битовыми сдвигами для уменьшения коллизий
+        return h1 ^ (h2 << 1) ^ (h3 << 2) ^ (h4 << 3);
+    }
+};
+
+/// @brief Функция сравнения для структуры Error
+struct ErrorEqual {
+    bool operator()(const Error& a, const Error& b) const {
+        return a.code == b.code &&
+            a.position == b.position &&
+            a.length == b.length &&
+            a.line == b.line;
+    }
+};
+
+
 /// @brief Функция валидации файла конфигурации с параметрами отображения
 /// @param[in] filename путь к файлу с параметрами отображения
 /// @param[out] config структура для сохранения параметров и их значений
 /// @param[out] errors вектор для сбора ошибок
 /// @return true при успешной валидации, false при наличии ошибок
-bool validateConfigFile(const string& filename, Config& config, vector<Error>& errors);
+bool validateConfigFile(const string& filename, Config& config, unordered_set<Error, ErrorHash, ErrorEqual>& errors);
 
 /// @brief Функция чтения входных файлов (выражения и конфигурации)
 /// @param[in] exprFilename путь к файлу с выражением
@@ -380,18 +407,18 @@ bool validateConfigFile(const string& filename, Config& config, vector<Error>& e
 /// @param[out] config объект для сохранения параметров отображения
 /// @param[out] errors вектор для сбора ошибок
 /// @return true при успешном чтении, false при наличии ошибок
-bool readInputFiles(const string& exprFilename, const string& configFilename, string& expression, Config& config, vector<Error>& errors);
+bool readInputFiles(const string& exprFilename, const string& configFilename, string& expression, Config& config, unordered_set<Error, ErrorHash, ErrorEqual>& errors);
 
 /// @brief Функция вывода ошибок из вектора в консоль
 /// @param[in] errors вектор с ошибками
-void printErrors(const vector<Error>& errors);
+void printErrors(const unordered_set<Error, ErrorHash, ErrorEqual>& errors);
 
 /// @brief Функция разбиения строки выражения на токены
 /// @param[in] expression строка с выражением в обратной польской записи
 /// @param[out] tokens вектор для заполнения токенами
 /// @param[out] errors вектор для сбора ошибок
 /// @return true при успешной токенизации, false при наличии ошибок
-bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<Error>& errors);
+bool tokenizeExpression(const string& expression, vector<Token>& tokens, unordered_set<Error, ErrorHash, ErrorEqual>& errors);
 
 /// @brief Функция построения дерева разбора из строки выражения
 /// @param[in] expression строка с выражением в обратной польской записи
@@ -399,14 +426,14 @@ bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<
 /// @param[in] operatorInfo словарь операторов с информацией о них 
 /// @param[out] errors вектор для сбора ошибок
 /// @return true при успешном построении дерева, false при наличии ошибок
-bool buildTree(const string& expression, Node*& root, const map<TokenType, OperatorInfo>& operatorInfo, vector<Error>& errors);
+bool buildTree(const string& expression, Node*& root, const map<TokenType, OperatorInfo>& operatorInfo, unordered_set<Error, ErrorHash, ErrorEqual>& errors);
 
 /// @brief Функция сохранения TeX-строки в выходной файл
 /// @param[in] filename путь к выходному файлу
 /// @param[in] texString сгенерированная TeX-строка
 /// @param[out] errors вектор для сбора ошибок
 /// @return true при успешной записи, false при наличии ошибок
-bool saveToOutFile(const string& filename, const string& texString, vector<Error>& errors);
+bool saveToOutFile(const string& filename, const string& texString, unordered_set<Error, ErrorHash, ErrorEqual>& errors);
 
 /// @brief Функция определения необходимости добавления скобок вокруг дочернего узла
 /// @param[in] parent указатель на текущий узел (текущая операция)
@@ -468,7 +495,7 @@ bool parseOperator(const string& word, vector<Token>& tokens, int& nodeCount);
 /// @param[out] errors вектор ошибок
 /// @param[in] allowedOperations множество допустимых операторов
 /// @return true, если слово содержит ошибку, связанную с операторами; false в противном случае
-bool checkOperatorSpacing(const string& word, vector<Error>& errors, const set<string>& allowedOperations);
+bool checkOperatorSpacing(const string& word, unordered_set<Error, ErrorHash, ErrorEqual>& errors, const set<string>& allowedOperations);
 
 /// @brief Проверяет, является ли слово числом и добавляет токен
 /// @param[in] word текущее слово 
@@ -476,7 +503,7 @@ bool checkOperatorSpacing(const string& word, vector<Error>& errors, const set<s
 /// @param[out] errors вектор ошибок
 /// @param[in,out] nodeCount счётчик узлов 
 /// @return true, если слово обработано как число, иначе false
-bool parseNumber(const string& word, vector<Token>& tokens, vector<Error>& errors, int& nodeCount);
+bool parseNumber(const string& word, vector<Token>& tokens, unordered_set<Error, ErrorHash, ErrorEqual>& errors, int& nodeCount);
 
 /// @brief Проверяет, является ли слово переменной и добавляет токен
 /// @param[in] word текущее слово 
@@ -484,7 +511,7 @@ bool parseNumber(const string& word, vector<Token>& tokens, vector<Error>& error
 /// @param[out] errors вектор ошибок 
 /// @param[in,out] nodeCount счётчик узлов 
 /// @return true, если слово обработано как переменная, иначе false
-bool parseVariable(const string& word, vector<Token>& tokens, vector<Error>& errors, int& nodeCount);
+bool parseVariable(const string& word, vector<Token>& tokens, unordered_set<Error, ErrorHash, ErrorEqual>& errors, int& nodeCount);
 
 /// @brief Проверяет, является ли слово константой и добавляет токен
 /// @param[in] word текущее слово
@@ -499,7 +526,7 @@ bool parseConstant(const string& word, vector<Token>& tokens, int& nodeCount);
 /// @param[out] errors вектор ошибок
 /// @param[in,out] nodeCount счётчик узлов 
 /// @return true, если слово обработано как элемент массива, иначе false
-bool parseArray(const string& word, vector<Token>& tokens, vector<Error>& errors, int& nodeCount);
+bool parseArray(const string& word, vector<Token>& tokens, unordered_set<Error, ErrorHash, ErrorEqual>& errors, int& nodeCount);
 
 /// @brief Разбивает строку выражения на слова по пробелам
 /// @param[in] expression входная строка
@@ -511,26 +538,26 @@ void splitIntoWords(const string& expression, vector<string>& wordList);
 /// @param[in,out] nodeStack стек узлов
 /// @param[out] errors вектор ошибок
 /// @return указатель на новый узел или nullptr при ошибке
-Node* processBinaryOperator(const Token& token, stack<Node*>& nodeStack, vector<Error>& errors);
+Node* processBinaryOperator(const Token& token, stack<Node*>& nodeStack, unordered_set<Error, ErrorHash, ErrorEqual>& errors);
 
 /// @brief Обрабатывает унарный оператор: извлекает один операнд из стека, проверяет тип, создаёт узел
 /// @param[in] token токен оператора
 /// @param[in,out] nodeStack стек узлов
 /// @param[out] errors вектор ошибок
 /// @return указатель на новый узел или nullptr при ошибке
-Node* processUnaryOperator(const Token& token, stack<Node*>& nodeStack, vector<Error>& errors);
+Node* processUnaryOperator(const Token& token, stack<Node*>& nodeStack, unordered_set<Error, ErrorHash, ErrorEqual>& errors);
 
 /// @brief Обрабатывает токен-операнд 
 /// @param[in] token токен для обработки
 /// @param[in,out] nodeStack стек узлов
 /// @param[in,out] nodeCount счётчик узлов
 /// @param[out] errors вектор ошибок
-void processOperand(const Token& token, stack<Node*>& nodeStack, int& nodeCount, vector<Error>& errors);
+void processOperand(const Token& token, stack<Node*>& nodeStack, int& nodeCount, unordered_set<Error, ErrorHash, ErrorEqual>& errors);
 
 /// @brief Проверяет состояние стека после обработки всех токенов
 /// @param[in] nodeStack стек узлов
 /// @param[out] errors вектор ошибок
-void checkStackState(stack<Node*>& nodeStack, vector<Error>& errors);
+void checkStackState(stack<Node*>& nodeStack, unordered_set<Error, ErrorHash, ErrorEqual>& errors);
 
 /// @brief Сравнивает приоритеты parent и child, определяет необходимость скобок
 /// @param[in] parentPrec приоритет родительской операции

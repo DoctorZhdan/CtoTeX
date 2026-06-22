@@ -189,8 +189,15 @@ CtoTeX.exe tests\test101_expr.txt tests\test101_cfg.txt temp.txt >> results.txt 
 echo. >> results.txt
 
 call :run_test "102. Log10_Div" "tests\test102_expr.txt" "tests\test102_cfg.txt" "\log_{b}(a)"
+call :run_test "103. Arcsin_pow" "tests\test103_expr.txt" "tests\test103_cfg.txt" "\arcsin x^{2}"
+call :run_test "104. Arccos_pow" "tests\test104_expr.txt" "tests\test104_cfg.txt" "\arccos x^{2}"
+call :run_test "105. Arctan_pow" "tests\test105_expr.txt" "tests\test105_cfg.txt" "\arctan x^{2}"
 
 
+echo 106. the files do not exist >> results.txt
+CtoTeX.exe tests\test1000_expr.txt tests\test1000_cfg.txt temp.txt >> results.txt 2>&1
+
+echo. >> results.txt
 
 echo ======================================== >> results.txt
 echo Results: Passed=%passed% Failed=%failed% >> results.txt

@@ -1,1 +1,1 @@
-a #log10 b #log10 /
+x y +
