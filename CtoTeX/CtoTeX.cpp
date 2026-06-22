@@ -182,6 +182,33 @@ void printErrors(const vector<Error>& errors) {
 
 bool tokenizeExpression(const string& expression, vector<Token>& tokens, vector<Error>& errors)
 {
+    // Проверка на несколько пробелов подряд (лишние пробелы между токенами)
+    // Проходим по всей строке выражения
+    for (int i = 0; i < expression.size(); i++)
+    {
+        // Если встретили пробел
+        if (expression[i] == ' ')
+        {
+            int spaceCount = 0;  // счётчик количества пробелов подряд
+
+            // Считаем все пробелы подряд, начиная с текущей позиции
+            while (i + spaceCount < expression.size() && expression[i + spaceCount] == ' ')
+            {
+                spaceCount++;
+            }
+
+            // Если пробелов больше одного
+            if (spaceCount > 1)
+            {
+                // Добавляем соответствующую ошибку
+                errors.push_back({ TooManySpaces, i, spaceCount, expression });
+            }
+
+            // Пропускаем все пробелы в выражении
+            i += spaceCount - 1;
+        }
+    }
+
     // 1. Разбить строку expression на слова по пробелам, сохранить в список слов (wordList)
     vector<string> wordList;
     splitIntoWords(expression, wordList);

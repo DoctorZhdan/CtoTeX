@@ -1,0 +1,1 @@
+a b + c d - * e f / + x #sin 2 #pow - y #cos z[1] z[2] + * +

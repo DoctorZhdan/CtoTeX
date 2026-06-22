@@ -1,0 +1,1926 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>CtoTeX.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+    <body onload="prettyPrint()">
+        <h4></h4>
+        <pre class="prettyprint lang-cpp linenums">
+ï»¿
+#include "../CtoTeX/CtoTeX.h"
+#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+#include &lt;sstream&gt;
+using namespace std;
+
+
+<span style = "background-color:#dfd">bool validateConfigFile(const string&amp; filename, Config&amp; config, vector&lt;Error&gt;&amp; errors) {</span>
+    // 1. ÐÑÐºÑÑÑÑ ÑÐ°Ð¹Ð»
+<span style = "background-color:#dfd">    ifstream file(filename);</span>
+
+    // 2. ÐÑÐ»Ð¸ Ð½Ðµ ÑÐ´Ð°Ð»Ð¾ÑÑ Ð¾ÑÐºÑÑÑÑ ÑÐ°Ð¹Ð»
+<span style = "background-color:#dfd">    if (!file.is_open())</span>
+    {
+        // 2.1. ÐÐ¾Ð±Ð°Ð²Ð¸ÑÑ Ð¾ÑÐ¸Ð±ÐºÑ InputFileNotExist Ð² Ð²ÐµÐºÑÐ¾Ñ Ð¾ÑÐ¸Ð±Ð¾Ðº Ð¸ Ð²ÐµÑÐ½ÑÑÑ false
+<span style = "background-color:#fdd">        Error err;
+        err.code = InputFileNotExist;
+        err.line = filename;
+        errors.push_back(err);
+        return false;</span>
+    }
+
+    // 3. Ð¡Ð¾Ð·Ð´Ð°ÑÑ Ð¿ÑÑÑÐ¾Ðµ Ð¼Ð½Ð¾Ð¶ÐµÑÑÐ²Ð¾ Ð´Ð»Ñ ÑÑÐ°Ð½ÐµÐ½Ð¸Ñ Ð¸Ð¼ÑÐ½ Ð¿Ð°ÑÐ°Ð¼ÐµÑÑÐ¾Ð², ÐºÐ¾ÑÐ¾ÑÑÐµ ÑÐ¶Ðµ Ð²ÑÑÑÐµÑÐ°Ð»Ð¸ÑÑ
+<span style = "background-color:#dfd">    set&lt;string&gt; processedParams;</span>
+
+<span style = "background-color:#dfd">    string line;
+    int lineNum = 0;</span>
+
+    // 4. ÐÐ»Ñ ÐºÐ°Ð¶Ð´Ð¾Ð¹ ÑÑÑÐ¾ÐºÐ¸ ÑÐ°Ð¹Ð»Ð°
+<span style = "background-color:#dfd">    while (getline(file, line))</span>
+    {
+<span style = "background-color:#dfd">        lineNum++;</span>
+
+        // 4.1. ÐÑÐ»Ð¸ ÑÑÑÐ¾ÐºÐ° Ð¿ÑÑÑÐ°Ñ
+<span style = "background-color:#dfd">        if (line.empty())</span>
+        {
+            // 4.1.1. ÐÐ¾Ð±Ð°Ð²Ð¸ÑÑ Ð¾ÑÐ¸Ð±ÐºÑ EmptyLine Ð² Ð²ÐµÐºÑÐ¾Ñ Ð¾ÑÐ¸Ð±Ð¾Ðº
+<span style = "background-color:#dfd">            Error err;
+            err.code = EmptyLine;
+            err.line = line;
+            err.position = 0;
+            errors.push_back(err);
+        }</span>
+        else {
+            // 4.2. Ð Ð°Ð·Ð±Ð¸ÑÑ ÑÑÑÐ¾ÐºÑ Ð½Ð° Ð´Ð²Ð° ÑÐ»Ð¾Ð²Ð° (Ð¿Ð¾ Ð¿ÑÐ¾Ð±ÐµÐ»Ñ)
+<span style = "background-color:#dfd">            stringstream lineStream(line);
+            string param, value, extra;
+            lineStream &gt;&gt; param &gt;&gt; value;</span>
+
+            // 4.3. ÐÑÐ»Ð¸ Ð² ÑÑÑÐ¾ÐºÐµ Ð¼ÐµÐ½ÑÑÐµ 2 ÑÐ»Ð¾Ð²
+<span style = "background-color:#dfd">            if (param.empty() || value.empty())</span>
+            {
+                // 4.3.1. ÐÐ¾Ð±Ð°Ð²Ð¸ÑÑ Ð¾ÑÐ¸Ð±ÐºÑ MissingParamValue Ð² Ð²ÐµÐºÑÐ¾Ñ Ð¾ÑÐ¸Ð±Ð¾Ðº
+<span style = "background-color:#dfd">                Error err;
+                err.code = MissingParamValue;
+                err.line = line;
+                errors.push_back(err);
+            }</span>
+            // 4.4. ÐÑÐ»Ð¸ Ð² ÑÑÑÐ¾ÐºÐµ Ð±Ð¾Ð»ÑÑÐµ 2 ÑÐ»Ð¾Ð²
+<span style = "background-color:#dfd">            else if (lineStream &gt;&gt; extra)</span>
+            {
+                // 4.4.1. ÐÐ¾Ð±Ð°Ð²Ð¸ÑÑ Ð¾ÑÐ¸Ð±ÐºÑ TooManyWords Ð² Ð²ÐµÐºÑÐ¾Ñ Ð¾ÑÐ¸Ð±Ð¾Ðº
+<span style = "background-color:#dfd">                Error err;
+                err.code = TooManyWords;
+                err.line = line;
+                errors.push_back(err);
+            }</span>
+            // 4.5. ÐÑÐ»Ð¸ Ð¿ÐµÑÐ²Ð¾Ðµ ÑÐ»Ð¾Ð²Ð¾ (Ð¿Ð°ÑÐ°Ð¼ÐµÑÑ) Ð½Ðµ Ð½Ð°Ð¹Ð´ÐµÐ½Ð¾ Ð² ÑÐ»Ð¾Ð²Ð°ÑÐµ Ð´Ð¾Ð¿ÑÑÑÐ¸Ð¼ÑÑ Ð·Ð½Ð°ÑÐµÐ½Ð¸Ð¹ Ð¿Ð°ÑÐ°Ð¼ÐµÑÑÐ¾Ð² allowedConfigParams
+<span style = "background-color:#dfd">            else if (allowedConfigParams.find(param) == allowedConfigParams.end())</span>
+            {
+                // 4.5.1. ÐÐ¾Ð±Ð°Ð²Ð¸ÑÑ Ð¾ÑÐ¸Ð±ÐºÑ NonexistentParam Ð² Ð²ÐµÐºÑÐ¾Ñ Ð¾ÑÐ¸Ð±Ð¾Ðº
+<span style = "background-color:#dfd">                Error err;
+                err.code = NonexistentParam;
+                err.line = line;
+                errors.push_back(err);
+            }</span>
+            // 4.6. ÐÑÐ»Ð¸ Ð²ÑÐ¾ÑÐ¾Ðµ ÑÐ»Ð¾Ð²Ð¾ (Ð·Ð½Ð°ÑÐµÐ½Ð¸Ðµ) Ð½Ðµ Ð²ÑÐ¾Ð´Ð¸Ñ Ð² Ð½Ð°Ð±Ð¾Ñ Ð´Ð¾Ð¿ÑÑÑÐ¸Ð¼ÑÑ Ð·Ð½Ð°ÑÐµÐ½Ð¸Ð¹ Ð´Ð»Ñ ÑÑÐ¾Ð³Ð¾ Ð¿Ð°ÑÐ°Ð¼ÐµÑÑÐ°
+            else {
+<span style = "background-color:#dfd">                const set&lt;string&gt;&amp; allowedValues = allowedConfigParams.at(param);
+                if (allowedValues.find(value) == allowedValues.end())</span>
+                {
+                    // 4.6.1. ÐÐ¾Ð±Ð°Ð²Ð¸ÑÑ Ð¾ÑÐ¸Ð±ÐºÑ InvalidParamValue Ð² Ð²ÐµÐºÑÐ¾Ñ Ð¾ÑÐ¸Ð±Ð¾Ðº
+<span style = "background-color:#dfd">                    Error err;
+                    err.code = InvalidParamValue;
+                    err.line = line;
+                    errors.push_back(err);
+                }</span>
+                // 4.7. ÐÑÐ»Ð¸ Ð´Ð°Ð½Ð½ÑÐ¹ Ð¿Ð°ÑÐ°Ð¼ÐµÑÑ ÑÐ¶Ðµ ÑÐ¾Ð´ÐµÑÐ¶Ð¸Ñ Ð·Ð½Ð°ÑÐµÐ½Ð¸Ðµ
+<span style = "background-color:#dfd">                else if (processedParams.find(param) != processedParams.end())</span>
+                {
+                    // 4.7.1. ÐÐ¾Ð±Ð°Ð²Ð¸ÑÑ Ð¾ÑÐ¸Ð±ÐºÑ DuplicateParamValue Ð² Ð²ÐµÐºÑÐ¾Ñ Ð¾ÑÐ¸Ð±Ð¾Ðº
+<span style = "background-color:#dfd">                    Error err;
+                    err.code = DuplicateParamValue;
+                    err.line = line;
+                    errors.push_back(err);
+                }</span>
+                else {
+                    // 4.8. ÐÐ¾Ð±Ð°Ð²Ð¸ÑÑ Ð¿Ð°ÑÐ°Ð¼ÐµÑÑ Ð² Ð¼Ð½Ð¾Ð¶ÐµÑÑÐ²Ð¾ Ð¾Ð±ÑÐ°Ð±Ð¾ÑÐ°Ð½Ð½ÑÑ Ð¿Ð°ÑÐ°Ð¼ÐµÑÑÐ¾Ð²
+<span style = "background-color:#dfd">                    processedParams.insert(param);</span>
+                    // 4.9. Ð¡Ð¾ÑÑÐ°Ð½Ð¸ÑÑ Ð² ÑÐ»Ð¾Ð²Ð°ÑÐµ Ð¿Ð°ÑÐ°Ð¼ÐµÑÑÐ¾Ð² Ð¾ÑÐ¾Ð±ÑÐ°Ð¶ÐµÐ½Ð¸Ñ Ð·Ð½Ð°ÑÐµÐ½Ð¸Ðµ, Ð¿ÑÐ¸ÑÐ²Ð¾ÐµÐ½Ð½Ð¾Ðµ Ð´Ð°Ð½Ð½Ð¾Ð¼Ñ Ð¿Ð°ÑÐ°Ð¼ÐµÑÑÑ
+<span style = "background-color:#dfd">                    config.paramMap[param] = value;</span>
+                }
+            }
+<span style = "background-color:#dfd">        }
+    }</span>
+
+    // 5. ÐÐ°ÐºÑÑÑÑ ÑÐ°Ð¹Ð» 
+<span style = "background-color:#dfd">    file.close();</span>
+
+    // 5. ÐÑÐ»Ð¸ Ð²ÐµÐºÑÐ¾Ñ Ð¾ÑÐ¸Ð±Ð¾Ðº Ð¿ÑÑÑ, Ð²ÐµÑÐ½ÑÑÑ true
+<span style = "background-color:#dfd">    if (errors.empty()) {
+        return true;</span>
+    }
+
+    // 5.1. ÐÐ½Ð°ÑÐµ Ð²ÐµÑÐ½ÑÑÑ false Ð¸ Ð·Ð°Ð¿Ð¾Ð»Ð½ÐµÐ½Ð½ÑÐ¹ Ð²ÐµÐºÑÐ¾Ñ Ñ Ð¾ÑÐ¸Ð±ÐºÐ°Ð¼Ð¸ (errors)
+<span style = "background-color:#dfd">    return false;
+}</span>
+
+<span style = "background-color:#dfd">bool readInputFiles(const string&amp; exprFilename, const string&amp; configFilename, string&amp; expression, Config&amp; config, vector&lt;Error&gt;&amp; errors) {</span>
+    // 1. ÐÑÐºÑÑÑÑ ÑÐ°Ð¹Ð» Ñ Ð²ÑÑÐ°Ð¶ÐµÐ½Ð¸ÐµÐ¼
+<span style = "background-color:#dfd">    ifstream exprFile(exprFilename);</span>
+
+    // 2. ÐÐ¾Ð±Ð°Ð²Ð¸ÑÑ  Ð¾ÑÐ¸Ð±ÐºÑ InputFileNotExist Ð² Ð²ÐµÐºÑÐ¾Ñ Ð¾ÑÐ¸Ð±Ð¾Ðº, ÐµÑÐ»Ð¸ Ð½Ðµ ÑÐ´Ð°Ð»Ð¾ÑÑ Ð¾ÑÐºÑÑÑÑ ÑÐ°Ð¹Ð» Ñ Ð²ÑÑÐ°Ð¶ÐµÐ½Ð¸ÐµÐ¼ 
+<span style = "background-color:#dfd">    if (!exprFile.is_open())</span>
+    {
+<span style = "background-color:#fdd">        Error err;
+        err.code = InputFileNotExist;
+        err.line = exprFilename;
+        errors.push_back(err);
+        return false;</span>
+    }
+
+    // ÐÑÐ¾Ð²ÐµÑÐºÐ°, ÑÑÐ¾ Ð² ÑÐ°Ð¹Ð»Ðµ Ð±Ð¾Ð»ÑÑÐµ Ð¾Ð´Ð½Ð¾Ð¹ ÑÑÑÐ¾ÐºÐ¸
+<span style = "background-color:#dfd">    vector&lt;string&gt; lines;
+    string line;
+    while (getline(exprFile, line))</span>
+    {
+<span style = "background-color:#dfd">        lines.push_back(line);
+    }
+    exprFile.close();</span>
+
+    //ÐÐ¾Ð±Ð°Ð²Ð¸ÑÑ Ð¾ÑÐ¸Ð±ÐºÑ MultipleLinesInTreeFile Ð² Ð²ÐµÐºÑÐ¾Ñ Ð¾ÑÐ¸Ð±Ð¾Ðº, ÐµÑÐ»Ð¸ Ð² ÑÐ°Ð¹Ð»Ðµ Ð±Ð¾Ð»ÑÑÐµ Ð¾Ð´Ð½Ð¾Ð¹ ÑÑÑÐ¾ÐºÐ¸ 
+<span style = "background-color:#dfd">    if (lines.size() != 1) {
+        Error err;
+        err.code = MultipleLinesInTreeFile;
+        errors.push_back(err);
+        return false;</span>
+    }
+
+    // 3. Ð¡Ð¾ÑÑÐ°Ð½Ð¸ÑÑ Ð²ÑÑÐ°Ð¶ÐµÐ½Ð¸Ðµ
+<span style = "background-color:#dfd">    expression = lines[0];</span>
+
+    // 4. ÐÑÐºÑÑÑÑ ÑÐ°Ð¹Ð» ÐºÐ¾Ð½ÑÐ¸Ð³ÑÑÐ°ÑÐ¸Ð¸ Ð¸ ÑÐ¾ÑÑÐ°Ð½Ð¸ÑÑ Ð½Ð°ÑÑÑÐ¾Ð¹ÐºÐ¸ ÐºÐ¾Ð½ÑÐ¸Ð³ÑÑÐ°ÑÐ¸Ð¸ 
+<span style = "background-color:#dfd">    if (!validateConfigFile(configFilename, config, errors)) {
+        return false;</span>
+    }
+
+    // 5. ÐÐµÑÐ½ÑÑÑ ÑÑÐ¿ÐµÑ, ÐµÑÐ»Ð¸ Ð¾ÑÐ¸Ð±Ð¾Ðº Ð½ÐµÑ
+<span style = "background-color:#dfd">    return errors.empty();
+}</span>
+
+<span style = "background-color:#dfd">void printErrors(const vector&lt;Error&gt;&amp; errors) {</span>
+    // 1. ÐÑÐ»Ð¸ Ð²ÐµÐºÑÐ¾Ñ Ð¾ÑÐ¸Ð±Ð¾Ðº Ð¿ÑÑÑ
+<span style = "background-color:#dfd">    if (errors.empty()) {</span>
+        // 1.1. ÐÐ°Ð²ÐµÑÑÐ¸ÑÑ Ð²ÑÐ¿Ð¾Ð»Ð½ÐµÐ½Ð¸Ðµ
+<span style = "background-color:#fdd">        return;</span>
+    }
+
+    // 2. ÐÐ»Ñ ÐºÐ°Ð¶Ð´Ð¾Ð¹ Ð¾ÑÐ¸Ð±ÐºÐ¸ Ð¸Ð· Ð²ÐµÐºÑÐ¾ÑÐ° Ð¾ÑÐ¸Ð±Ð¾Ðº
+<span style = "background-color:#dfd">    for (const auto&amp; err : errors) {</span>
+        // 2.1. Ð¡Ð³ÐµÐ½ÐµÑÐ¸ÑÐ¾Ð²Ð°ÑÑ ÑÐ¾Ð¾Ð±ÑÐµÐ½Ð¸Ðµ Ð¾Ð± Ð¾ÑÐ¸Ð±ÐºÐµ (generateErrorMessage)
+<span style = "background-color:#dfd">        string msg = err.generateErrorMessage();</span>
+
+        // 2.2. ÐÑÐ²ÐµÑÑÐ¸ ÑÐ¾Ð¾Ð±ÑÐµÐ½Ð¸Ðµ Ð² ÐºÐ¾Ð½ÑÐ¾Ð»Ñ
+<span style = "background-color:#dfd">        cout &lt;&lt; msg;</span>
+
+        // 2.3. ÐÑÐ²ÐµÑÑÐ¸ ÑÐ¸Ð¼Ð²Ð¾Ð» Ð¿ÐµÑÐµÐ²Ð¾Ð´Ð° ÑÑÑÐ¾ÐºÐ¸
+<span style = "background-color:#dfd">        cout &lt;&lt; endl;
+    }
+}</span>
+
+bool tokenizeExpression(const string&amp; expression, vector&lt;Token&gt;&amp; tokens, vector&lt;Error&gt;&amp; errors)
+<span style = "background-color:#dfd">{</span>
+    // ÐÑÐ¾Ð²ÐµÑÐºÐ° Ð½Ð° Ð½ÐµÑÐºÐ¾Ð»ÑÐºÐ¾ Ð¿ÑÐ¾Ð±ÐµÐ»Ð¾Ð² Ð¿Ð¾Ð´ÑÑÐ´ (Ð»Ð¸ÑÐ½Ð¸Ðµ Ð¿ÑÐ¾Ð±ÐµÐ»Ñ Ð¼ÐµÐ¶Ð´Ñ ÑÐ¾ÐºÐµÐ½Ð°Ð¼Ð¸)
+    // ÐÑÐ¾ÑÐ¾Ð´Ð¸Ð¼ Ð¿Ð¾ Ð²ÑÐµÐ¹ ÑÑÑÐ¾ÐºÐµ Ð²ÑÑÐ°Ð¶ÐµÐ½Ð¸Ñ
+<span style = "background-color:#dfd">    for (int i = 0; i &lt; expression.size(); i++)</span>
+    {
+        // ÐÑÐ»Ð¸ Ð²ÑÑÑÐµÑÐ¸Ð»Ð¸ Ð¿ÑÐ¾Ð±ÐµÐ»
+<span style = "background-color:#dfd">        if (expression[i] == ' ')</span>
+        {
+<span style = "background-color:#dfd">            int spaceCount = 0;  // ÑÑÑÑÑÐ¸Ðº ÐºÐ¾Ð»Ð¸ÑÐµÑÑÐ²Ð° Ð¿ÑÐ¾Ð±ÐµÐ»Ð¾Ð² Ð¿Ð¾Ð´ÑÑÐ´</span>
+
+            // Ð¡ÑÐ¸ÑÐ°ÐµÐ¼ Ð²ÑÐµ Ð¿ÑÐ¾Ð±ÐµÐ»Ñ Ð¿Ð¾Ð´ÑÑÐ´, Ð½Ð°ÑÐ¸Ð½Ð°Ñ Ñ ÑÐµÐºÑÑÐµÐ¹ Ð¿Ð¾Ð·Ð¸ÑÐ¸Ð¸
+<span style = "background-color:#dfd">            while (i + spaceCount &lt; expression.size() &amp;&amp; expression[i + spaceCount] == ' ')</span>
+            {
+<span style = "background-color:#dfd">                spaceCount++;
+            }</span>
+
+            // ÐÑÐ»Ð¸ Ð¿ÑÐ¾Ð±ÐµÐ»Ð¾Ð² Ð±Ð¾Ð»ÑÑÐµ Ð¾Ð´Ð½Ð¾Ð³Ð¾
+<span style = "background-color:#dfd">            if (spaceCount &gt; 1)</span>
+            {
+                // ÐÐ¾Ð±Ð°Ð²Ð»ÑÐµÐ¼ ÑÐ¾Ð¾ÑÐ²ÐµÑÑÑÐ²ÑÑÑÑÑ Ð¾ÑÐ¸Ð±ÐºÑ
+<span style = "background-color:#dfd">                errors.push_back({ TooManySpaces, i, spaceCount, expression });</span>
+            }
+
+            // ÐÑÐ¾Ð¿ÑÑÐºÐ°ÐµÐ¼ Ð²ÑÐµ Ð¿ÑÐ¾Ð±ÐµÐ»Ñ Ð² Ð²ÑÑÐ°Ð¶ÐµÐ½Ð¸Ð¸
+<span style = "background-color:#dfd">            i += spaceCount - 1;</span>
+        }
+<span style = "background-color:#dfd">    }</span>
+
+    // 1. Ð Ð°Ð·Ð±Ð¸ÑÑ ÑÑÑÐ¾ÐºÑ expression Ð½Ð° ÑÐ»Ð¾Ð²Ð° Ð¿Ð¾ Ð¿ÑÐ¾Ð±ÐµÐ»Ð°Ð¼, ÑÐ¾ÑÑÐ°Ð½Ð¸ÑÑ Ð² ÑÐ¿Ð¸ÑÐ¾Ðº ÑÐ»Ð¾Ð² (wordList)
+<span style = "background-color:#dfd">    vector&lt;string&gt; wordList;
+    splitIntoWords(expression, wordList);</span>
+
+    // 2. Ð£ÑÑÐ°Ð½Ð¾Ð²Ð¸ÑÑ Ð½ÑÐ»ÐµÐ²Ð¾Ðµ Ð·Ð½Ð°ÑÐµÐ½Ð¸Ðµ ÑÑÑÑÑÐ¸ÐºÐ° ÑÐ·Ð»Ð¾Ð² (nodeCount = 0)
+<span style = "background-color:#dfd">    int nodeCount = 0;</span>
+
+    // 3. ÐÐ»Ñ ÐºÐ°Ð¶Ð´Ð¾Ð³Ð¾ ÑÐ»Ð¾Ð²Ð° Ð¸Ð· ÑÐ¿Ð¸ÑÐºÐ° ÑÐ»Ð¾Ð² (wordList):
+<span style = "background-color:#dfd">    for (int i = 0; i &lt; wordList.size(); i++)</span>
+    {
+<span style = "background-color:#dfd">        string word = wordList[i];
+        bool processed = false; // ÑÐ»Ð°Ð³ ÑÐ¾Ð³Ð¾, ÑÑÐ¾ ÑÐ»Ð¾Ð²Ð¾ ÑÐ¶Ðµ ÑÐ°ÑÐ¿Ð¾Ð·Ð½Ð°Ð½Ð¾ ÐºÐ°Ðº ÑÑÐ¾-ÑÐ¾ Ð´Ð¾Ð¿ÑÑÑÐ¸Ð¼Ð¾Ðµ</span>
+
+        // ÐÑÐ¾Ð²ÐµÑÐºÐ° Ð½Ð° Ð´Ð¾Ð¿ÑÑÑÐ¸Ð¼ÑÐµ ÑÐ¸Ð¼Ð²Ð¾Ð»Ñ
+<span style = "background-color:#dfd">        bool hasInvalid = false;          // Ð¤Ð»Ð°Ð³ ÑÐ¾Ð³Ð¾, ÐµÑÑÑ Ð»Ð¸ Ð² ÑÐ»Ð¾Ð²Ðµ Ð½ÐµÐ´Ð¾Ð¿ÑÑÑÐ¸Ð¼ÑÐµ ÑÐ¸Ð¼Ð²Ð¾Ð»Ñ
+        int invalidCount = 0;             // ÐÐ±ÑÐµÐµ ÐºÐ¾Ð»Ð¸ÑÐµÑÑÐ²Ð¾ Ð½ÐµÐ´Ð¾Ð¿ÑÑÑÐ¸Ð¼ÑÑ ÑÐ¸Ð¼Ð²Ð¾Ð»Ð¾Ð² Ð² ÑÐ»Ð¾Ð²Ðµ
+        int maxSequenceLength = 0;        // ÐÐ°ÐºÑÐ¸Ð¼Ð°Ð»ÑÐ½Ð°Ñ Ð´Ð»Ð¸Ð½Ð° Ð½ÐµÐ¿ÑÐµÑÑÐ²Ð½Ð¾Ð¹ Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°ÑÐµÐ»ÑÐ½Ð¾ÑÑÐ¸ Ð½ÐµÐ´Ð¾Ð¿ÑÑÑÐ¸Ð¼ÑÑ ÑÐ¸Ð¼Ð²Ð¾Ð»Ð¾Ð²
+        int currentSequenceLength = 0;    // Ð¢ÐµÐºÑÑÐ°Ñ Ð´Ð»Ð¸Ð½Ð° Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°ÑÐµÐ»ÑÐ½Ð¾ÑÑÐ¸ Ð½ÐµÐ´Ð¾Ð¿ÑÑÑÐ¸Ð¼ÑÑ ÑÐ¸Ð¼Ð²Ð¾Ð»Ð¾Ð² </span>
+
+        // ÐÐµÑÐµÐ±Ð¸ÑÐ°ÐµÐ¼ ÐºÐ°Ð¶Ð´ÑÐ¹ ÑÐ¸Ð¼Ð²Ð¾Ð» ÑÐ»Ð¾Ð²Ð°
+<span style = "background-color:#dfd">        for (char ch : word)</span>
+        {
+            // ÐÑÐ¾Ð²ÐµÑÑÐµÐ¼, ÑÐ²Ð»ÑÐµÑÑÑ Ð»Ð¸ ÑÐ¸Ð¼Ð²Ð¾Ð» Ð´Ð¾Ð¿ÑÑÑÐ¸Ð¼ÑÐ¼
+<span style = "background-color:#dfd">            bool isValid = isalnum(ch) || ch == '.' || ch == '#' || ch == '_' ||</span>
+                ch == '[' || ch == ']' || ch == '=' || ch == '!' ||
+                ch == '&lt;' || ch == '&gt;' || ch == '&amp;' || ch == '|' ||
+                ch == '+' || ch == '-' || ch == '*' || ch == '/';
+
+            // ÐÑÐ»Ð¸ ÑÐ¸Ð¼Ð²Ð¾Ð» Ð½ÐµÐ´Ð¾Ð¿ÑÑÑÐ¸Ð¼ÑÐ¹
+<span style = "background-color:#dfd">            if (!isValid)</span>
+            {
+<span style = "background-color:#dfd">                hasInvalid = true;                   // ÐÑÐ¼ÐµÑÐ°ÐµÐ¼, ÑÑÐ¾ ÐµÑÑÑ Ð½ÐµÐ´Ð¾Ð¿ÑÑÑÐ¸Ð¼ÑÐ¹ ÑÐ¸Ð¼Ð²Ð¾Ð»
+                invalidCount++;                      // Ð£Ð²ÐµÐ»Ð¸ÑÐ¸Ð²Ð°ÐµÐ¼ ÑÑÑÑÑÐ¸Ðº Ð½ÐµÐ´Ð¾Ð¿ÑÑÑÐ¸Ð¼ÑÑ ÑÐ¸Ð¼Ð²Ð¾Ð»Ð¾Ð²
+                currentSequenceLength++;             // Ð£Ð²ÐµÐ»Ð¸ÑÐ¸Ð²Ð°ÐµÐ¼ Ð´Ð»Ð¸Ð½Ñ ÑÐµÐºÑÑÐµÐ¹ Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°ÑÐµÐ»ÑÐ½Ð¾ÑÑÐ¸
+                if (currentSequenceLength &gt; maxSequenceLength)</span>
+                {
+<span style = "background-color:#dfd">                    maxSequenceLength = currentSequenceLength;  // ÐÐ±Ð½Ð¾Ð²Ð»ÑÐµÐ¼ Ð¼Ð°ÐºÑÐ¸Ð¼Ð°Ð»ÑÐ½ÑÑ Ð´Ð»Ð¸Ð½Ñ</span>
+                }
+<span style = "background-color:#dfd">            }</span>
+            else
+            {
+<span style = "background-color:#dfd">                currentSequenceLength = 0;           // ÐÐ¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°ÑÐµÐ»ÑÐ½Ð¾ÑÑÑ Ð¿ÑÐµÑÐ²Ð°Ð»Ð°ÑÑ, ÑÐ±ÑÐ°ÑÑÐ²Ð°ÐµÐ¼ ÑÑÑÑÑÐ¸Ðº</span>
+            }
+<span style = "background-color:#dfd">        }</span>
+
+        // ÐÑÐ»Ð¸ Ð² ÑÐ»Ð¾Ð²Ðµ ÐµÑÑÑ Ð½ÐµÐ´Ð¾Ð¿ÑÑÑÐ¸Ð¼ÑÐµ ÑÐ¸Ð¼Ð²Ð¾Ð»Ñ
+<span style = "background-color:#dfd">        if (hasInvalid)</span>
+        {
+<span style = "background-color:#dfd">            Error err;</span>
+            // ÐÐ¿ÑÐµÐ´ÐµÐ»ÑÐµÐ¼ ÑÐ¸Ð¿ Ð¾ÑÐ¸Ð±ÐºÐ¸:
+            // ÐµÑÐ»Ð¸ Ð¿Ð¾Ð´ÑÑÐ´ Ð¸Ð´ÑÑ Ð½ÐµÑÐºÐ¾Ð»ÑÐºÐ¾ Ð½ÐµÐ´Ð¾Ð¿ÑÑÑÐ¸Ð¼ÑÑ ÑÐ¸Ð¼Ð²Ð¾Ð»Ð¾Ð² 
+            // Ð¸Ð»Ð¸ ÐµÑÐ»Ð¸ Ð²ÑÐµÐ³Ð¾ Ð±Ð¾Ð»ÑÑÐµ Ð¾Ð´Ð½Ð¾Ð³Ð¾ Ð½ÐµÐ´Ð¾Ð¿ÑÑÑÐ¸Ð¼Ð¾Ð³Ð¾ ÑÐ¸Ð¼Ð²Ð¾Ð»Ð°, ÑÑÐ¾ Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°ÑÐµÐ»ÑÐ½Ð¾ÑÑÑ
+            
+<span style = "background-color:#dfd">            if (maxSequenceLength &gt; 1 || invalidCount &gt; 1)</span>
+            {
+<span style = "background-color:#dfd">                err.code = InvalidSymbolSequence;    
+                err.length = maxSequenceLength;      
+            }</span>
+            // Ð¸Ð½Ð°ÑÐµ Ð¾Ð´Ð¸Ð½ Ð½ÐµÐ´Ð¾Ð¿ÑÑÑÐ¸Ð¼ÑÐ¹ ÑÐ¸Ð¼Ð²Ð¾Ð»
+            else
+            {
+<span style = "background-color:#dfd">                err.code = InvalidSymbol;            
+                err.length = 1;                      </span>
+            }
+<span style = "background-color:#dfd">            err.position = 0;                        
+            err.line = word;                         
+            errors.push_back(err);                   
+            processed = true;                        
+        }</span>
+
+        // ÐÐ±ÑÐ°Ð±Ð¾ÑÐºÐ° Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð² 
+<span style = "background-color:#dfd">        if (parseOperator(word, tokens, nodeCount))</span>
+        {
+<span style = "background-color:#dfd">            processed = true;</span>
+        }
+
+        // ÐÑÐ¾Ð²ÐµÑÐºÐ° ÐºÐ¾ÑÑÐµÐºÑÐ½Ð¾ÑÑÐ¸ ÑÐ°ÑÐ¿Ð¾Ð»Ð¾Ð¶ÐµÐ½Ð¸Ñ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð² Ð² ÑÐ»Ð¾Ð²Ðµ
+<span style = "background-color:#dfd">        if (!processed)</span>
+        {
+<span style = "background-color:#dfd">            if (checkOperatorSpacing(word, errors, allowedOperations))</span>
+            {
+<span style = "background-color:#dfd">                processed = true;</span>
+            }
+        }
+        
+        // 3.2. ÐÐ±ÑÐ°Ð±Ð¾ÑÐºÐ° ÐºÐ¾Ð½ÑÑÐ°Ð½ÑÑ
+<span style = "background-color:#dfd">        if (!processed &amp;&amp; parseConstant(word, tokens, nodeCount))</span>
+        {
+<span style = "background-color:#dfd">            processed = true;</span>
+        }
+
+        // 3.4. ÐÐ±ÑÐ°Ð±Ð¾ÑÐºÐ° ÑÐ»ÐµÐ¼ÐµÐ½ÑÐ° Ð¼Ð°ÑÑÐ¸Ð²Ð°
+<span style = "background-color:#dfd">        if (!processed &amp;&amp; parseArray(word, tokens, errors, nodeCount))</span>
+        {
+<span style = "background-color:#dfd">            processed = true;</span>
+        }
+
+        // 3.5. ÐÐ±ÑÐ°Ð±Ð¾ÑÐºÐ° Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½Ð¾Ð¹
+<span style = "background-color:#dfd">        if (!processed)</span>
+        {
+<span style = "background-color:#dfd">            if (parseVariable(word, tokens, errors, nodeCount))</span>
+            {
+<span style = "background-color:#dfd">                processed = true;</span>
+            }
+        }
+
+        // 3.6. ÐÐ±ÑÐ°Ð±Ð¾ÑÐºÐ° ÑÐ¸ÑÐ»Ð°
+<span style = "background-color:#dfd">        if (!processed)</span>
+        {
+<span style = "background-color:#dfd">            if (parseNumber(word, tokens, errors, nodeCount))</span>
+            {
+<span style = "background-color:#dfd">                processed = true;</span>
+            }
+        }
+
+        // 3.7 Ð Ð¿ÑÐ¾ÑÐ¸Ð²Ð½Ð¾Ð¼ ÑÐ»ÑÑÐ°Ðµ ÑÑÐ¸ÑÐ°ÑÑ, ÑÑÐ¾ ÑÐ»Ð¾Ð²Ð¾ Ð½Ð°ÑÐ¸Ð½Ð°ÐµÑÑÑ Ñ Ð½ÐµÐ´Ð¾Ð¿ÑÑÑÐ¸Ð¼Ð¾Ð³Ð¾ ÑÐ¸Ð¼Ð²Ð¾Ð»Ð°
+<span style = "background-color:#dfd">        if (!processed)</span>
+        {
+            // 3.8 ÐÐ°Ð½ÐµÑÑÐ¸ ÑÐ¾Ð¾ÑÐ²ÐµÑÑÑÐ²ÑÑÑÑÑ Ð¾ÑÐ¸Ð±ÐºÑ Ð² Ð²ÐµÐºÑÐ¾Ñ Ð¾ÑÐ¸Ð±Ð¾Ðº
+<span style = "background-color:#fdd">            errors.push_back({ InvalidSymbol, 0, (int)word.size(), word });</span>
+
+            // 3.9 ÐÐµÑÐµÐ¹ÑÐ¸ Ðº Ð¾Ð±ÑÐ°Ð±Ð¾ÑÐºÐµ ÑÐ»ÐµÐ´ÑÑÑÐµÐ³Ð¾ ÑÐ»Ð¾Ð²Ð°
+        }
+<span style = "background-color:#dfd">    }</span>
+
+    // 4. ÐÑÐ»Ð¸ Ð²ÐµÐºÑÐ¾Ñ Ð¾ÑÐ¸Ð±Ð¾Ðº Ð¿ÑÑÑ, Ð²ÐµÑÐ½ÑÑÑ true Ð¸ Ð·Ð°Ð¿Ð¾Ð»Ð½ÐµÐ½Ð½ÑÐ¹ Ð²ÐµÐºÑÐ¾Ñ Ñ ÑÐ¾ÐºÐµÐ½Ð°Ð¼Ð¸ (tokens)
+<span style = "background-color:#dfd">    if (errors.empty())</span>
+    {
+<span style = "background-color:#dfd">        return true;</span>
+<span style = "background-color:#fdd">    }</span>
+    // 4.1. ÐÐ½Ð°ÑÐµ Ð²ÐµÑÐ½ÑÑÑ false Ð¸ Ð·Ð°Ð¿Ð¾Ð»Ð½ÐµÐ½Ð½ÑÐ¹ Ð²ÐµÐºÑÐ¾Ñ Ñ Ð¾ÑÐ¸Ð±ÐºÐ°Ð¼Ð¸ (errors)
+    else {
+<span style = "background-color:#dfd">        return false;</span>
+    }
+<span style = "background-color:#fdd">}</span>
+
+<span style = "background-color:#dfd">bool buildTree(const string&amp; expression, Node*&amp; root, const map&lt;TokenType, OperatorInfo&gt;&amp; operatorInfo, vector&lt;Error&gt;&amp; errors) {</span>
+    // 1. Ð Ð°Ð·Ð±Ð¸ÑÑ ÑÑÑÐ¾ÐºÑ Ð½Ð° ÑÐ¾ÐºÐµÐ½Ñ (tokenizeExpression)
+<span style = "background-color:#dfd">    vector&lt;Token&gt; tokens;
+    if (!tokenizeExpression(expression, tokens, errors)) {
+        return false;</span>
+    }
+
+    // 2. Ð¡Ð¾Ð·Ð´Ð°ÑÑ Ð¿ÑÑÑÐ¾Ð¹ ÑÑÐµÐº ÑÐ·Ð»Ð¾Ð² nodeStack
+<span style = "background-color:#dfd">    stack&lt;Node*&gt; nodeStack;</span>
+
+    // 3. Ð£ÑÑÐ°Ð½Ð¾Ð²Ð¸ÑÑ nodeCount = 0
+<span style = "background-color:#dfd">    int nodeCount = 0;</span>
+
+    // 4. ÐÐ»Ñ ÐºÐ°Ð¶Ð´Ð¾Ð³Ð¾ ÑÐ¾ÐºÐµÐ½Ð° token Ð¸Ð· Ð²ÐµÐºÑÐ¾ÑÐ° ÑÐ¾ÐºÐµÐ½Ð¾Ð² tokens:
+<span style = "background-color:#dfd">    for (const Token&amp; token : tokens) {</span>
+
+        // 4.1. ÐÑÐ»Ð¸ ÑÐ¾ÐºÐµÐ½ Ð¸Ð¼ÐµÐµÑ ÑÐ¸Ð¿ NUMBER Ð¸Ð»Ð¸ VARIABLE Ð¸Ð»Ð¸ CONSTANT (ÑÐ¾ÐºÐµÐ½ ÑÐ²Ð»ÑÐµÑÑÑ Ð¾Ð¿ÐµÑÐ°Ð½Ð´Ð¾Ð¼):
+<span style = "background-color:#dfd">        if (token.type == NUMBER || token.type == VARIABLE || token.type == CONSTANT) {</span>
+
+<span style = "background-color:#dfd">            processOperand(token, nodeStack, nodeCount, errors);
+        }</span>
+
+        // 4.2. ÐÑÐ»Ð¸ ÑÐ¾ÐºÐµÐ½ Ð¸Ð¼ÐµÐµÑ ÑÐ¸Ð¿ ÐºÐ°ÐºÐ¾Ð³Ð¾-Ð»Ð¸Ð±Ð¾ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ° (ÑÐ¾ÐºÐµÐ½ ÑÐ²Ð»ÑÐµÑÑÑ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð¼):
+        else {
+
+            // 4.2.1. ÐÐ¾Ð»ÑÑÐ¸ÑÑ Ð°ÑÐ½Ð¾ÑÑÑ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ° Ð¸Ð· operatorInfo
+<span style = "background-color:#dfd">            auto it = operatorInfo.find(token.type);</span>
+
+<span style = "background-color:#dfd">            int arity = 0;
+            bool operatorFound = (it != operatorInfo.end());</span>
+
+<span style = "background-color:#dfd">            if (operatorFound) {
+                arity = it-&gt;second.arity;
+            }</span>
+            else {
+<span style = "background-color:#fdd">                Error err;
+                err.code = InvalidSymbol;
+                err.line = expression;
+                errors.push_back(err);
+            }</span>
+
+<span style = "background-color:#dfd">            Node* newNode = nullptr;</span>
+
+            // 4.2.2. ÐÑÐ»Ð¸ Ð°ÑÐ½Ð¾ÑÑÑ ÑÐ°Ð²Ð½Ð° 2:
+<span style = "background-color:#dfd">            if (operatorFound &amp;&amp; arity == 2)</span>
+            {
+<span style = "background-color:#dfd">                newNode = processBinaryOperator(token, nodeStack, errors);
+            }</span>
+            // 4.2.3. ÐÑÐ»Ð¸ Ð°ÑÐ½Ð¾ÑÑÑ ÑÐ°Ð²Ð½Ð° 1:
+<span style = "background-color:#dfd">            else if (operatorFound &amp;&amp; arity == 1)</span>
+            {
+<span style = "background-color:#dfd">                newNode = processUnaryOperator(token, nodeStack, errors);</span>
+            }
+
+            // 4.2.4. ÐÐ¾Ð»Ð¾Ð¶Ð¸ÑÑ Ð½Ð¾Ð²ÑÐ¹ ÑÐ·ÐµÐ» Ð² nodeStack
+<span style = "background-color:#dfd">            if (newNode != nullptr) {
+                nodeStack.push(newNode);</span>
+
+                // 4.2.5. Ð£Ð²ÐµÐ»Ð¸ÑÐ¸ÑÑ nodeCount Ð½Ð° 1
+<span style = "background-color:#dfd">                nodeCount++;</span>
+
+                // 4.2.6. ÐÑÐ»Ð¸ nodeCount Ð±Ð¾Ð»ÑÑÐµ 1000
+<span style = "background-color:#dfd">                if (nodeCount &gt; 1000) {</span>
+                    // 4.2.6.1. ÐÐ¾Ð±Ð°Ð²Ð¸ÑÑ Ð¾ÑÐ¸Ð±ÐºÑ TooManyNodes Ð² Ð²ÐµÐºÑÐ¾Ñ Ð¾ÑÐ¸Ð±Ð¾Ðº
+<span style = "background-color:#fdd">                    Error err;
+                    err.code = TooManyNodes;
+                    errors.push_back(err);
+                }</span>
+            }
+<span style = "background-color:#dfd">        }
+    }</span>
+
+    // 5. ÐÑÐ¾Ð²ÐµÑÐ¸ÑÑ ÑÐ¾ÑÑÐ¾ÑÐ½Ð¸Ðµ ÑÑÐµÐºÐ°
+<span style = "background-color:#dfd">    checkStackState(nodeStack, errors);</span>
+
+    // 6. ÐÐ·Ð²Ð»ÐµÑÑ ÐµÐ´Ð¸Ð½ÑÑÐ²ÐµÐ½Ð½ÑÐ¹ ÑÐ·ÐµÐ» Ð¸Ð· ÑÑÐµÐºÐ° Ð¸ ÑÐ¾ÑÑÐ°Ð½Ð¸ÑÑ Ð² root
+<span style = "background-color:#dfd">    if (!nodeStack.empty()) {
+        root = nodeStack.top();
+        nodeStack.pop();</span>
+    }
+
+    // 7. ÐÑÐ»Ð¸ Ð²ÐµÐºÑÐ¾Ñ Ð¾ÑÐ¸Ð±Ð¾Ðº (errors) Ð½Ðµ Ð¿ÑÑÑ 
+<span style = "background-color:#dfd">    if (!errors.empty()) {</span>
+        // 7.1. ÐÐµÑÐ½ÑÑÑ false
+<span style = "background-color:#dfd">        return false;</span>
+    }
+    // 7.2. ÐÐ½Ð°ÑÐµ Ð²ÐµÑÐ½ÑÑÑ true
+<span style = "background-color:#dfd">    return true;
+}</span>
+
+<span style = "background-color:#dfd">bool saveToOutFile(const string&amp; filename, const string&amp; texString, vector&lt;Error&gt;&amp; errors) {</span>
+    // 1. ÐÑÐºÑÑÑÑ ÑÐ°Ð¹Ð» Ð¿Ð¾ Ð¿ÑÑÐ¸ filename Ð´Ð»Ñ Ð·Ð°Ð¿Ð¸ÑÐ¸
+<span style = "background-color:#dfd">    ofstream outFile(filename);</span>
+
+    // 2. ÐÑÐ»Ð¸ ÑÐ°Ð¹Ð» Ð½Ðµ ÑÐ´Ð°Ð»Ð¾ÑÑ Ð¾ÑÐºÑÑÑÑ
+<span style = "background-color:#dfd">    if (!outFile.is_open()) {</span>
+        // 2.1. ÐÐ¾Ð±Ð°Ð²Ð¸ÑÑ Ð¾ÑÐ¸Ð±ÐºÑ OutputFileNotCreate Ð² Ð²ÐµÐºÑÐ¾Ñ errors
+<span style = "background-color:#fdd">        Error err;
+        err.code = OutputFileNotCreate;
+        err.line = filename;
+        errors.push_back(err);</span>
+        // 2.2. ÐÐµÑÐ½ÑÑÑ false
+<span style = "background-color:#fdd">        return false;</span>
+    }
+
+    // 3. ÐÐ°Ð¿Ð¸ÑÐ°ÑÑ ÑÑÑÐ¾ÐºÑ texString Ð² ÑÐ°Ð¹Ð»
+<span style = "background-color:#dfd">    outFile &lt;&lt; texString;</span>
+
+    // 4. ÐÑÐ»Ð¸ Ð·Ð°Ð¿Ð¸ÑÑ Ð½Ðµ ÑÐ´Ð°Ð»Ð°ÑÑ
+<span style = "background-color:#dfd">    if (outFile.fail())</span>
+    {
+        // 4.1. ÐÐ¾Ð±Ð°Ð²Ð¸ÑÑ Ð¾ÑÐ¸Ð±ÐºÑ OutputFileNotCreate Ð² Ð²ÐµÐºÑÐ¾Ñ errors
+<span style = "background-color:#fdd">        Error err;
+        err.code = OutputFileNotCreate;
+        err.line = filename;
+        errors.push_back(err);</span>
+        // 4.2. ÐÐµÑÐ½ÑÑÑ false
+<span style = "background-color:#fdd">        outFile.close();
+        return false;</span>
+    }
+
+    // 5. ÐÐ°ÐºÑÑÑÑ ÑÐ°Ð¹Ð»
+<span style = "background-color:#dfd">    outFile.close();</span>
+
+    // 6. ÐÐµÑÐ½ÑÑÑ true
+<span style = "background-color:#dfd">    return true;
+}</span>
+
+<span style = "background-color:#dfd">bool needsParentheses(Node* parent, Node* child, bool isRightChild) {</span>
+    // 1. ÐÑÐ»Ð¸ child ÑÐ²Ð»ÑÐµÑÑÑ Ð»Ð¸ÑÑÐ¾Ð¼ (NUMBER, VARIABLE, CONSTANT)
+<span style = "background-color:#dfd">    TokenType childType = child-&gt;token.type;
+    if (childType == NUMBER || childType == VARIABLE || childType == CONSTANT) {</span>
+        // 1.1. ÐÐµÑÐ½ÑÑÑ false
+<span style = "background-color:#dfd">        return false;</span>
+    }
+
+    // 2. ÐÑÐ»Ð¸ child ÑÐ²Ð»ÑÐµÑÑÑ ÑÐ½Ð°ÑÐ½ÑÐ¼ Ð¼Ð¸Ð½ÑÑÐ¾Ð¼ (UMINUS)
+<span style = "background-color:#dfd">    if (childType == UMINUS) {</span>
+        // 2.1. ÐÐµÑÐ½ÑÑÑ true
+<span style = "background-color:#fdd">        return true;</span>
+    }
+
+<span style = "background-color:#dfd">    TokenType parentType = parent-&gt;token.type;</span>
+
+    // 3. ÐÑÐ»Ð¸ parent ÑÐ²Ð»ÑÐµÑÑÑ ÑÑÐ¸Ð³Ð¾Ð½Ð¾Ð¼ÐµÑÑÐ¸ÑÐµÑÐºÐ¾Ð¹ ÑÑÐ½ÐºÑÐ¸ÐµÐ¹ (SIN, COS, TAN, ASIN, ACOS, ATAN)
+    if (parentType == SIN || parentType == COS || parentType == TAN ||
+<span style = "background-color:#dfd">        parentType == ASIN || parentType == ACOS || parentType == ATAN) {</span>
+        // 3.1. ÐÐµÑÐ½ÑÑÑ true
+<span style = "background-color:#dfd">        return true;</span>
+    }
+
+    // 4. ÐÑÐ»Ð¸ parent ÑÐ²Ð»ÑÐµÑÑÑ Ð»Ð¾Ð³Ð°ÑÐ¸ÑÐ¼Ð¾Ð¼ (LOG, LOG10)
+<span style = "background-color:#dfd">    if (parentType == LOG || parentType == LOG10) {</span>
+        // 4.1. ÐÐµÑÐ½ÑÑÑ true
+<span style = "background-color:#fdd">        return true;</span>
+    }
+
+    // ÐÐ¾Ð»ÑÑÐ¸ÑÑ Ð¸Ð½ÑÐ¾ÑÐ¼Ð°ÑÐ¸Ñ Ð¾ Ð¿ÑÐ¸Ð¾ÑÐ¸ÑÐµÑÐ°Ñ Ð¸Ð· operatorInfo
+<span style = "background-color:#dfd">    auto parentIt = operatorInfo.find(parentType);
+    auto childIt = operatorInfo.find(childType);</span>
+
+    // ÐÑÐ»Ð¸ Ð¸Ð½ÑÐ¾ÑÐ¼Ð°ÑÐ¸Ñ Ð½Ðµ Ð½Ð°Ð¹Ð´ÐµÐ½Ð°, ÑÐºÐ¾Ð±ÐºÐ¸ Ð½Ðµ ÑÑÐ°Ð²Ð¸Ð¼
+<span style = "background-color:#dfd">    if (parentIt == operatorInfo.end() || childIt == operatorInfo.end()) {</span>
+<span style = "background-color:#fdd">        return false;</span>
+    }
+
+<span style = "background-color:#dfd">    int parentPrec = parentIt-&gt;second.precedence;
+    int childPrec = childIt-&gt;second.precedence;
+    bool parentLeftAssoc = parentIt-&gt;second.leftAssoc;</span>
+
+    // 5. Ð¡ÑÐ°Ð²Ð½ÐµÐ½Ð¸Ðµ Ð¿ÑÐ¸Ð¾ÑÐ¸ÑÐµÑÐ¾Ð² 
+<span style = "background-color:#dfd">    return comparePrecedence(parentPrec, childPrec, parentLeftAssoc, isRightChild);
+}</span>
+
+<span style = "background-color:#dfd">string getChildTexWithParens(Node* parent, Node* child, bool isRightChild, const Config&amp; config) {</span>
+    // 1. ÐÐ¾Ð»ÑÑÐ¸ÑÑ TeX-ÑÑÑÐ¾ÐºÑ Ð´Ð¾ÑÐµÑÐ½ÐµÐ³Ð¾ ÑÐ·Ð»Ð° (cToTex)
+<span style = "background-color:#dfd">    string childStr = cToTex(child, parent-&gt;token.type, isRightChild, config);</span>
+
+    // 2. ÐÑÐ»Ð¸ ÑÑÐµÐ±ÑÑÑÑÑ ÑÐºÐ¾Ð±ÐºÐ¸ (needsParentheses)
+<span style = "background-color:#dfd">    if (needsParentheses(parent, child, isRightChild)) {</span>
+        // 2.1. ÐÐµÑÐ½ÑÑÑ "(" + childStr + ")"
+<span style = "background-color:#dfd">        return string("(") + childStr + ")";</span>
+    }
+
+    // 2.2. ÐÐ½Ð°ÑÐµ Ð²ÐµÑÐ½ÑÑÑ childStr
+<span style = "background-color:#dfd">    return childStr;
+}</span>
+
+<span style = "background-color:#dfd">bool isMulIdenVar(Node* node, string&amp; operandStr, int&amp; varCount, const Config&amp; config) {</span>
+    // 1. ÐÑÐ»Ð¸ ÑÐµÐºÑÑÐ¸Ð¹ ÑÐ·ÐµÐ» Ð½Ðµ ÑÑÑÐµÑÑÐ²ÑÐµÑ
+<span style = "background-color:#dfd">    if (node == nullptr) {</span>
+        // 1.1. ÐÐµÑÐ½ÑÑÑ false
+<span style = "background-color:#fdd">        return false;</span>
+    }
+
+    // 2. ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð¼ ÑÐ¼Ð½Ð¾Ð¶ÐµÐ½Ð¸Ñ (MUL)
+<span style = "background-color:#dfd">    if (node-&gt;token.type == MUL)</span>
+    {
+        // 2.1. ÐÑÐ¾Ð²ÐµÑÐ¸ÑÑ Ð»ÐµÐ²Ð¾Ð³Ð¾ Ð¿Ð¾ÑÐ¾Ð¼ÐºÐ° Ð½Ð° ÑÐ¾Ð¾ÑÐ²ÐµÑÑÑÐ²Ð¸Ðµ ÑÐ°Ð±Ð»Ð¾Ð½Ñ Ð¿Ð°ÑÐ°Ð¼ÐµÑÑÐ° (isMulIdenVar)
+<span style = "background-color:#dfd">        bool leftResult = isMulIdenVar(node-&gt;left, operandStr, varCount, config);</span>
+        // 2.2. ÐÑÐ¾Ð²ÐµÑÐ¸ÑÑ Ð¿ÑÐ°Ð²Ð¾Ð³Ð¾ Ð¿Ð¾ÑÐ¾Ð¼ÐºÐ° Ð½Ð° ÑÐ¾Ð¾ÑÐ²ÐµÑÑÑÐ²Ð¸Ðµ ÑÐ°Ð±Ð»Ð¾Ð½Ñ Ð¿Ð°ÑÐ°Ð¼ÐµÑÑÐ° (isMulIdenVar)
+<span style = "background-color:#dfd">        bool rightResult = isMulIdenVar(node-&gt;right, operandStr, varCount, config);</span>
+        // 2.3. ÐÐµÑÐ½ÑÑÑ true, ÐµÑÐ»Ð¸ Ð¾Ð±Ð° Ð¿Ð¾ÑÐ¾Ð¼ÐºÐ° Ð¿Ð¾Ð´ÑÐ¾Ð´ÑÑ Ð¿Ð¾Ð´ ÑÐ°Ð±Ð»Ð¾Ð½
+<span style = "background-color:#dfd">        return leftResult &amp;&amp; rightResult;</span>
+    }
+
+    // 3. ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ Ð»Ð¸ÑÑÐ¾Ð¼ (NUMBER, VARIABLE, CONSTANT)
+<span style = "background-color:#dfd">    TokenType type = node-&gt;token.type;
+    if (type == NUMBER || type == VARIABLE || type == CONSTANT)</span>
+    {
+        // 3.1. ÐÐ¾Ð»ÑÑÐ¸ÑÑ ÑÑÑÐ¾ÐºÐ¾Ð²Ð¾Ðµ Ð¿ÑÐµÐ´ÑÑÐ°Ð²Ð»ÐµÐ½Ð¸Ðµ ÑÐ·Ð»Ð° (cToTex)
+<span style = "background-color:#dfd">        string currentStr = cToTex(node, UNKNOWN, false, config);</span>
+
+        // 3.2. ÐÑÐ»Ð¸ ÑÑÑÐ¾ÐºÐ° ÑÐ¾ ÑÑÑÐ¾ÐºÐ¾Ð²ÑÐ¼ Ð¾ÑÐ¾Ð±ÑÐ°Ð¶ÐµÐ½Ð¸ÐµÐ¼ ÑÐ·Ð»Ð° Ð¿ÑÑÑÐ°Ñ
+<span style = "background-color:#dfd">        if (operandStr.empty()) {</span>
+            // 3.2.1. Ð¡ÑÐ¸ÑÐ°ÑÑ Ð¾ÑÐ¾Ð±ÑÐ°Ð¶ÐµÐ½Ð¸ÐµÐ¼ ÑÐ·Ð»Ð° Ð¿Ð¾Ð»ÑÑÐµÐ½Ð½Ð¾Ðµ Ð¾ÑÐ¾Ð±ÑÐ°Ð¶ÐµÐ½Ð¸Ðµ Ð»Ð¸ÑÑÐ°
+<span style = "background-color:#dfd">            operandStr = currentStr;</span>
+            // 3.2.2. ÐÐ½ÐºÑÐµÐ¼ÐµÐ½ÑÐ¸ÑÐ¾Ð²Ð°ÑÑ ÐºÐ¾Ð»Ð¸ÑÐµÑÑÐ²Ð¾ Ð½Ð°Ð¹Ð´ÐµÐ½Ð½ÑÑ Ð¼Ð½Ð¾Ð¶Ð¸ÑÐµÐ»ÐµÐ¹
+<span style = "background-color:#dfd">            varCount++;
+        }</span>
+        // 3.3. ÐÐ½Ð°ÑÐµ ÐµÑÐ»Ð¸ ÑÐµÐºÑÑÐµÐµ Ð¾ÑÐ¾Ð±ÑÐ°Ð¶ÐµÐ½Ð¸Ðµ ÑÐ°Ð²Ð½Ð¾ Ð¿Ð¾Ð»ÑÑÐµÐ½Ð½Ð¾Ð¼Ñ Ð¾ÑÐ¾Ð±ÑÐ°Ð¶ÐµÐ½Ð¸Ñ Ð»Ð¸ÑÑÐ°
+<span style = "background-color:#dfd">        else if (operandStr == currentStr) {</span>
+            // 3.3.1. ÐÐ½ÐºÑÐµÐ¼ÐµÐ½ÑÐ¸ÑÐ¾Ð²Ð°ÑÑ ÐºÐ¾Ð»Ð¸ÑÐµÑÑÐ²Ð¾ Ð½Ð°Ð¹Ð´ÐµÐ½Ð½ÑÑ Ð¼Ð½Ð¾Ð¶Ð¸ÑÐµÐ»ÐµÐ¹
+<span style = "background-color:#dfd">            varCount++;
+        }</span>
+        // 3.4. ÐÐ½Ð°ÑÐµ
+        else {
+            // 3.4.1. ÐÐµÑÐ½ÑÑÑ false
+<span style = "background-color:#fdd">            return false;</span>
+        }
+        // 3.5. ÐÐµÑÐ½ÑÑÑ true
+<span style = "background-color:#dfd">        return true;</span>
+    }
+
+    // 4. ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ Ð´ÑÑÐ³Ð¸Ð¼ ÑÐ¸Ð¿Ð¾Ð¼ (Ð½Ðµ MUL Ð¸ Ð½Ðµ Ð»Ð¸ÑÑ)
+    // 4.1. ÐÐµÑÐ½ÑÑÑ false
+<span style = "background-color:#dfd">    return false;
+}</span>
+
+<span style = "background-color:#dfd">bool isLogDiv(Node* node, string&amp; base, string&amp; argument, const Config&amp; config) {</span>
+    // 1. ÐÑÐ»Ð¸ ÑÐµÐºÑÑÐ¸Ð¹ ÑÐ·ÐµÐ» Ð½Ðµ ÑÑÑÐµÑÑÐ²ÑÐµÑ
+<span style = "background-color:#dfd">    if (node == nullptr) {</span>
+        // 1.1. ÐÐµÑÐ½ÑÑÑ false
+<span style = "background-color:#fdd">        return false;</span>
+    }
+
+    // 2. ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» Ð½Ðµ ÑÐ²Ð»ÑÐµÑÑÑ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð¼ Ð´ÐµÐ»ÐµÐ½Ð¸Ñ (DIV)
+<span style = "background-color:#dfd">    if (node-&gt;token.type != DIV) {</span>
+        // 2.1. ÐÐµÑÐ½ÑÑÑ false
+<span style = "background-color:#fdd">        return false;</span>
+    }
+
+<span style = "background-color:#dfd">    Node* leftNode = node-&gt;left;   // Ð»ÐµÐ²ÑÐ¹ Ð¿Ð¾ÑÐ¾Ð¼Ð¾Ðº (ÑÐ¸ÑÐ»Ð¸ÑÐµÐ»Ñ)
+    Node* rightNode = node-&gt;right; // Ð¿ÑÐ°Ð²ÑÐ¹ Ð¿Ð¾ÑÐ¾Ð¼Ð¾Ðº (Ð·Ð½Ð°Ð¼ÐµÐ½Ð°ÑÐµÐ»Ñ)</span>
+
+<span style = "background-color:#dfd">    string leftBase;   // Ð¾ÑÐ½Ð¾Ð²Ð°Ð½Ð¸Ðµ Ð»ÐµÐ²Ð¾Ð³Ð¾ Ð»Ð¾Ð³Ð°ÑÐ¸ÑÐ¼Ð°
+    string leftArg;    // Ð°ÑÐ³ÑÐ¼ÐµÐ½Ñ Ð»ÐµÐ²Ð¾Ð³Ð¾ Ð»Ð¾Ð³Ð°ÑÐ¸ÑÐ¼Ð°
+    string rightBase;  // Ð¾ÑÐ½Ð¾Ð²Ð°Ð½Ð¸Ðµ Ð¿ÑÐ°Ð²Ð¾Ð³Ð¾ Ð»Ð¾Ð³Ð°ÑÐ¸ÑÐ¼Ð°
+    string rightArg;   // Ð°ÑÐ³ÑÐ¼ÐµÐ½Ñ Ð¿ÑÐ°Ð²Ð¾Ð³Ð¾ Ð»Ð¾Ð³Ð°ÑÐ¸ÑÐ¼Ð°</span>
+
+    // 3. ÐÑÐ¾Ð²ÐµÑÐ¸ÑÑ Ð»ÐµÐ²Ð¾Ð³Ð¾ Ð¿Ð¾ÑÐ¾Ð¼ÐºÐ°: ÑÐ²Ð»ÑÐµÑÑÑ Ð»Ð¸ Ð¾Ð½ Ð»Ð¾Ð³Ð°ÑÐ¸ÑÐ¼Ð¾Ð¼ (LOG Ð¸Ð»Ð¸ LOG10)
+    // 3.1. ÐÑÐ»Ð¸ Ð»ÐµÐ²ÑÐ¹ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ Ð½Ð°ÑÑÑÐ°Ð»ÑÐ½ÑÐ¼ Ð»Ð¾Ð³Ð°ÑÐ¸ÑÐ¼Ð¾Ð¼ (LOG)
+<span style = "background-color:#dfd">    if (leftNode-&gt;token.type == LOG) {</span>
+        // 3.1.1. ÐÐ¾Ð»ÑÑÐ¸ÑÑ Ð°ÑÐ³ÑÐ¼ÐµÐ½Ñ Ð»Ð¾Ð³Ð°ÑÐ¸ÑÐ¼Ð° (Ð»ÐµÐ²ÑÐ¹ Ð¿Ð¾ÑÐ¾Ð¼Ð¾Ðº ÑÐ·Ð»Ð° Ñ Ð»Ð¾Ð³Ð°ÑÐ¸ÑÐ¼Ð¾Ð¼)
+<span style = "background-color:#dfd">        leftArg = cToTex(leftNode-&gt;left, UNKNOWN, false, config);</span>
+        // 3.1.2. Ð¡ÑÐ¸ÑÐ°ÑÑ Ð¾ÑÐ½Ð¾Ð²Ð°Ð½Ð¸ÐµÐ¼ Ð»ÐµÐ²Ð¾Ð³Ð¾ Ð»Ð¾Ð³Ð°ÑÐ¸ÑÐ¼Ð° "e" (Ð½Ð°ÑÑÑÐ°Ð»ÑÐ½ÑÐ¹ Ð»Ð¾Ð³Ð°ÑÐ¸ÑÐ¼)
+<span style = "background-color:#dfd">        leftBase = "e";
+    }</span>
+    // 3.2. ÐÑÐ»Ð¸ Ð»ÐµÐ²ÑÐ¹ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ Ð´ÐµÑÑÑÐ¸ÑÐ½ÑÐ¼ Ð»Ð¾Ð³Ð°ÑÐ¸ÑÐ¼Ð¾Ð¼ (LOG10)
+<span style = "background-color:#dfd">    else if (leftNode-&gt;token.type == LOG10) {</span>
+        // 3.2.1. ÐÐ¾Ð»ÑÑÐ¸ÑÑ Ð°ÑÐ³ÑÐ¼ÐµÐ½Ñ Ð»Ð¾Ð³Ð°ÑÐ¸ÑÐ¼Ð° (Ð»ÐµÐ²ÑÐ¹ Ð¿Ð¾ÑÐ¾Ð¼Ð¾Ðº ÑÐ·Ð»Ð° Ñ Ð»Ð¾Ð³Ð°ÑÐ¸ÑÐ¼Ð¾Ð¼)
+<span style = "background-color:#dfd">        leftArg = cToTex(leftNode-&gt;left, UNKNOWN, false, config);</span>
+        // 3.2.2. Ð¡ÑÐ¸ÑÐ°ÑÑ Ð¾ÑÐ½Ð¾Ð²Ð°Ð½Ð¸ÐµÐ¼ Ð»ÐµÐ²Ð¾Ð³Ð¾ Ð»Ð¾Ð³Ð°ÑÐ¸ÑÐ¼Ð° "10" (Ð´ÐµÑÑÑÐ¸ÑÐ½ÑÐ¹ Ð»Ð¾Ð³Ð°ÑÐ¸ÑÐ¼)
+<span style = "background-color:#dfd">        leftBase = "10";
+    }</span>
+    // 3.3. ÐÐ½Ð°ÑÐµ Ð²ÐµÑÐ½ÑÑÑ false
+    else {
+<span style = "background-color:#dfd">        return false;</span>
+    }
+
+    // 4. ÐÑÐ¾Ð²ÐµÑÐ¸ÑÑ Ð¿ÑÐ°Ð²Ð¾Ð³Ð¾ Ð¿Ð¾ÑÐ¾Ð¼ÐºÐ°: ÑÐ²Ð»ÑÐµÑÑÑ Ð»Ð¸ Ð¾Ð½ Ð»Ð¾Ð³Ð°ÑÐ¸ÑÐ¼Ð¾Ð¼ (LOG Ð¸Ð»Ð¸ LOG10)
+    // 4.1. ÐÑÐ»Ð¸ Ð¿ÑÐ°Ð²ÑÐ¹ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ Ð½Ð°ÑÑÑÐ°Ð»ÑÐ½ÑÐ¼ Ð»Ð¾Ð³Ð°ÑÐ¸ÑÐ¼Ð¾Ð¼ (LOG)
+<span style = "background-color:#dfd">    if (rightNode-&gt;token.type == LOG) {
+        rightArg = cToTex(rightNode-&gt;left, UNKNOWN, false, config);
+        rightBase = "e";
+    }</span>
+    // 4.2. ÐÑÐ»Ð¸ Ð¿ÑÐ°Ð²ÑÐ¹ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ Ð´ÐµÑÑÑÐ¸ÑÐ½ÑÐ¼ Ð»Ð¾Ð³Ð°ÑÐ¸ÑÐ¼Ð¾Ð¼ (LOG10)
+<span style = "background-color:#dfd">    else if (rightNode-&gt;token.type == LOG10) {
+        rightArg = cToTex(rightNode-&gt;left, UNKNOWN, false, config);
+        rightBase = "10";
+    }</span>
+    // 4.3. ÐÐ½Ð°ÑÐµ Ð²ÐµÑÐ½ÑÑÑ false
+    else {
+<span style = "background-color:#fdd">        return false;</span>
+    }
+
+    // 5. ÐÑÐ¾Ð²ÐµÑÐ¸ÑÑ, ÑÑÐ¾ Ð¾ÑÐ½Ð¾Ð²Ð°Ð½Ð¸Ñ ÑÐ¾Ð²Ð¿Ð°Ð´Ð°ÑÑ
+    // 5.1. ÐÑÐ»Ð¸ Ð¾ÑÐ½Ð¾Ð²Ð°Ð½Ð¸Ðµ Ð»ÐµÐ²Ð¾Ð³Ð¾ Ð»Ð¾Ð³Ð°ÑÐ¸ÑÐ¼Ð° Ð½Ðµ ÑÐ°Ð²Ð½Ð¾ Ð¾ÑÐ½Ð¾Ð²Ð°Ð½Ð¸Ñ Ð¿ÑÐ°Ð²Ð¾Ð³Ð¾ Ð»Ð¾Ð³Ð°ÑÐ¸ÑÐ¼Ð°, Ð²ÐµÑÐ½ÑÑÑ false
+<span style = "background-color:#dfd">    if (leftBase != rightBase) {</span>
+<span style = "background-color:#fdd">        return false;</span>
+    }
+
+    // 6. Ð¡Ð¾ÑÑÐ°Ð½Ð¸ÑÑ ÑÐµÐ·ÑÐ»ÑÑÐ°ÑÑ Ð² Ð²ÑÑÐ¾Ð´Ð½ÑÐµ Ð¿Ð°ÑÐ°Ð¼ÐµÑÑÑ
+    // Ð¾ÑÐ½Ð¾Ð²Ð°Ð½Ð¸Ðµ = Ð°ÑÐ³ÑÐ¼ÐµÐ½Ñ Ð¿ÑÐ°Ð²Ð¾Ð³Ð¾ Ð»Ð¾Ð³Ð°ÑÐ¸ÑÐ¼Ð° (y), Ð°ÑÐ³ÑÐ¼ÐµÐ½Ñ = Ð°ÑÐ³ÑÐ¼ÐµÐ½Ñ Ð»ÐµÐ²Ð¾Ð³Ð¾ Ð»Ð¾Ð³Ð°ÑÐ¸ÑÐ¼Ð° (x)
+<span style = "background-color:#dfd">    base = rightArg;
+    argument = leftArg;</span>
+
+    // 6. ÐÐµÑÐ½ÑÑÑ true
+<span style = "background-color:#dfd">    return true;
+}</span>
+
+bool isArrOperation(Node* node, TokenType opType, string&amp; arrayName, vector&lt;int&gt;&amp; indexes, bool&amp; arrayNameFound)
+<span style = "background-color:#dfd">{</span>
+    // 1. ÐÑÐ»Ð¸ ÑÐµÐºÑÑÐ¸Ð¹ ÑÐ·ÐµÐ» Ð½Ðµ ÑÑÑÐµÑÑÐ²ÑÐµÑ
+<span style = "background-color:#dfd">    if (!node)</span>
+    {
+        // 1.1 ÐÐµÑÐ½ÑÑÑ false
+<span style = "background-color:#fdd">        return false;</span>
+    }
+
+    // 2. ÐÐ±Ð¾Ð¹ÑÐ¸ Ð¿Ð¾Ð´Ð´ÐµÑÐµÐ²Ð¾ Ð¸ ÑÐ¾Ð±ÑÐ°ÑÑ Ð²ÑÐµ Ð¸Ð½Ð´ÐµÐºÑÑ:
+
+    // 2.1. ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð¼ Ð¸ ÑÐ¾Ð²Ð¿Ð°Ð´Ð°ÐµÑ Ñ Ð¸ÑÐºÐ¾Ð¼ÑÐ¼ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð¼
+<span style = "background-color:#dfd">    if (node-&gt;token.type == opType)</span>
+    {
+        // 2.1.1. Ð ÐµÐºÑÑÑÐ¸Ð²Ð½Ð¾ Ð¾Ð±ÑÐ°Ð±Ð¾ÑÐ°ÑÑ Ð»ÐµÐ²Ð¾Ð³Ð¾ Ð¿Ð¾ÑÐ¾Ð¼ÐºÐ°
+<span style = "background-color:#dfd">        if (!isArrOperation(node-&gt;left, opType,</span>
+            arrayName, indexes, arrayNameFound))
+        {
+<span style = "background-color:#dfd">            return false;</span>
+        }
+
+        // 2.1.2. Ð ÐµÐºÑÑÑÐ¸Ð²Ð½Ð¾ Ð¾Ð±ÑÐ°Ð±Ð¾ÑÐ°ÑÑ Ð¿ÑÐ°Ð²Ð¾Ð³Ð¾ Ð¿Ð¾ÑÐ¾Ð¼ÐºÐ°
+<span style = "background-color:#dfd">        if (!isArrOperation(node-&gt;right, opType,</span>
+            arrayName, indexes, arrayNameFound))
+        {
+<span style = "background-color:#dfd">            return false;</span>
+        }
+<span style = "background-color:#dfd">    }</span>
+    // 2.2. ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð¼ Ð¸Ð½Ð´ÐµÐºÑÐ°ÑÐ¸Ð¸ (ARRAY_INDEX):
+<span style = "background-color:#dfd">    else if (node-&gt;token.type == ARRAY_INDEX)</span>
+    {
+        // 2.2.1. ÐÐ¾Ð»ÑÑÐ¸ÑÑ Ð¸Ð¼Ñ Ð¼Ð°ÑÑÐ¸Ð²Ð° 
+<span style = "background-color:#dfd">        string name = node-&gt;left-&gt;token.value;</span>
+
+        // 2.2.2. ÐÑÐ»Ð¸ Ð¸Ð¼Ñ Ð¼Ð°ÑÑÐ¸Ð²Ð° Ð´Ð¾ ÑÐ¸Ñ Ð¿Ð¾Ñ Ð½Ðµ Ð±ÑÐ»Ð¾ Ð½Ð°Ð¹Ð´ÐµÐ½Ð¾
+<span style = "background-color:#dfd">        if (!arrayNameFound)</span>
+        {
+            // 2.2.2.1. Ð¡Ð¾ÑÑÐ°Ð½Ð¸ÑÑ Ð½Ð°Ð¹Ð´ÐµÐ½Ð½Ð¾Ðµ Ð¸Ð¼Ñ Ð¼Ð°ÑÑÐ¸Ð²Ð° 
+<span style = "background-color:#dfd">            arrayName = name;
+            arrayNameFound = true;
+        }</span>
+        // 2.2.3. ÐÐ½Ð°ÑÐµ ÐµÑÐ»Ð¸ Ð½Ð°Ð¹Ð´ÐµÐ½Ð½Ð¾Ðµ Ð¸Ð¼Ñ Ð¼Ð°ÑÑÐ¸Ð²Ð° Ð½Ðµ ÑÐ¾Ð²Ð¿Ð°Ð´Ð°ÐµÑ Ñ ÑÑÑÐµÑÑÐ²ÑÑÑÐ¸Ð¼ Ð¸Ð¼ÐµÐ½ÐµÐ¼ Ð¼Ð°ÑÑÐ¸Ð²Ð°
+<span style = "background-color:#dfd">        else if (arrayName != name)</span>
+        {
+            // 2.2.3.1. ÐÐµÑÐ½ÑÑÑ false (ÑÐ°Ð·Ð½ÑÐµ Ð¼Ð°ÑÑÐ¸Ð²Ñ)
+<span style = "background-color:#fdd">            return false;</span>
+        }
+
+        // 2.2.4. ÐÐ¾Ð»ÑÑÐ¸ÑÑ Ð·Ð½Ð°ÑÐµÐ½Ð¸Ðµ Ð¸Ð½Ð´ÐµÐºÑÐ° Ð¸Ð· Ð¿ÑÐ°Ð²Ð¾Ð³Ð¾ Ð¿Ð¾ÑÐ¾Ð¼ÐºÐ° 
+<span style = "background-color:#dfd">        if (!node-&gt;right || node-&gt;right-&gt;token.type != NUMBER)</span>
+        {
+<span style = "background-color:#fdd">            return false;</span>
+        }
+
+<span style = "background-color:#dfd">        int index = stoi(node-&gt;right-&gt;token.value);</span>
+
+        //2.2.5. ÐÐ¾Ð±Ð°Ð²Ð¸ÑÑ Ð¸Ð½Ð´ÐµÐºÑ Ð² Ð²ÐµÐºÑÐ¾Ñ indexes
+<span style = "background-color:#dfd">        indexes.push_back(index);
+    }</span>
+    else // 2.3. ÐÐ½Ð°ÑÐµ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ Ð´ÑÑÐ³Ð¸Ð¼ ÑÐ¸Ð¿Ð¾Ð¼ (Ð½Ðµ Ð¸ÑÐºÐ¾Ð¼ÑÐ¹ Ð¾Ð¿ÐµÑÐ°ÑÐ¾Ñ Ð¸ Ð½Ðµ ARRAY_INDEX)
+    {
+        // 2.3.1. ÐÐµÑÐ½ÑÑÑ false
+<span style = "background-color:#dfd">        return false;</span>
+    }
+
+    // 3. ÐÐ¾ÑÐ»Ðµ ÑÐ±Ð¾ÑÐ° Ð²ÑÐµÑ Ð¸Ð½Ð´ÐµÐºÑÐ¾Ð²:
+
+    // 3.1.	ÐÑÐ»Ð¸ indexes Ð¿ÑÑÑ
+<span style = "background-color:#dfd">    if (indexes.empty())</span>
+    {
+        // 3.1.1.ÐÐµÑÐ½ÑÑÑ false
+<span style = "background-color:#fdd">        return false;</span>
+    }
+
+    // 4. ÐÐµÑÐ½ÑÑÑ true
+<span style = "background-color:#dfd">    return true;
+}</span>
+
+<span style = "background-color:#dfd">string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config&amp; config) {</span>
+    // 1. ÐÑÐ»Ð¸ ÑÐµÐºÑÑÐ¸Ð¹ ÑÐ·ÐµÐ» Ð½Ðµ ÑÑÑÐµÑÑÐ²ÑÐµÑ 
+<span style = "background-color:#dfd">    if (node == nullptr) {</span>
+        // 1.1. ÐÐ°Ð²ÐµÑÑÐ¸ÑÑ Ð²ÑÐ¿Ð¾Ð»Ð½ÐµÐ½Ð¸Ðµ
+<span style = "background-color:#fdd">        return "";</span>
+    }
+
+    // 2. ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ Ð»Ð¸ÑÑÐ¾Ð¼ (NUMBER, VARIABLE, CONSTANT)
+<span style = "background-color:#dfd">    TokenType type = node-&gt;token.type;
+    if (type == NUMBER || type == VARIABLE || type == CONSTANT) {</span>
+        // 2.1. ÐÐµÑÐ½ÑÑÑ Ð¢ÐµÐ¥-Ð¾ÑÐ¾Ð±ÑÐ°Ð¶ÐµÐ½Ð¸Ðµ ÑÐ·Ð»Ð°
+<span style = "background-color:#dfd">        return getConstantTeX(node-&gt;token.value);</span>
+
+<span style = "background-color:#fdd">        return node-&gt;token.value;</span>
+    }
+
+    // ÐÐ¾Ð»ÑÑÐµÐ½Ð¸Ðµ Ð½Ð°ÑÑÑÐ¾ÐµÐº ÐºÐ¾Ð½ÑÐ¸Ð³ÑÑÐ°ÑÐ¸Ð¸
+<span style = "background-color:#dfd">    string mulIdenVarVal = config.paramMap.at("mulIdenVar");
+    string arrMulVal = config.paramMap.at("arrMul");
+    string arrSumVal = config.paramMap.at("arrSum");
+    string logDivVal = config.paramMap.at("logDiv");
+    string trigFunNoNegPowVal = config.paramMap.at("trigFunNoNegPow");
+    string trigFunNegPowVal = config.paramMap.at("trigFunNegPow");
+    string trigFunMinusOnePowVal = config.paramMap.at("trigFunMinusOnePow");
+    string zeroPointFivePowVal = config.paramMap.at("zeroPointFivePow");
+    string oneDivNPowVal = config.paramMap.at("oneDivNPow");
+    string abPowVal = config.paramMap.at("abPow");
+    string squareRootVal = config.paramMap.at("squareRoot");</span>
+
+<span style = "background-color:#dfd">    string result;
+    string temp;  // Ð²ÑÐµÐ¼ÐµÐ½Ð½Ð°Ñ Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½Ð°Ñ Ð´Ð»Ñ ÑÑÐ°Ð½ÐµÐ½Ð¸Ñ ÑÐµÐ·ÑÐ»ÑÑÐ°ÑÐ° Ð²ÑÐ·Ð¾Ð²Ð° ÑÑÐ½ÐºÑÐ¸Ð¸</span>
+
+<span style = "background-color:#dfd">    switch (type) {</span>
+
+        // 3. ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð¼ ÑÐ¼Ð½Ð¾Ð¶ÐµÐ½Ð¸Ñ (MUL)
+    case MUL: {
+<span style = "background-color:#dfd">        return getMulOperationTeX(node, config);</span>
+    }
+
+            // 4. ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð¼ ÑÐ»Ð¾Ð¶ÐµÐ½Ð¸Ñ (PLUS)
+    case PLUS: {
+<span style = "background-color:#dfd">        return getPlusOperationTeX(node, config);</span>
+    }
+
+             // 5. ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð¼ Ð²ÑÑÐ¸ÑÐ°Ð½Ð¸Ñ (MINUS)
+    case MINUS: {
+        // 5.1. Ð¡Ð³ÐµÐ½ÐµÑÐ¸ÑÐ¾Ð²Ð°ÑÑ Ð¢ÐµÐ¥-Ð¾ÑÐ¾Ð±ÑÐ°Ð¶ÐµÐ½Ð¸Ðµ ÑÐ·Ð»Ð°: 
+        // ÑÑÑÐ¾ÐºÐ° Ð»ÐµÐ²Ð¾Ð³Ð¾ Ð¿Ð¾ÑÐ¾Ð¼ÐºÐ° Ñ ÑÑÑÑÐ¾Ð¼ ÑÐºÐ¾Ð±Ð¾Ðº + Â«-Â» + ÑÑÑÐ¾ÐºÐ° Ð¿ÑÐ°Ð²Ð¾Ð³Ð¾ Ð¿Ð¾ÑÐ¾Ð¼ÐºÐ° Ñ ÑÑÑÑÐ¾Ð¼ ÑÐºÐ¾Ð±Ð¾Ðº (getChildTexWithParens)
+<span style = "background-color:#dfd">        string leftStr = getChildTexWithParens(node, node-&gt;left, false, config);
+        string rightStr = getChildTexWithParens(node, node-&gt;right, true, config);
+        result = leftStr + " - " + rightStr;
+        return result;</span>
+    }
+
+              // 6. ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ ÑÐ½Ð°ÑÐ½ÑÐ¼ Ð¼Ð¸Ð½ÑÑÐ¾Ð¼ (UMINUS)
+    case UMINUS: {
+        // 6.1. Ð¡Ð³ÐµÐ½ÐµÑÐ¸ÑÐ¾Ð²Ð°ÑÑ Ð¢ÐµÐ¥-Ð¾ÑÐ¾Ð±ÑÐ°Ð¶ÐµÐ½Ð¸Ðµ ÑÐ·Ð»Ð°: Â«-Â» + ÑÑÑÐ¾ÐºÐ° Ð»ÐµÐ²Ð¾Ð³Ð¾ Ð¿Ð¾ÑÐ¾Ð¼ÐºÐ° Ñ ÑÑÑÑÐ¾Ð¼ ÑÐºÐ¾Ð±Ð¾Ðº (getChildTexWithParens)
+<span style = "background-color:#dfd">        string childStr = getChildTexWithParens(node, node-&gt;left, false, config);
+        result = "-" + childStr;
+        return result;</span>
+    }
+
+               // 7. ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð¼ Ð´ÐµÐ»ÐµÐ½Ð¸Ñ (DIV)
+    case DIV: {
+<span style = "background-color:#dfd">        return getDivOperationTeX(node, config, type);</span>
+    }
+
+            // 8. ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð¼ Ð²Ð¾Ð·Ð²ÐµÐ´ÐµÐ½Ð¸Ñ Ð² ÑÑÐµÐ¿ÐµÐ½Ñ (POW)
+    case POW: {
+        // 8.1. ÐÑÐ¾Ð²ÐµÑÐºÐ° Ð½Ð° ÑÑÐ¸Ð³Ð¾Ð½Ð¾Ð¼ÐµÑÑÐ¸ÑÐµÑÐºÑÑ ÑÑÐ½ÐºÑÐ¸Ñ
+<span style = "background-color:#dfd">        TokenType leftType = node-&gt;left-&gt;token.type;
+        bool isTrig = (leftType == SIN || leftType == COS || leftType == TAN ||</span>
+            leftType == ASIN || leftType == ACOS || leftType == ATAN);
+<span style = "background-color:#dfd">        if (isTrig)</span>
+        {
+<span style = "background-color:#dfd">            return getTrigPowerTeX(node, config);</span>
+        }
+
+        // 8.2. ÐÑÐ¾Ð²ÐµÑÐºÐ° Ð½Ð° Ð´ÑÐ¾Ð±Ð½ÑÑ ÑÑÐµÐ¿ÐµÐ½Ñ
+<span style = "background-color:#dfd">        string* fractionResult = getFractionPowerTeX(node, config, type);
+        if (fractionResult != nullptr)</span>
+        {
+<span style = "background-color:#dfd">            string result = *fractionResult;
+            delete fractionResult;
+            return result;</span>
+        }
+
+        // 8.3. ÐÐ±ÑÑÐ½Ð°Ñ ÑÑÐµÐ¿ÐµÐ½Ñ
+<span style = "background-color:#dfd">        return getRegularPowerTeX(node, config, type);</span>
+    }
+
+            // 9. ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð¼ Ð¸Ð·Ð²Ð»ÐµÑÐµÐ½Ð¸Ñ ÐºÐ²Ð°Ð´ÑÐ°ÑÐ½Ð¾Ð³Ð¾ ÐºÐ¾ÑÐ½Ñ (SQRT) Ð¸ Ð¿Ð°ÑÐ°Ð¼ÐµÑÑ squareRoot Ð¸Ð¼ÐµÐµÑ Ð·Ð½Ð°ÑÐµÐ½Ð¸Ðµ sqrtToPow
+    case SQRT: {
+<span style = "background-color:#dfd">        string inner = cToTex(node-&gt;left, type, false, config);
+        if (squareRootVal == "sqrtToPow") {</span>
+            // 9.1. Ð¡Ð³ÐµÐ½ÐµÑÐ¸ÑÐ¾Ð²Ð°ÑÑ Ð¢ÐµÐ¥-Ð¾ÑÐ¾Ð±ÑÐ°Ð¶ÐµÐ½Ð¸Ðµ ÑÐ·Ð»Ð°: Ð»ÐµÐ²ÑÐ¹ Ð¿Ð¾ÑÐ¾Ð¼Ð¾Ðº + Â«^{0.5}Â»
+<span style = "background-color:#dfd">            result = inner + "^{0.5}";
+            return result;</span>
+<span style = "background-color:#fdd">        }</span>
+        else {
+            // 9.2. ÐÐ½Ð°ÑÐµ ÑÐ³ÐµÐ½ÐµÑÐ¸ÑÐ¾Ð²Ð°ÑÑ Ð¢ÐµÐ¥-Ð¾ÑÐ¾Ð±ÑÐ°Ð¶ÐµÐ½Ð¸Ðµ ÑÐ·Ð»Ð°: Â«\sqrt{Â» + Ð»ÐµÐ²ÑÐ¹ Ð¿Ð¾ÑÐ¾Ð¼Ð¾Ðº + Â«}Â»
+<span style = "background-color:#dfd">            result = "\\sqrt{" + inner + "}";
+            return result;</span>
+        }
+<span style = "background-color:#fdd">    }</span>
+
+             // 10. ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð¼ Ð¸Ð·Ð²Ð»ÐµÑÐµÐ½Ð¸Ñ ÐºÑÐ±Ð¸ÑÐµÑÐºÐ¾Ð³Ð¾ ÐºÐ¾ÑÐ½Ñ (CBRT)
+    case CBRT: {
+        // 10.1. Ð¡Ð³ÐµÐ½ÐµÑÐ¸ÑÐ¾Ð²Ð°ÑÑ Ð¢ÐµÐ¥-Ð¾ÑÐ¾Ð±ÑÐ°Ð¶ÐµÐ½Ð¸Ðµ ÑÐ·Ð»Ð°
+<span style = "background-color:#dfd">        string inner = cToTex(node-&gt;left, type, false, config);
+        result = "\\sqrt[3]{" + inner + "}";
+        return result;</span>
+    }
+
+             // 11. ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ Ð¸Ð½Ð´ÐµÐºÑÐ°ÑÐ¸ÐµÐ¹ ÑÐ»ÐµÐ¼ÐµÐ½ÑÐ° Ð¼Ð°ÑÑÐ¸Ð²Ð° (ARRAY_INDEX)
+    case ARRAY_INDEX: {
+        // 11.1. Ð¡Ð³ÐµÐ½ÐµÑÐ¸ÑÐ¾Ð²Ð°ÑÑ Ð¢ÐµÐ¥-Ð¾ÑÐ¾Ð±ÑÐ°Ð¶ÐµÐ½Ð¸Ðµ ÑÐ·Ð»Ð°
+<span style = "background-color:#dfd">        string arrayName = cToTex(node-&gt;left, type, false, config);
+        string index = cToTex(node-&gt;right, type, true, config);
+        result = arrayName + "_{" + index + "}";
+        return result;</span>
+    }
+
+            // 12. ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ ÑÑÐ¸Ð³Ð¾Ð½Ð¾Ð¼ÐµÑÑÐ¸ÑÐµÑÐºÐ¾Ð¹ ÑÑÐ½ÐºÑÐ¸ÐµÐ¹
+    case SIN: 
+    case COS:
+    case TAN:
+    case ASIN:
+    case ACOS:
+    case ATAN: {
+<span style = "background-color:#dfd">        return getTrigFunctionTeX(node, config);</span>
+    }
+
+             // 13. ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð¼ Ð»Ð¾Ð³Ð°ÑÐ¸ÑÐ¼Ð° 
+    case LOG:
+    case LOG10: {
+<span style = "background-color:#dfd">        return getLogFunctionTeX(node, config);</span>
+    }
+
+              // 14. ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð¼ ÑÐºÑÐ¿Ð¾Ð½ÐµÐ½ÑÑ (EXP)
+    case EXP: {
+        // 14.1. Ð¡Ð³ÐµÐ½ÐµÑÐ¸ÑÐ¾Ð²Ð°ÑÑ Ð¢ÐµÐ¥-Ð¾ÑÐ¾Ð±ÑÐ°Ð¶ÐµÐ½Ð¸Ðµ ÑÐ·Ð»Ð°
+<span style = "background-color:#dfd">        result = "e^{" + cToTex(node-&gt;left, type, false, config) + "}";
+        return result;</span>
+    }
+
+            // 15. ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð¼ Ð¼Ð¾Ð´ÑÐ»Ñ (ABS Ð¸Ð»Ð¸ FABS)
+    case ABS:
+    case FABS: {
+        // 15.1. Ð¡Ð³ÐµÐ½ÐµÑÐ¸ÑÐ¾Ð²Ð°ÑÑ Ð¢ÐµÐ¥-Ð¾ÑÐ¾Ð±ÑÐ°Ð¶ÐµÐ½Ð¸Ðµ ÑÐ·Ð»Ð°
+<span style = "background-color:#dfd">        result = "|" + cToTex(node-&gt;left, type, false, config) + "|";
+        return result;</span>
+    }
+
+             // 16. ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð¼ ÑÐ°Ð²ÐµÐ½ÑÑÐ²Ð° (EQ)
+    case EQ: {
+        // 16.1. Ð¡Ð³ÐµÐ½ÐµÑÐ¸ÑÐ¾Ð²Ð°ÑÑ Ð¢ÐµÐ¥-Ð¾ÑÐ¾Ð±ÑÐ°Ð¶ÐµÐ½Ð¸Ðµ ÑÐ·Ð»Ð°
+<span style = "background-color:#dfd">        string leftStr = getChildTexWithParens(node, node-&gt;left, false, config);
+        string rightStr = getChildTexWithParens(node, node-&gt;right, true, config);
+        result = leftStr + " = " + rightStr;
+        return result;</span>
+    }
+
+           // 17. ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð¼ Ð½ÐµÑÐ°Ð²ÐµÐ½ÑÑÐ²Ð° (NEQ)
+    case NEQ: {
+        // 17.1. Ð¡Ð³ÐµÐ½ÐµÑÐ¸ÑÐ¾Ð²Ð°ÑÑ Ð¢ÐµÐ¥-Ð¾ÑÐ¾Ð±ÑÐ°Ð¶ÐµÐ½Ð¸Ðµ ÑÐ·Ð»Ð°
+<span style = "background-color:#dfd">        string leftStr = getChildTexWithParens(node, node-&gt;left, false, config);
+        string rightStr = getChildTexWithParens(node, node-&gt;right, true, config);
+        result = leftStr + " \\neq " + rightStr;
+        return result;</span>
+    }
+
+            // 18. ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð¼ Ð¼ÐµÐ½ÑÑÐµ (LT)
+    case LT: {
+        // 18.1. Ð¡Ð³ÐµÐ½ÐµÑÐ¸ÑÐ¾Ð²Ð°ÑÑ Ð¢ÐµÐ¥-Ð¾ÑÐ¾Ð±ÑÐ°Ð¶ÐµÐ½Ð¸Ðµ ÑÐ·Ð»Ð°
+<span style = "background-color:#dfd">        string leftStr = getChildTexWithParens(node, node-&gt;left, false, config);
+        string rightStr = getChildTexWithParens(node, node-&gt;right, true, config);
+        result = leftStr + " &lt; " + rightStr;
+        return result;</span>
+    }
+
+           // 19. ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð¼ Ð±Ð¾Ð»ÑÑÐµ (GT)
+    case GT: {
+        // 19.1. Ð¡Ð³ÐµÐ½ÐµÑÐ¸ÑÐ¾Ð²Ð°ÑÑ Ð¢ÐµÐ¥-Ð¾ÑÐ¾Ð±ÑÐ°Ð¶ÐµÐ½Ð¸Ðµ ÑÐ·Ð»Ð°
+<span style = "background-color:#dfd">        string leftStr = getChildTexWithParens(node, node-&gt;left, false, config);
+        string rightStr = getChildTexWithParens(node, node-&gt;right, true, config);
+        result = leftStr + " &gt; " + rightStr;
+        return result;</span>
+    }
+
+           // 20. ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð¼ Ð¼ÐµÐ½ÑÑÐµ Ð¸Ð»Ð¸ ÑÐ°Ð²Ð½Ð¾ (LE)
+    case LE: {
+        // 20.1. Ð¡Ð³ÐµÐ½ÐµÑÐ¸ÑÐ¾Ð²Ð°ÑÑ Ð¢ÐµÐ¥-Ð¾ÑÐ¾Ð±ÑÐ°Ð¶ÐµÐ½Ð¸Ðµ ÑÐ·Ð»Ð°
+<span style = "background-color:#dfd">        string leftStr = getChildTexWithParens(node, node-&gt;left, false, config);
+        string rightStr = getChildTexWithParens(node, node-&gt;right, true, config);
+        result = leftStr + " \\leq " + rightStr;
+        return result;</span>
+    }
+
+           // 21. ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð¼ Ð±Ð¾Ð»ÑÑÐµ Ð¸Ð»Ð¸ ÑÐ°Ð²Ð½Ð¾ (GE)
+    case GE: {
+        // 21.1. Ð¡Ð³ÐµÐ½ÐµÑÐ¸ÑÐ¾Ð²Ð°ÑÑ Ð¢ÐµÐ¥-Ð¾ÑÐ¾Ð±ÑÐ°Ð¶ÐµÐ½Ð¸Ðµ ÑÐ·Ð»Ð°
+<span style = "background-color:#dfd">        string leftStr = getChildTexWithParens(node, node-&gt;left, false, config);
+        string rightStr = getChildTexWithParens(node, node-&gt;right, true, config);
+        result = leftStr + " \\geq " + rightStr;
+        return result;</span>
+    }
+
+           // 22. ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ Ð»Ð¾Ð³Ð¸ÑÐµÑÐºÐ¸Ð¼ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð¼ AND (LAND)
+    case LAND: {
+        // 22.1. Ð¡Ð³ÐµÐ½ÐµÑÐ¸ÑÐ¾Ð²Ð°ÑÑ Ð¢ÐµÐ¥-Ð¾ÑÐ¾Ð±ÑÐ°Ð¶ÐµÐ½Ð¸Ðµ ÑÐ·Ð»Ð°
+<span style = "background-color:#dfd">        string leftStr = getChildTexWithParens(node, node-&gt;left, false, config);
+        string rightStr = getChildTexWithParens(node, node-&gt;right, true, config);
+        result = leftStr + " \\land " + rightStr;
+        return result;</span>
+    }
+
+             // 23. ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ Ð»Ð¾Ð³Ð¸ÑÐµÑÐºÐ¸Ð¼ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð¼ OR (LOR)
+    case LOR: {
+        // 23.1. Ð¡Ð³ÐµÐ½ÐµÑÐ¸ÑÐ¾Ð²Ð°ÑÑ Ð¢ÐµÐ¥-Ð¾ÑÐ¾Ð±ÑÐ°Ð¶ÐµÐ½Ð¸Ðµ ÑÐ·Ð»Ð°
+<span style = "background-color:#dfd">        string leftStr = getChildTexWithParens(node, node-&gt;left, false, config);
+        string rightStr = getChildTexWithParens(node, node-&gt;right, true, config);
+        result = leftStr + " \\lor " + rightStr;
+        return result;</span>
+    }
+
+            // 24. ÐÑÐ»Ð¸ ÑÐ·ÐµÐ» ÑÐ²Ð»ÑÐµÑÑÑ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð¼ Ð»Ð¾Ð³Ð¸ÑÐµÑÐºÐ¾Ð³Ð¾ Ð¾ÑÑÐ¸ÑÐ°Ð½Ð¸Ñ (LNOT)
+    case LNOT: {
+        // 24.1. Ð¡Ð³ÐµÐ½ÐµÑÐ¸ÑÐ¾Ð²Ð°ÑÑ Ð¢ÐµÐ¥-Ð¾ÑÐ¾Ð±ÑÐ°Ð¶ÐµÐ½Ð¸Ðµ ÑÐ·Ð»Ð°
+<span style = "background-color:#dfd">        string childStr = getChildTexWithParens(node, node-&gt;left, false, config);
+        result = "\\lnot " + childStr;
+        return result;</span>
+    }
+
+    default:
+<span style = "background-color:#fdd">        return "";</span>
+    }
+<span style = "background-color:#fdd">}</span>
+
+
+/// @brief ÐÐ»Ð°Ð²Ð½Ð°Ñ ÑÑÐ½ÐºÑÐ¸Ñ Ð¿ÑÐ¾Ð³ÑÐ°Ð¼Ð¼Ñ
+/// @param[in] argc ÐºÐ¾Ð»Ð¸ÑÐµÑÑÐ²Ð¾ Ð°ÑÐ³ÑÐ¼ÐµÐ½ÑÐ¾Ð² ÐºÐ¾Ð¼Ð°Ð½Ð´Ð½Ð¾Ð¹ ÑÑÑÐ¾ÐºÐ¸
+/// @param[in] argv Ð¼Ð°ÑÑÐ¸Ð² Ð°ÑÐ³ÑÐ¼ÐµÐ½ÑÐ¾Ð² ÐºÐ¾Ð¼Ð°Ð½Ð´Ð½Ð¾Ð¹ ÑÑÑÐ¾ÐºÐ¸
+/// @return 0 Ð¿ÑÐ¸ ÑÑÐ¿ÐµÑÐ½Ð¾Ð¼ Ð·Ð°Ð²ÐµÑÑÐµÐ½Ð¸Ð¸, 1 Ð¿ÑÐ¸ Ð¾ÑÐ¸Ð±ÐºÐµ
+<span style = "background-color:#dfd">int main(int argc, char* argv[]) {</span>
+
+<span style = "background-color:#dfd">    setlocale(LC_ALL, "");
+    system("chcp 65001 &gt; nul");</span>
+
+    // 1. ÐÑÐºÑÑÑÑ Ð²ÑÐ¾Ð´Ð½ÑÐµ ÑÐ°Ð¹Ð»Ñ Ð¸ ÑÑÐ¸ÑÐ°ÑÑ Ð´Ð°Ð½Ð½ÑÐµ 
+    // ÐÑÐ¾Ð²ÐµÑÐºÐ° ÐºÐ¾Ð»Ð¸ÑÐµÑÑÐ²Ð° Ð°ÑÐ³ÑÐ¼ÐµÐ½ÑÐ¾Ð² ÐºÐ¾Ð¼Ð°Ð½Ð´Ð½Ð¾Ð¹ ÑÑÑÐ¾ÐºÐ¸
+<span style = "background-color:#dfd">    if (argc != 4)</span>
+    {
+<span style = "background-color:#fdd">        cerr &lt;&lt; "Usage: " &lt;&lt; argv[0] &lt;&lt; " &lt;expression_file&gt; &lt;config_file&gt; &lt;output_file&gt;" &lt;&lt; endl;
+        return 1;</span>
+    }
+
+<span style = "background-color:#dfd">    string expression; // Ð¡ÑÑÐ¾ÐºÐ° Ð´Ð»Ñ ÑÑÐ°Ð½ÐµÐ½Ð¸Ñ Ð²ÑÑÐ°Ð¶ÐµÐ½Ð¸Ñ Ð¸Ð· ÑÐ°Ð¹Ð»Ð°
+    Config config; // ÐÐ±ÑÐµÐºÑ Ð´Ð»Ñ ÑÑÐ°Ð½ÐµÐ½Ð¸Ñ Ð¿Ð°ÑÐ°Ð¼ÐµÑÑÐ¾Ð² Ð¾ÑÐ¾Ð±ÑÐ°Ð¶ÐµÐ½Ð¸Ñ
+    vector&lt;Error&gt; errors; // ÐÐµÐºÑÐ¾Ñ Ð´Ð»Ñ ÑÐ±Ð¾ÑÐ° Ð¾ÑÐ¸Ð±Ð¾Ðº</span>
+
+    // Ð§ÑÐµÐ½Ð¸Ðµ Ð²ÑÐ¾Ð´Ð½ÑÑ ÑÐ°Ð¹Ð»Ð¾Ð²
+<span style = "background-color:#dfd">    if (!readInputFiles(argv[1], argv[2], expression, config, errors)) {
+        printErrors(errors);
+        return 1;</span>
+    }
+
+    // 2. ÐÐ¾ÑÑÑÐ¾Ð¸ÑÑ Ð´ÐµÑÐµÐ²Ð¾ ÑÐµÑÐµÐ· ÑÑÐµÐº, ÑÐ°Ð·Ð±Ð¸Ð² ÑÑÑÐ¾ÐºÑ Ñ Ð²ÑÑÐ°Ð¶ÐµÐ½Ð¸ÐµÐ¼ Ð½Ð° ÑÐ¾ÐºÐµÐ½Ñ Ð¿Ð¾ Ð¿ÑÐ¾Ð±ÐµÐ»Ð°Ð¼
+<span style = "background-color:#dfd">    Node* root = nullptr;       // ÑÐºÐ°Ð·Ð°ÑÐµÐ»Ñ Ð½Ð° ÐºÐ¾ÑÐµÐ½Ñ Ð´ÐµÑÐµÐ²Ð°</span>
+
+<span style = "background-color:#dfd">    if (!buildTree(expression, root, operatorInfo, errors))</span>
+    {
+<span style = "background-color:#dfd">        printErrors(errors);
+        delete root;
+        return 1;</span>
+    }
+
+    // 3. Ð¡Ð³ÐµÐ½ÐµÑÐ¸ÑÐ¾Ð²Ð°ÑÑ tex-ÑÑÑÐ¾ÐºÑ Ð¸Ð· Ð´ÐµÑÐµÐ²Ð° 
+<span style = "background-color:#dfd">    string texString = cToTex(root, UNKNOWN, false, config);</span>
+
+    // 4. ÐÐ°Ð¿Ð¸ÑÐ°ÑÑ tex-ÑÑÑÐ¾ÐºÑ Ð² Ð²ÑÑÐ¾Ð´Ð½Ð¾Ð¹ ÑÐ°Ð¹Ð» 
+<span style = "background-color:#dfd">    if (!saveToOutFile(argv[3], texString, errors))</span>
+    {
+<span style = "background-color:#fdd">        printErrors(errors);
+        delete root;
+        return 1;</span>
+    }
+
+    // 5. ÐÐ°Ð²ÐµÑÑÐ¸ÑÑ ÑÐ°Ð±Ð¾ÑÑ Ð¿ÑÐ¾Ð³ÑÐ°Ð¼Ð¼Ñ
+<span style = "background-color:#dfd">    delete root;</span>
+
+<span style = "background-color:#dfd">    cout &lt;&lt; "Success! TeX string written to " &lt;&lt; argv[3] &lt;&lt; endl;
+    return 0;
+}</span>
+
+
+
+bool parseOperator(const string&amp; word, vector&lt;Token&gt;&amp; tokens, int&amp; nodeCount)
+<span style = "background-color:#dfd">{</span>
+    // 1. ÐÐ±ÑÐ°Ð±Ð¾ÑÐºÐ° ÑÐ¿ÐµÑÐ¸Ð°Ð»ÑÐ½Ð¾Ð³Ð¾ ÑÐ»ÑÑÐ°Ñ ÑÐ½Ð°ÑÐ½Ð¾Ð³Ð¾ Ð¼Ð¸Ð½ÑÑÐ° 
+   
+<span style = "background-color:#dfd">    if (word == "-_") {
+        tokens.push_back({ UMINUS, "-_", ARITHMETIC });
+        nodeCount++;
+        return true;</span>
+    }
+
+    // Ð¢Ð°Ð±Ð»Ð¸ÑÐ° Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð² Ð¸ ÑÑÐ½ÐºÑÐ¸Ð¹
+<span style = "background-color:#dfd">    static const map&lt;string, TokenType&gt; opMap = {</span>
+        {"+", PLUS}, {"-", MINUS}, {"*", MUL}, {"/", DIV},
+        {"#pow", POW}, {"#sqrt", SQRT}, {"#cbrt", CBRT},
+        {"#sin", SIN}, {"#cos", COS}, {"#tan", TAN},
+        {"#asin", ASIN}, {"#acos", ACOS}, {"#atan", ATAN},
+        {"#log", LOG}, {"#log10", LOG10}, {"#exp", EXP},
+        {"#abs", ABS}, {"#fabs", FABS},
+        {"==", EQ}, {"!=", NEQ}, {"&lt;", LT}, {"&gt;", GT},
+        {"&lt;=", LE}, {"&gt;=", GE},
+        {"&amp;&amp;", LAND}, {"||", LOR}, {"!", LNOT}
+    };
+
+    //  ÐÐ¾Ð¸ÑÐº ÑÐ»Ð¾Ð²Ð° Ð² ÑÐ°Ð±Ð»Ð¸ÑÐµ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð² 
+<span style = "background-color:#dfd">    auto it = opMap.find(word);</span>
+
+<span style = "background-color:#dfd">    if (it != opMap.end()) {
+        Token t;</span>
+
+        // Ð£ÑÑÐ°Ð½Ð°Ð²Ð»Ð¸Ð²Ð°ÐµÐ¼ ÑÐ¸Ð¿ ÑÐ¾ÐºÐµÐ½Ð°
+<span style = "background-color:#dfd">        t.type = it-&gt;second;</span>
+
+        // Ð¡Ð¾ÑÑÐ°Ð½ÑÐµÐ¼ Ð¸ÑÑÐ¾Ð´Ð½Ð¾Ðµ ÑÑÑÐ¾ÐºÐ¾Ð²Ð¾Ðµ Ð·Ð½Ð°ÑÐµÐ½Ð¸Ðµ
+<span style = "background-color:#dfd">        t.value = word;</span>
+
+        // ÐÐ¿ÑÐµÐ´ÐµÐ»ÑÐµÐ¼ ÑÐ¸Ð¿ Ð¾Ð¿ÐµÑÐ°Ð½Ð´Ð°
+<span style = "background-color:#dfd">        if (word == "&amp;&amp;" || word == "||" || word == "!") {
+            t.operandType = LOGICAL;
+        }</span>
+        else {
+<span style = "background-color:#dfd">            t.operandType = ARITHMETIC;</span>
+        }
+
+        // ÐÐ¾Ð±Ð°Ð²Ð»ÑÐµÐ¼ ÑÐ¾ÐºÐµÐ½ Ð² ÑÐµÐ·ÑÐ»ÑÑÐ°Ñ
+<span style = "background-color:#dfd">        tokens.push_back(t);</span>
+
+        // Ð£Ð²ÐµÐ»Ð¸ÑÐ¸Ð²Ð°ÐµÐ¼ ÑÑÑÑÑÐ¸Ðº ÑÐ·Ð»Ð¾Ð²
+<span style = "background-color:#dfd">        nodeCount++;</span>
+
+<span style = "background-color:#dfd">        return true;</span>
+    }
+
+    // 4. ÐÑÐ»Ð¸ ÑÐ»Ð¾Ð²Ð¾ Ð½Ðµ ÑÐ²Ð»ÑÐµÑÑÑ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð¼
+<span style = "background-color:#dfd">    return false;
+}</span>
+
+bool checkOperatorSpacing(const string&amp; word, vector&lt;Error&gt;&amp; errors, const set&lt;string&gt;&amp; allowedOperations)
+<span style = "background-color:#dfd">{</span>
+    // 1. ÐÐ¾Ð´ÑÑÑÑ ÐºÐ¾Ð»Ð¸ÑÐµÑÑÐ²Ð° Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð² Ð² ÑÐ»Ð¾Ð²Ðµ 
+<span style = "background-color:#dfd">    int opCounter = 0;</span>
+
+<span style = "background-color:#dfd">    for (const string&amp; op : allowedOperations) {
+        size_t pos = 0;
+        while ((pos = word.find(op, pos)) != string::npos) {
+            opCounter++;
+            pos += op.size();
+        }
+    }</span>
+
+    // 2. ÐÑÐ¾Ð²ÐµÑÐºÐ° Ð½Ð° Ð½Ð°Ð»Ð¸ÑÐ¸Ðµ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ° Ð²Ð½ÑÑÑÐ¸ ÑÐ»Ð¾Ð²Ð° 
+<span style = "background-color:#dfd">    if (opCounter &gt; 1 || (opCounter == 1 &amp;&amp; allowedOperations.find(word) == allowedOperations.end()))</span>
+    {
+        //  3. ÐÑÐ¾Ð²ÐµÑÐºÐ°, Ð½Ðµ ÑÐ²Ð»ÑÐµÑÑÑ Ð»Ð¸ ÑÐ»Ð¾Ð²Ð¾ Ð¾ÑÑÐ¸ÑÐ°ÑÐµÐ»ÑÐ½ÑÐ¼ ÑÐ¸ÑÐ»Ð¾Ð¼ 
+<span style = "background-color:#dfd">        bool isNegativeNumber = false;</span>
+
+<span style = "background-color:#dfd">        if (word.size() &gt; 1 &amp;&amp; word[0] == '-') {
+            isNegativeNumber = true;
+            bool dotFound = false;</span>
+
+<span style = "background-color:#dfd">            for (size_t i = 1; i &lt; word.size(); i++) {
+                if (isdigit(word[i])) {}</span>
+<span style = "background-color:#fdd">                else if (word[i] == '.' &amp;&amp; !dotFound) {
+                    dotFound = true;
+                }</span>
+                else {
+<span style = "background-color:#fdd">                    isNegativeNumber = false;</span>
+                }
+<span style = "background-color:#dfd">            }</span>
+        }
+
+        //  4. ÐÑÐ»Ð¸ ÑÑÐ¾ Ð½Ðµ ÑÐ¸ÑÐ»Ð¾, Ð¾ÑÐ¸Ð±ÐºÐ°
+<span style = "background-color:#dfd">        if (!isNegativeNumber)</span>
+        {
+<span style = "background-color:#dfd">            Error err;
+            err.code = (opCounter &gt; 1) ? InvalidSymbolSequence : OperatorNotSeparatedBySpaces;
+            err.position = 0;
+            err.length = word.size();
+            err.line = word;</span>
+
+<span style = "background-color:#dfd">            errors.push_back(err);
+            return true;</span>
+        }
+    }
+
+<span style = "background-color:#dfd">    return false;
+}</span>
+
+bool parseNumber(const string&amp; word, vector&lt;Token&gt;&amp; tokens, vector&lt;Error&gt;&amp; errors, int&amp; nodeCount)
+<span style = "background-color:#dfd">{</span>
+    // 1. ÐÑÐ¾Ð²ÐµÑÐºÐ°, Ð¼Ð¾Ð¶ÐµÑ Ð»Ð¸ ÑÐ»Ð¾Ð²Ð¾ Ð±ÑÑÑ ÑÐ¸ÑÐ»Ð¾Ð¼
+<span style = "background-color:#dfd">    bool isNumberStart = isdigit(word[0]) ||</span>
+        (word.size() &gt; 1 &amp;&amp; word[0] == '-' &amp;&amp; isdigit(word[1]));
+
+<span style = "background-color:#dfd">    if (!isNumberStart)</span>
+<span style = "background-color:#fdd">        return false;</span>
+
+    // 2. ÐÑÐ¾Ð²ÐµÑÐºÐ° ÑÑÑÑÐºÑÑÑÑ ÑÐ¸ÑÐ»Ð°
+<span style = "background-color:#dfd">    bool dotFound = false;
+    int dotPos = -1;</span>
+
+<span style = "background-color:#dfd">    for (size_t i = 1; i &lt; word.size(); i++)</span>
+    {
+<span style = "background-color:#dfd">        if (isdigit(word[i])) {}</span>
+
+<span style = "background-color:#dfd">        else if (word[i] == '.' &amp;&amp; !dotFound)</span>
+        {
+<span style = "background-color:#dfd">            dotFound = true;
+            dotPos = i;
+        }</span>
+
+        else
+        {
+<span style = "background-color:#fdd">            errors.push_back({ InvalidSymbolSequence, (int)i, 1, word });</span>
+        }
+<span style = "background-color:#dfd">    }</span>
+
+    // 3. ÐÑÐ¾Ð²ÐµÑÐºÐ° ÐºÐ¾Ð»Ð¸ÑÐµÑÑÐ²Ð° Ð·Ð½Ð°ÐºÐ¾Ð² Ð¿Ð¾ÑÐ»Ðµ Ð·Ð°Ð¿ÑÑÐ¾Ð¹
+<span style = "background-color:#dfd">    if (dotFound)</span>
+    {
+<span style = "background-color:#dfd">        int after = word.size() - dotPos - 1;
+        if (after &gt; 8)</span>
+        {
+<span style = "background-color:#dfd">            errors.push_back({ TooManyDecimalDigits, dotPos + 1, after, word });</span>
+        }
+    }
+
+    // 4. ÐÑÐ¾Ð²ÐµÑÐºÐ° Ð´Ð¸Ð°Ð¿Ð°Ð·Ð¾Ð½Ð°
+<span style = "background-color:#dfd">    try {
+        double val = stod(word);
+        if (val &lt; -2e9 || val &gt; 2e9)</span>
+        {
+<span style = "background-color:#dfd">            errors.push_back({ IntegerOverflow, -1, (int)word.size(), word });</span>
+        }
+<span style = "background-color:#dfd">    }</span>
+    catch (...)
+    {
+<span style = "background-color:#fdd">        errors.push_back({ InvalidSymbolSequence, -1, (int)word.size(), word });
+    }</span>
+
+    // 5. ÐÑÐ»Ð¸ Ð¾ÑÐ¸Ð±Ð¾Ðº Ð½ÐµÑ, Ð´Ð¾Ð±Ð°Ð²Ð»ÑÐµÐ¼ ÑÐ¾ÐºÐµÐ½
+<span style = "background-color:#dfd">    if (errors.empty())</span>
+    {
+<span style = "background-color:#dfd">        tokens.push_back({ NUMBER, word, ARITHMETIC });
+        nodeCount++;</span>
+    }
+
+<span style = "background-color:#dfd">    return true;
+}</span>
+
+bool parseVariable(const string&amp; word, vector&lt;Token&gt;&amp; tokens, vector&lt;Error&gt;&amp; errors, int&amp; nodeCount)
+<span style = "background-color:#dfd">{</span>
+    // 1. ÐÑÐ¾Ð²ÐµÑÐºÐ°: Ð¿ÐµÑÐµÐ¼ÐµÐ½Ð½Ð°Ñ Ð´Ð¾Ð»Ð¶Ð½Ð° Ð½Ð°ÑÐ¸Ð½Ð°ÑÑÑÑ Ñ Ð±ÑÐºÐ²Ñ
+<span style = "background-color:#dfd">    if (!isalpha(word[0]))
+        return false;</span>
+
+<span style = "background-color:#dfd">    size_t errBefore = errors.size();</span>
+
+    // 2. ÐÑÐ¾Ð²ÐµÑÐºÐ° Ð´Ð¾Ð¿ÑÑÑÐ¸Ð¼ÑÑ ÑÐ¸Ð¼Ð²Ð¾Ð»Ð¾Ð²
+<span style = "background-color:#dfd">    for (size_t i = 1; i &lt; word.size(); i++) {
+        if (!isalnum(word[i])) {</span>
+<span style = "background-color:#fdd">            errors.push_back({ InvalidSymbol, (int)i, 1, word });</span>
+        }
+<span style = "background-color:#dfd">    }</span>
+
+    // 3. ÐÐ³ÑÐ°Ð½Ð¸ÑÐµÐ½Ð¸Ðµ Ð´Ð»Ð¸Ð½Ñ Ð¸Ð¼ÐµÐ½Ð¸
+<span style = "background-color:#dfd">    if (word.size() &gt; 255) {
+        errors.push_back({ VariableNameTooLong, -1, (int)word.size(), word });</span>
+    }
+
+    // 4. ÐÑÐ»Ð¸ Ð¾ÑÐ¸Ð±Ð¾Ðº Ð½ÐµÑ, Ð´Ð¾Ð±Ð°Ð²Ð»ÑÐµÐ¼ ÑÐ¾ÐºÐµÐ½
+<span style = "background-color:#dfd">    if (errors.size() == errBefore) {
+        tokens.push_back({ VARIABLE, word, ARITHMETIC });
+        nodeCount++;</span>
+    }
+
+<span style = "background-color:#dfd">    return true;
+}</span>
+
+bool parseConstant(const string&amp; word, vector&lt;Token&gt;&amp; tokens, int&amp; nodeCount)
+<span style = "background-color:#dfd">{</span>
+    // ÐÑÐ¾Ð²ÐµÑÐºÐ°, Ð²ÑÐ¾Ð´Ð¸Ñ Ð»Ð¸ ÑÐ»Ð¾Ð²Ð¾ Ð² ÑÐ¿Ð¸ÑÐ¾Ðº Ð´Ð¾Ð¿ÑÑÑÐ¸Ð¼ÑÑ ÐºÐ¾Ð½ÑÑÐ°Ð½Ñ
+<span style = "background-color:#dfd">    if (allowedConstants.find(word) == allowedConstants.end())
+        return false;</span>
+
+<span style = "background-color:#dfd">    Token t;
+    t.type = CONSTANT;
+    t.value = word;</span>
+
+    // ÐÐ¿ÑÐµÐ´ÐµÐ»ÐµÐ½Ð¸Ðµ ÑÐ¸Ð¿Ð° Ð¾Ð¿ÐµÑÐ°Ð½Ð´Ð°
+<span style = "background-color:#dfd">    if (word == "true" || word == "false")</span>
+    {
+<span style = "background-color:#dfd">        t.operandType = LOGICAL;
+    }</span>
+    else
+    {
+<span style = "background-color:#dfd">        t.operandType = ARITHMETIC;</span>
+    }
+
+<span style = "background-color:#dfd">    tokens.push_back(t);
+    nodeCount++;</span>
+
+<span style = "background-color:#dfd">    return true;
+}</span>
+
+bool parseArray(const string&amp; word, vector&lt;Token&gt;&amp; tokens, vector&lt;Error&gt;&amp; errors, int&amp; nodeCount)
+<span style = "background-color:#dfd">{</span>
+    // 1. ÐÑÐ¾Ð²ÐµÑÐºÐ° Ð½Ð°Ð»Ð¸ÑÐ¸Ñ ÑÐ¸Ð¼Ð²Ð¾Ð»Ð¾Ð² '[' Ð¸ ']'
+<span style = "background-color:#dfd">    size_t l = word.find('[');
+    size_t r = word.find(']');</span>
+
+<span style = "background-color:#dfd">    if (l == string::npos || r == string::npos || l &gt; r || r != word.size() - 1)</span>
+    {
+<span style = "background-color:#dfd">        return false;</span>
+    }
+
+    // 2. ÐÐ·Ð²Ð»ÐµÑÐµÐ½Ð¸Ðµ Ð¸Ð¼ÐµÐ½Ð¸ Ð¼Ð°ÑÑÐ¸Ð²Ð° Ð¸ Ð¸Ð½Ð´ÐµÐºÑÐ°
+<span style = "background-color:#dfd">    string name = word.substr(0, l);
+    string indexStr = word.substr(l + 1, r - l - 1);</span>
+
+    // 3. ÐÑÐ¾Ð²ÐµÑÐºÐ° Ð¸Ð¼ÐµÐ½Ð¸ Ð¼Ð°ÑÑÐ¸Ð²Ð°
+<span style = "background-color:#dfd">    if (name.empty() || !isalpha(name[0]))</span>
+    {
+<span style = "background-color:#fdd">        errors.push_back({ InvalidSymbol, 0, (int)name.size(), name });</span>
+    }
+
+<span style = "background-color:#dfd">    for (size_t j = 1; j &lt; name.size(); j++)</span>
+    {
+<span style = "background-color:#fdd">        if (!isalnum(name[j]))</span>
+        {
+<span style = "background-color:#fdd">            errors.push_back({ InvalidSymbol, (int)j, 1, name });</span>
+        }
+<span style = "background-color:#fdd">    }</span>
+
+    // 4. ÐÑÐ¾Ð²ÐµÑÐºÐ° Ð¸Ð½Ð´ÐµÐºÑÐ° 
+<span style = "background-color:#dfd">    bool hasError = false;
+    for (char c : indexStr)</span>
+    {
+<span style = "background-color:#dfd">        if (!hasError &amp;&amp; !isdigit(c))</span>
+        {
+<span style = "background-color:#fdd">            errors.push_back({ InvalidSymbolSequence, 0, (int)indexStr.size(), indexStr });
+            hasError = true;</span>
+        }
+<span style = "background-color:#dfd">    }</span>
+
+    // 5. ÐÑÐ»Ð¸ ÐµÑÑÑ Ð¾ÑÐ¸Ð±ÐºÐ¸, Ð½Ðµ ÑÐ¾Ð·Ð´Ð°ÑÐ¼ ÑÐ¾ÐºÐµÐ½Ñ
+<span style = "background-color:#dfd">    if (!errors.empty())</span>
+    {
+<span style = "background-color:#fdd">        return true;</span>
+    }
+
+    // 6. Ð¡Ð¾Ð·Ð´Ð°Ð½Ð¸Ðµ ÑÑÑÑ ÑÐ¾ÐºÐµÐ½Ð¾Ð²: Ð¸Ð¼Ñ Ð¼Ð°ÑÑÐ¸Ð²Ð°, Ð¸Ð½Ð´ÐµÐºÑ, Ð¾Ð¿ÐµÑÐ°ÑÐ¾Ñ Ð¸Ð½Ð´ÐµÐºÑÐ°ÑÐ¸Ð¸
+<span style = "background-color:#dfd">    Token arrayToken;
+    arrayToken.type = VARIABLE;
+    arrayToken.value = name;
+    arrayToken.operandType = ARITHMETIC;
+    tokens.push_back(arrayToken);</span>
+
+<span style = "background-color:#dfd">    Token indexToken;
+    indexToken.type = NUMBER;
+    indexToken.value = indexStr;
+    indexToken.operandType = ARITHMETIC;
+    tokens.push_back(indexToken);</span>
+
+<span style = "background-color:#dfd">    Token indexOpToken;
+    indexOpToken.type = ARRAY_INDEX;
+    indexOpToken.value = "a[i]";
+    indexOpToken.operandType = ARITHMETIC;
+    tokens.push_back(indexOpToken);</span>
+
+<span style = "background-color:#dfd">    nodeCount += 3;</span>
+
+<span style = "background-color:#dfd">    return true;
+}</span>
+
+void splitIntoWords(const string&amp; expression, vector&lt;string&gt;&amp; wordList)
+<span style = "background-color:#dfd">{
+    string currentWord = ""; </span>
+
+    // ÐÐ»Ñ ÐºÐ°Ð¶Ð´Ð¾Ð³Ð¾ ÑÐ¸Ð¼Ð²Ð¾Ð»Ð° ÑÑÑÐ¾ÐºÐ¸
+<span style = "background-color:#dfd">    for (int i = 0; i &lt; expression.size(); i++)</span>
+    {
+        // ÐÑÐ»Ð¸ Ð²ÑÑÑÐµÑÐ¸Ð»Ð¸ Ð¿ÑÐ¾Ð±ÐµÐ»
+<span style = "background-color:#dfd">        if (expression[i] == ' ')</span>
+        {
+            // ÐÑÐ»Ð¸ ÑÐµÐºÑÑÐµÐµ ÑÐ»Ð¾Ð²Ð¾ Ð¿ÑÑÑÐ¾Ðµ, Ð´Ð¾Ð±Ð°Ð²Ð»ÑÐµÐ¼ ÑÐ»Ð¾Ð²Ð¾ Ð² ÑÐ¿Ð¸ÑÐ¾Ðº
+<span style = "background-color:#dfd">            if (!currentWord.empty())</span>
+            {
+<span style = "background-color:#dfd">                wordList.push_back(currentWord);
+                currentWord = "";  </span>
+            }
+<span style = "background-color:#dfd">        }</span>
+        else
+        {
+            // ÐÐ½Ð°ÑÐµ Ð´Ð¾Ð±Ð°Ð²Ð»ÑÐµÐ¼ ÑÐ¸Ð¼Ð²Ð¾Ð» Ðº ÑÐµÐºÑÑÐµÐ¼Ñ ÑÐ»Ð¾Ð²Ñ
+<span style = "background-color:#dfd">            currentWord += expression[i];</span>
+        }
+<span style = "background-color:#dfd">    }</span>
+
+    // ÐÐ¾Ð±Ð°Ð²Ð»ÑÐµÐ¼ Ð¿Ð¾ÑÐ»ÐµÐ´Ð½ÐµÐµ ÑÐ»Ð¾Ð²Ð¾, ÐµÑÐ»Ð¸ Ð¾Ð½Ð¾ ÐµÑÑÑ
+<span style = "background-color:#dfd">    if (!currentWord.empty())</span>
+    {
+<span style = "background-color:#dfd">        wordList.push_back(currentWord);</span>
+    }
+<span style = "background-color:#dfd">}</span>
+
+
+
+Node* processBinaryOperator(const Token&amp; token, stack&lt;Node*&gt;&amp; nodeStack, vector&lt;Error&gt;&amp; errors)
+<span style = "background-color:#dfd">{</span>
+    // 1. ÐÑÐ¾Ð²ÐµÑÐºÐ° Ð½Ð°Ð»Ð¸ÑÐ¸Ñ Ð´Ð²ÑÑ Ð¾Ð¿ÐµÑÐ°Ð½Ð´Ð¾Ð² Ð² ÑÑÐµÐºÐµ
+<span style = "background-color:#dfd">    if (nodeStack.size() &lt; 2)</span>
+    {
+<span style = "background-color:#dfd">        Error err;
+        err.code = NotEnoughOperands;
+        errors.push_back(err);
+        return nullptr;</span>
+    }
+
+    // 2. ÐÐ·Ð²Ð»ÐµÑÐµÐ½Ð¸Ðµ Ð¾Ð¿ÐµÑÐ°Ð½Ð´Ð¾Ð²
+<span style = "background-color:#dfd">    Node* right = nodeStack.top();
+    nodeStack.pop();
+    Node* left = nodeStack.top();
+    nodeStack.pop();</span>
+
+    // 3. ÐÑÐ¾Ð²ÐµÑÐºÐ° ÑÐ¾Ð²Ð¼ÐµÑÑÐ¸Ð¼Ð¾ÑÑÐ¸ ÑÐ¸Ð¿Ð¾Ð²
+<span style = "background-color:#dfd">    auto opIt = operationTypes.find(token.type);
+    if (opIt != operationTypes.end())</span>
+    {
+<span style = "background-color:#dfd">        bool compatible = false;
+        for (const auto&amp; sig : opIt-&gt;second.allowedSignatures)</span>
+        {
+            if (!compatible &amp;&amp; sig.size() == 2 &amp;&amp;
+<span style = "background-color:#dfd">                sig[0] == left-&gt;token.operandType &amp;&amp;</span>
+                sig[1] == right-&gt;token.operandType)
+            {
+<span style = "background-color:#dfd">                compatible = true;</span>
+            }
+<span style = "background-color:#dfd">        }</span>
+
+<span style = "background-color:#dfd">        if (!compatible)</span>
+        {
+<span style = "background-color:#dfd">            Error err;
+            err.code = MismatchedOperandTypes;
+            errors.push_back(err);
+            delete left;
+            delete right;
+            return nullptr;</span>
+        }
+    }
+
+    // 4. Ð¡Ð¾Ð·Ð´Ð°Ð½Ð¸Ðµ Ð½Ð¾Ð²Ð¾Ð³Ð¾ ÑÐ·Ð»Ð°
+<span style = "background-color:#dfd">    return new Node(token, left, right);
+}</span>
+
+Node* processUnaryOperator(const Token&amp; token, stack&lt;Node*&gt;&amp; nodeStack, vector&lt;Error&gt;&amp; errors)
+<span style = "background-color:#dfd">{</span>
+    // 1. ÐÑÐ¾Ð²ÐµÑÐºÐ° Ð½Ð°Ð»Ð¸ÑÐ¸Ñ Ð¾Ð´Ð½Ð¾Ð³Ð¾ Ð¾Ð¿ÐµÑÐ°Ð½Ð´Ð° Ð² ÑÑÐµÐºÐµ
+<span style = "background-color:#dfd">    if (nodeStack.size() &lt; 1)</span>
+    {
+<span style = "background-color:#fdd">        Error err;
+        err.code = NotEnoughOperands;
+        errors.push_back(err);
+        return nullptr;</span>
+    }
+
+    // 2. ÐÐ·Ð²Ð»ÐµÑÐµÐ½Ð¸Ðµ Ð¾Ð¿ÐµÑÐ°Ð½Ð´Ð°
+<span style = "background-color:#dfd">    Node* child = nodeStack.top();
+    nodeStack.pop();</span>
+
+    // 3. ÐÑÐ¾Ð²ÐµÑÐºÐ° ÑÐ¾Ð²Ð¼ÐµÑÑÐ¸Ð¼Ð¾ÑÑÐ¸ ÑÐ¸Ð¿Ð°
+<span style = "background-color:#dfd">    auto opIt = operationTypes.find(token.type);
+    if (opIt != operationTypes.end())</span>
+    {
+<span style = "background-color:#dfd">        bool compatible = false;
+        for (const auto&amp; sig : opIt-&gt;second.allowedSignatures)</span>
+        {
+<span style = "background-color:#dfd">            if (!compatible &amp;&amp; sig.size() == 1 &amp;&amp; sig[0] == child-&gt;token.operandType)</span>
+            {
+<span style = "background-color:#dfd">                compatible = true;</span>
+            }
+<span style = "background-color:#dfd">        }</span>
+
+<span style = "background-color:#dfd">        if (!compatible)</span>
+        {
+<span style = "background-color:#dfd">            Error err;
+            err.code = MismatchedOperandTypes;
+            errors.push_back(err);
+            delete child;
+            return nullptr;</span>
+        }
+    }
+
+    // 4. Ð¡Ð¾Ð·Ð´Ð°Ð½Ð¸Ðµ Ð½Ð¾Ð²Ð¾Ð³Ð¾ ÑÐ·Ð»Ð°
+<span style = "background-color:#dfd">    return new Node(token, child);
+}</span>
+
+void processOperand(const Token&amp; token, stack&lt;Node*&gt;&amp; nodeStack, int&amp; nodeCount, vector&lt;Error&gt;&amp; errors)
+<span style = "background-color:#dfd">{</span>
+    // 1. Ð¡Ð¾Ð·Ð´Ð°ÑÑ Ð½Ð¾Ð²ÑÐ¹ ÑÐ·ÐµÐ» Node Ñ ÑÑÐ¸Ð¼ ÑÐ¾ÐºÐµÐ½Ð¾Ð¼
+<span style = "background-color:#dfd">    Node* newNode = new Node(token);</span>
+
+    // 2. ÐÐ¾Ð»Ð¾Ð¶Ð¸ÑÑ ÑÐ·ÐµÐ» Ð² nodeStack
+<span style = "background-color:#dfd">    nodeStack.push(newNode);</span>
+
+    // 3. Ð£Ð²ÐµÐ»Ð¸ÑÐ¸ÑÑ nodeCount Ð½Ð° 1
+<span style = "background-color:#dfd">    nodeCount++;</span>
+
+    // 4. ÐÑÐ»Ð¸ nodeCount &gt; 1000
+<span style = "background-color:#dfd">    if (nodeCount &gt; 1000)</span>
+    {
+<span style = "background-color:#fdd">        Error err;
+        err.code = TooManyNodes;
+        errors.push_back(err);
+    }</span>
+<span style = "background-color:#dfd">}</span>
+
+void checkStackState(stack&lt;Node*&gt;&amp; nodeStack, vector&lt;Error&gt;&amp; errors)
+<span style = "background-color:#dfd">{</span>
+    // 1. ÐÑÐ»Ð¸ ÑÑÐµÐº Ð¿ÑÑÑ, Ð² Ð²ÑÑÐ°Ð¶ÐµÐ½Ð¸Ð¸ Ð½Ðµ Ð±ÑÐ»Ð¾ Ð¾Ð¿ÐµÑÐ°Ð½Ð´Ð¾Ð²
+<span style = "background-color:#dfd">    if (nodeStack.empty())</span>
+    {
+<span style = "background-color:#dfd">        Error err;
+        err.code = NotEnoughOperands;
+        errors.push_back(err);
+    }</span>
+
+    // 2. ÐÑÐ»Ð¸ Ð² ÑÑÐµÐºÐµ Ð±Ð¾Ð»ÑÑÐµ Ð¾Ð´Ð½Ð¾Ð³Ð¾ ÑÐ·Ð»Ð°, Ð² Ð²ÑÑÐ°Ð¶ÐµÐ½Ð¸Ð¸ Ð¾ÑÑÐ°Ð»Ð¸ÑÑ Ð»Ð¸ÑÐ½Ð¸Ðµ Ð¾Ð¿ÐµÑÐ°Ð½Ð´Ñ
+<span style = "background-color:#dfd">    if (nodeStack.size() &gt; 1)</span>
+    {
+<span style = "background-color:#dfd">        Error err;
+        err.code = TooManyOperands;
+        errors.push_back(err);
+    }
+}</span>
+
+
+
+
+bool comparePrecedence(int parentPrec, int childPrec, bool parentLeftAssoc, bool isRightChild)
+<span style = "background-color:#dfd">{</span>
+    // 1. ÐÑÐ»Ð¸ Ð¿ÑÐ¸Ð¾ÑÐ¸ÑÐµÑ Ð¿Ð¾ÑÐ¾Ð¼ÐºÐ° Ð²ÑÑÐµ
+<span style = "background-color:#dfd">    if (childPrec &lt; parentPrec)</span>
+    {
+<span style = "background-color:#dfd">        return false;</span>
+    }
+
+    // 2. ÐÑÐ»Ð¸ Ð¿ÑÐ¸Ð¾ÑÐ¸ÑÐµÑ Ð¿Ð¾ÑÐ¾Ð¼ÐºÐ° Ð½Ð¸Ð¶Ðµ
+<span style = "background-color:#dfd">    if (childPrec &gt; parentPrec)</span>
+    {
+<span style = "background-color:#dfd">        return true;</span>
+    }
+
+    // 3. ÐÑÐ»Ð¸ Ð¿ÑÐ¸Ð¾ÑÐ¸ÑÐµÑÑ ÑÐ°Ð²Ð½Ñ
+    // 3.1. ÐÐµÐ²Ð¾Ð°ÑÑÐ¾ÑÐ¸Ð°ÑÐ¸Ð²Ð½Ð°Ñ Ð¾Ð¿ÐµÑÐ°ÑÐ¸Ñ
+<span style = "background-color:#dfd">    if (parentLeftAssoc)</span>
+    {
+<span style = "background-color:#dfd">        return isRightChild;</span>
+<span style = "background-color:#fdd">    }</span>
+    // 3.2. ÐÑÐ°Ð²Ð¾Ð°ÑÑÐ¾ÑÐ¸Ð°ÑÐ¸Ð²Ð½Ð°Ñ Ð¾Ð¿ÐµÑÐ°ÑÐ¸Ñ
+    else
+    {
+<span style = "background-color:#fdd">        return !isRightChild;</span>
+    }
+<span style = "background-color:#dfd">}</span>
+
+
+
+
+string getConstantTeX(const string&amp; value)
+<span style = "background-color:#dfd">{</span>
+    // 1. ÐÑÐ¾Ð²ÐµÑÐºÐ° Ð½Ð° Ð¼Ð°ÑÐµÐ¼Ð°ÑÐ¸ÑÐµÑÐºÐ¸Ðµ ÐºÐ¾Ð½ÑÑÐ°Ð½ÑÑ
+<span style = "background-color:#dfd">    if (value == "pi") return "\\pi";      // ÑÐ¸ÑÐ»Ð¾ Ð¿Ð¸
+    if (value == "phi") return "\\varphi"; // ÑÐ¸ÑÐ»Ð¾ ÑÐ¸ (Ð·Ð¾Ð»Ð¾ÑÐ¾Ðµ ÑÐµÑÐµÐ½Ð¸Ðµ)
+    if (value == "e") return "e";          // ÑÐ¸ÑÐ»Ð¾ Ð­Ð¹Ð»ÐµÑÐ°
+    if (value == "i") return "i";          // Ð¼Ð½Ð¸Ð¼Ð°Ñ ÐµÐ´Ð¸Ð½Ð¸ÑÐ°</span>
+
+    // 2. ÐÑÐ¾Ð²ÐµÑÐºÐ° Ð½Ð° Ð»Ð¾Ð³Ð¸ÑÐµÑÐºÐ¸Ðµ ÐºÐ¾Ð½ÑÑÐ°Ð½ÑÑ
+<span style = "background-color:#dfd">    if (value == "true") return "true";    
+    if (value == "false") return "false";  </span>
+
+    // 3. ÐÑÐ»Ð¸ Ð½Ðµ ÐºÐ¾Ð½ÑÑÐ°Ð½ÑÐ°, Ð²Ð¾Ð·Ð²ÑÐ°ÑÐ°ÐµÐ¼ Ð¸ÑÑÐ¾Ð´Ð½Ð¾Ðµ Ð·Ð½Ð°ÑÐµÐ½Ð¸Ðµ
+<span style = "background-color:#dfd">    return value;
+}</span>
+
+string getTrigFunctionTeX(Node* node, const Config&amp; config)
+<span style = "background-color:#dfd">{</span>
+    // 1. ÐÐ¿ÑÐµÐ´ÐµÐ»ÐµÐ½Ð¸Ðµ ÑÐ¸Ð¿Ð° ÑÑÐ¸Ð³Ð¾Ð½Ð¾Ð¼ÐµÑÑÐ¸ÑÐµÑÐºÐ¾Ð¹ ÑÑÐ½ÐºÑÐ¸Ð¸
+<span style = "background-color:#dfd">    TokenType type = node-&gt;token.type;
+    string funcName;</span>
+
+    // 2. ÐÑÐ±Ð¾Ñ ÑÐ¾Ð¾ÑÐ²ÐµÑÑÑÐ²ÑÑÑÐµÐ¹ TeX-ÐºÐ¾Ð¼Ð°Ð½Ð´Ñ
+<span style = "background-color:#dfd">    switch (type)</span>
+    {
+<span style = "background-color:#dfd">    case SIN:  funcName = "\\sin";   break;
+    case COS:  funcName = "\\cos";   break;
+    case TAN:  funcName = "\\tan";   break;
+    case ASIN: funcName = "\\arcsin"; break;
+    case ACOS: funcName = "\\arccos"; break;
+    case ATAN: funcName = "\\arctan"; break;</span>
+<span style = "background-color:#fdd">    default:   return "";            </span>
+    }
+
+    // 3. ÐÐ¾Ð»ÑÑÐµÐ½Ð¸Ðµ TeX-ÑÑÑÐ¾ÐºÐ¸ Ð°ÑÐ³ÑÐ¼ÐµÐ½ÑÐ° Ñ ÑÑÑÑÐ¾Ð¼ ÑÐºÐ¾Ð±Ð¾Ðº
+<span style = "background-color:#dfd">    string argStr = getChildTexWithParens(node, node-&gt;left, false, config);</span>
+
+    // 4. Ð¤Ð¾ÑÐ¼Ð¸ÑÐ¾Ð²Ð°Ð½Ð¸Ðµ Ð¸ÑÐ¾Ð³Ð¾Ð²Ð¾Ð¹ ÑÑÑÐ¾ÐºÐ¸
+<span style = "background-color:#dfd">    return funcName + " " + argStr;
+}</span>
+
+string getLogFunctionTeX(Node* node, const Config&amp; config)
+<span style = "background-color:#dfd">{</span>
+    // 1. ÐÐ¿ÑÐµÐ´ÐµÐ»ÐµÐ½Ð¸Ðµ ÑÐ¸Ð¿Ð° Ð»Ð¾Ð³Ð°ÑÐ¸ÑÐ¼Ð°
+<span style = "background-color:#dfd">    TokenType type = node-&gt;token.type;</span>
+
+    // 2. ÐÐ¾Ð»ÑÑÐµÐ½Ð¸Ðµ TeX-ÑÑÑÐ¾ÐºÐ¸ Ð°ÑÐ³ÑÐ¼ÐµÐ½ÑÐ°
+<span style = "background-color:#dfd">    string argStr = cToTex(node-&gt;left, type, false, config);</span>
+
+    // 3. Ð¤Ð¾ÑÐ¼Ð¸ÑÐ¾Ð²Ð°Ð½Ð¸Ðµ Ð¸ÑÐ¾Ð³Ð¾Ð²Ð¾Ð¹ ÑÑÑÐ¾ÐºÐ¸ Ð² Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑÐ¸ Ð¾Ñ Ð¾ÑÐ½Ð¾Ð²Ð°Ð½Ð¸Ñ
+<span style = "background-color:#dfd">    if (type == LOG)</span>
+    {
+        // ÐÐ°ÑÑÑÐ°Ð»ÑÐ½ÑÐ¹ Ð»Ð¾Ð³Ð°ÑÐ¸ÑÐ¼
+<span style = "background-color:#dfd">        return "\\ln(" + argStr + ")";</span>
+<span style = "background-color:#fdd">    }</span>
+    else 
+    {
+        // ÐÐµÑÑÑÐ¸ÑÐ½ÑÐ¹ Ð»Ð¾Ð³Ð°ÑÐ¸ÑÐ¼
+<span style = "background-color:#dfd">        return "\\log_{10}(" + argStr + ")";</span>
+    }
+<span style = "background-color:#fdd">}</span>
+
+string getTrigPowerTeX(Node* node, const Config&amp; config)
+<span style = "background-color:#dfd">{</span>
+    // 1. ÐÐ¾Ð»ÑÑÐµÐ½Ð¸Ðµ Ð¿Ð°ÑÐ°Ð¼ÐµÑÑÐ¾Ð²
+<span style = "background-color:#dfd">    TokenType leftType = node-&gt;left-&gt;token.type;
+    string exponent = node-&gt;right-&gt;token.value;
+    double expVal = stod(exponent);</span>
+
+    // 2. ÐÐ¿ÑÐµÐ´ÐµÐ»ÐµÐ½Ð¸Ðµ TeX-Ð¸Ð¼ÐµÐ½Ð¸ ÑÑÐ¸Ð³Ð¾Ð½Ð¾Ð¼ÐµÑÑÐ¸ÑÐµÑÐºÐ¾Ð¹ ÑÑÐ½ÐºÑÐ¸Ð¸ 
+<span style = "background-color:#dfd">    string trigFunc = getTrigFunctionName(leftType);
+    if (trigFunc.empty()) return "";  // Ð½ÐµÐ¸Ð·Ð²ÐµÑÑÐ½ÑÐ¹ ÑÐ¸Ð¿</span>
+
+    // 3. ÐÐ¾Ð»ÑÑÐµÐ½Ð¸Ðµ Ð½Ð°ÑÑÑÐ¾ÐµÐº ÐºÐ¾Ð½ÑÐ¸Ð³ÑÑÐ°ÑÐ¸Ð¸ Ð´Ð»Ñ ÑÑÐ¸Ð³Ð¾Ð½Ð¾Ð¼ÐµÑÑÐ¸ÑÐµÑÐºÐ¸Ñ ÑÑÐ½ÐºÑÐ¸Ð¹
+<span style = "background-color:#dfd">    string trigFunNoNegPowVal = config.paramMap.at("trigFunNoNegPow");       // Ð½ÐµÐ¾ÑÑÐ¸ÑÐ°ÑÐµÐ»ÑÐ½Ð°Ñ ÑÑÐµÐ¿ÐµÐ½Ñ
+    string trigFunNegPowVal = config.paramMap.at("trigFunNegPow");           // Ð¾ÑÑÐ¸ÑÐ°ÑÐµÐ»ÑÐ½Ð°Ñ ÑÑÐµÐ¿ÐµÐ½Ñ (ÐºÑÐ¾Ð¼Ðµ -1)
+    string trigFunMinusOnePowVal = config.paramMap.at("trigFunMinusOnePow"); // ÑÑÐµÐ¿ÐµÐ½Ñ -1</span>
+
+<span style = "background-color:#dfd">    string temp;  </span>
+
+    // 4. ÐÐ±ÑÐ°Ð±Ð¾ÑÐºÐ° Ð² Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑÐ¸ Ð¾Ñ Ð·Ð½Ð°ÑÐµÐ½Ð¸Ñ ÑÑÐµÐ¿ÐµÐ½Ð¸
+
+    // 4.1. ÐÐµÐ¾ÑÑÐ¸ÑÐ°ÑÐµÐ»ÑÐ½Ð°Ñ ÑÑÐµÐ¿ÐµÐ½Ñ 
+<span style = "background-color:#dfd">    if (expVal &gt;= 0)</span>
+    {
+        // ÐÐ¾Ð»ÑÑÐµÐ½Ð¸Ðµ ÑÑÑÐ¾ÐºÐ¸ Ð°ÑÐ³ÑÐ¼ÐµÐ½ÑÐ° 
+<span style = "background-color:#dfd">        temp = getChildTexWithParens(node-&gt;left, node-&gt;left-&gt;left, false, config);</span>
+
+<span style = "background-color:#dfd">        if (trigFunNoNegPowVal == "powAfterFun")</span>
+        {
+            // Ð¡ÑÐµÐ¿ÐµÐ½Ñ Ð¿ÐµÑÐµÐ´ Ð°ÑÐ³ÑÐ¼ÐµÐ½ÑÐ¾Ð¼
+<span style = "background-color:#dfd">            return trigFunc + "^{" + exponent + "}" + temp;</span>
+<span style = "background-color:#fdd">        }</span>
+        else
+        {
+            // Ð¡ÑÐµÐ¿ÐµÐ½Ñ Ð¿Ð¾ÑÐ»Ðµ Ð°ÑÐ³ÑÐ¼ÐµÐ½ÑÐ° 
+<span style = "background-color:#dfd">            return trigFunc + " " + temp + "^{" + exponent + "}";</span>
+        }
+<span style = "background-color:#fdd">    }</span>
+    // 4.2. ÐÑÑÐ¸ÑÐ°ÑÐµÐ»ÑÐ½Ð°Ñ ÑÑÐµÐ¿ÐµÐ½Ñ (ÐºÑÐ¾Ð¼Ðµ -1)
+<span style = "background-color:#dfd">    else if (expVal &lt; 0 &amp;&amp; expVal != -1)</span>
+    {
+        // Ð£Ð´Ð°Ð»ÑÐµÐ¼ Ð·Ð½Ð°Ðº Ð¼Ð¸Ð½ÑÑÐ° Ð´Ð»Ñ Ð²ÑÐ²Ð¾Ð´Ð° Ð¿Ð¾Ð»Ð¾Ð¶Ð¸ÑÐµÐ»ÑÐ½Ð¾Ð¹ ÑÑÐµÐ¿ÐµÐ½Ð¸ Ð² Ð·Ð½Ð°Ð¼ÐµÐ½Ð°ÑÐµÐ»Ðµ
+<span style = "background-color:#dfd">        string absExp = (exponent[0] == '-') ? exponent.substr(1) : exponent;
+        temp = cToTex(node-&gt;left-&gt;left, leftType, false, config);</span>
+
+<span style = "background-color:#dfd">        if (trigFunNegPowVal == "divNoNegPow")</span>
+        {
+            // ÐÑÐ¾Ð±Ñ
+<span style = "background-color:#dfd">            return "\\frac{1}{" + trigFunc + "(" + temp + ")^{" + absExp + "}}";</span>
+<span style = "background-color:#fdd">        }</span>
+        else
+        {
+            // ÐÑÑÐ¸ÑÐ°ÑÐµÐ»ÑÐ½Ð°Ñ ÑÑÐµÐ¿ÐµÐ½Ñ 
+<span style = "background-color:#dfd">            return trigFunc + "(" + temp + ")^{" + exponent + "}";</span>
+        }
+<span style = "background-color:#fdd">    }</span>
+    // 4.3. Ð¡ÑÐµÐ¿ÐµÐ½Ñ -1 
+<span style = "background-color:#dfd">    else if (expVal == -1)</span>
+    {
+<span style = "background-color:#dfd">        temp = getChildTexWithParens(node-&gt;left, node-&gt;left-&gt;left, false, config);</span>
+
+<span style = "background-color:#dfd">        if (trigFunMinusOnePowVal == "divNoNegPow")</span>
+        {
+            // ÐÑÐ¾Ð±Ñ
+<span style = "background-color:#dfd">            return "\\frac{1}{" + trigFunc + " " + temp + "}";</span>
+<span style = "background-color:#fdd">        }</span>
+<span style = "background-color:#dfd">        else if (trigFunMinusOnePowVal == "reverseFun")</span>
+        {
+            // ÐÐ±ÑÐ°ÑÐ½Ð°Ñ ÑÑÐ½ÐºÑÐ¸Ñ
+<span style = "background-color:#dfd">            if (leftType == SIN) return "\\arcsin " + temp;
+            if (leftType == COS) return "\\arccos " + temp;
+            if (leftType == TAN) return "\\arctan " + temp;</span>
+        }
+        // Ð¡ÑÐµÐ¿ÐµÐ½Ñ -1 
+<span style = "background-color:#dfd">        return trigFunc + " " + temp + "^{-1}";</span>
+    }
+
+    // 5. Ð¡ÑÐ°Ð½Ð´Ð°ÑÑÐ½ÑÐ¹ ÑÐ»ÑÑÐ°Ð¹ (ÐµÑÐ»Ð¸ Ð½Ð¸ Ð¾Ð´Ð½Ð¾ ÑÑÐ»Ð¾Ð²Ð¸Ðµ Ð½Ðµ Ð¿Ð¾Ð´Ð¾ÑÐ»Ð¾)
+<span style = "background-color:#fdd">    temp = getChildTexWithParens(node, node-&gt;left, false, config);
+    return trigFunc + temp + "^{" + exponent + "}";</span>
+<span style = "background-color:#dfd">}</span>
+
+string* getFractionPowerTeX(Node* node, const Config&amp; config, TokenType type)
+<span style = "background-color:#dfd">{
+    string exponent = cToTex(node-&gt;right, type, true, config);
+    string temp = cToTex(node-&gt;left, type, false, config);</span>
+
+    // 1. Ð¡ÑÐµÐ¿ÐµÐ½Ñ 0.5 (Ð¸Ð»Ð¸ 1/2)
+<span style = "background-color:#dfd">    if (exponent == "0.5" || exponent == "1/2")</span>
+    {
+<span style = "background-color:#dfd">        string zeroPointFivePowVal = config.paramMap.at("zeroPointFivePow");
+        if (zeroPointFivePowVal == "powToSqrt")</span>
+        {
+<span style = "background-color:#dfd">            return new string("\\sqrt{" + temp + "}");</span>
+<span style = "background-color:#fdd">        }</span>
+        else
+        {
+<span style = "background-color:#fdd">            return new string(cToTex(node-&gt;left, type, false, config) + "^{" + exponent + "}");</span>
+        }
+<span style = "background-color:#fdd">    }</span>
+
+    // 2. ÐÐ·Ð²Ð»ÐµÑÐµÐ½Ð¸Ðµ ÑÐ¸ÑÐ»Ð¸ÑÐµÐ»Ñ Ð¸ Ð·Ð½Ð°Ð¼ÐµÐ½Ð°ÑÐµÐ»Ñ
+<span style = "background-color:#dfd">    string numerator, denominator;
+    if (!getExponentFraction(node, numerator, denominator))</span>
+    {
+<span style = "background-color:#dfd">        return nullptr;</span>
+    }
+
+    // 3. Ð¡ÑÐµÐ¿ÐµÐ½Ñ 1/n (ÐºÑÐ¾Ð¼Ðµ n = 2)
+<span style = "background-color:#dfd">    if (numerator == "1" &amp;&amp; denominator != "2")</span>
+    {
+<span style = "background-color:#dfd">        string oneDivNPowVal = config.paramMap.at("oneDivNPow");
+        if (oneDivNPowVal == "powToSqrt")</span>
+        {
+<span style = "background-color:#dfd">            return new string("\\sqrt[" + denominator + "]{" + temp + "}");</span>
+        }
+<span style = "background-color:#fdd">    }</span>
+
+    // 4. Ð¡ÑÐµÐ¿ÐµÐ½Ñ a/b (ÐºÑÐ¾Ð¼Ðµ a=1 Ð¸ b=2)
+<span style = "background-color:#dfd">    if (numerator != "1" || denominator != "2")</span>
+    {
+<span style = "background-color:#dfd">        string abPowVal = config.paramMap.at("abPow");
+        if (abPowVal == "powToSqrt")</span>
+        {
+<span style = "background-color:#dfd">            return new string("\\sqrt[" + denominator + "]{" + temp + "^{" + numerator + "}}");</span>
+        }
+<span style = "background-color:#fdd">    }</span>
+
+<span style = "background-color:#fdd">    return nullptr;</span>
+<span style = "background-color:#dfd">}</span>
+
+string getRegularPowerTeX(Node* node, const Config&amp; config, TokenType type)
+<span style = "background-color:#dfd">{</span>
+    // 1. ÐÐ¾Ð»ÑÑÐµÐ½Ð¸Ðµ TeX-ÑÑÑÐ¾ÐºÐ¸ Ð¿Ð¾ÐºÐ°Ð·Ð°ÑÐµÐ»Ñ ÑÑÐµÐ¿ÐµÐ½Ð¸ (Ð¿ÑÐ°Ð²ÑÐ¹ Ð¿Ð¾ÑÐ¾Ð¼Ð¾Ðº)
+<span style = "background-color:#dfd">    string exponent = cToTex(node-&gt;right, type, true, config);</span>
+
+    // 2. ÐÐ¾Ð»ÑÑÐµÐ½Ð¸Ðµ TeX-ÑÑÑÐ¾ÐºÐ¸ Ð¾ÑÐ½Ð¾Ð²Ð°Ð½Ð¸Ñ (Ð»ÐµÐ²ÑÐ¹ Ð¿Ð¾ÑÐ¾Ð¼Ð¾Ðº)
+<span style = "background-color:#dfd">    string base = cToTex(node-&gt;left, type, false, config);</span>
+
+    // 3. Ð¤Ð¾ÑÐ¼Ð¸ÑÐ¾Ð²Ð°Ð½Ð¸Ðµ Ð¸ÑÐ¾Ð³Ð¾Ð²Ð¾Ð¹ ÑÑÑÐ¾ÐºÐ¸
+<span style = "background-color:#dfd">    return base + "^{" + exponent + "}";
+}</span>
+
+string getTrigFunctionName(TokenType type)
+<span style = "background-color:#dfd">{
+    switch (type)</span>
+    {
+<span style = "background-color:#dfd">    case SIN:  return "\\sin";
+    case COS:  return "\\cos";
+    case TAN:  return "\\tan";</span>
+<span style = "background-color:#fdd">    case ASIN: return "\\arcsin";
+    case ACOS: return "\\arccos";
+    case ATAN: return "\\arctan";
+    default:   return "";</span>
+    }
+<span style = "background-color:#dfd">}</span>
+
+bool getExponentFraction(Node* node, string&amp; numerator, string&amp; denominator)
+<span style = "background-color:#dfd">{</span>
+    // 1. ÐÑÐ¾Ð²ÐµÑÐºÐ°, ÑÑÐ¾ Ð¿ÑÐ°Ð²ÑÐ¹ Ð¿Ð¾ÑÐ¾Ð¼Ð¾Ðº ÑÐ²Ð»ÑÐµÑÑÑ Ð¾Ð¿ÐµÑÐ°ÑÐ¾ÑÐ¾Ð¼ Ð´ÐµÐ»ÐµÐ½Ð¸Ñ
+<span style = "background-color:#dfd">    if (node-&gt;right-&gt;token.type != DIV)</span>
+    {
+<span style = "background-color:#dfd">        return false;</span>
+    }
+
+<span style = "background-color:#dfd">    Node* numeratorNode = node-&gt;right-&gt;left;
+    Node* denominatorNode = node-&gt;right-&gt;right;</span>
+
+    // 2. ÐÑÐ¾Ð²ÐµÑÐºÐ°, ÑÑÐ¾ Ð¾Ð±Ð° Ð¿Ð¾ÑÐ¾Ð¼ÐºÐ° ÑÑÑÐµÑÑÐ²ÑÑÑ Ð¸ ÑÐ²Ð»ÑÑÑÑÑ ÑÐ¸ÑÐ»Ð°Ð¼Ð¸
+    if (!numeratorNode || !denominatorNode ||
+<span style = "background-color:#dfd">        numeratorNode-&gt;token.type != NUMBER ||</span>
+        denominatorNode-&gt;token.type != NUMBER)
+    {
+<span style = "background-color:#dfd">        return false;</span>
+    }
+
+    // 3. ÐÐ·Ð²Ð»ÐµÑÐµÐ½Ð¸Ðµ Ð·Ð½Ð°ÑÐµÐ½Ð¸Ð¹
+<span style = "background-color:#dfd">    numerator = numeratorNode-&gt;token.value;
+    denominator = denominatorNode-&gt;token.value;</span>
+
+<span style = "background-color:#dfd">    return true;
+}</span>
+
+bool isValidIndexRange(const vector&lt;int&gt;&amp; indexes, int startIndex, int endIndex)
+<span style = "background-color:#dfd">{</span>
+    // 1. ÐÑÐ¾Ð²ÐµÑÐºÐ° ÑÐ°Ð·Ð¼ÐµÑÐ° Ð´Ð¸Ð°Ð¿Ð°Ð·Ð¾Ð½Ð°
+<span style = "background-color:#dfd">    if ((endIndex - startIndex + 1) != (int)indexes.size())</span>
+    {
+<span style = "background-color:#fdd">        return false;</span>
+    }
+
+    // 2. ÐÑÐ¾Ð²ÐµÑÐºÐ° Ð½ÐµÐ¿ÑÐµÑÑÐ²Ð½Ð¾ÑÑÐ¸ (Ð²ÑÐµ Ð¸Ð½Ð´ÐµÐºÑÑ Ð¾Ñ startIndex Ð´Ð¾ endIndex Ð¿ÑÐ¸ÑÑÑÑÑÐ²ÑÑÑ)
+<span style = "background-color:#dfd">    for (int i = startIndex; i &lt;= endIndex; i++)</span>
+    {
+<span style = "background-color:#dfd">        bool found = false;
+        for (int val : indexes)</span>
+        {
+<span style = "background-color:#dfd">            if (val == i)</span>
+            {
+<span style = "background-color:#dfd">                found = true;
+                break;</span>
+            }
+<span style = "background-color:#dfd">        }
+        if (!found)</span>
+        {
+<span style = "background-color:#fdd">            return false;</span>
+        }
+<span style = "background-color:#dfd">    }</span>
+
+    // 3. ÐÑÐ¾Ð²ÐµÑÐºÐ° Ð½Ð° Ð´ÑÐ±Ð»Ð¸ÐºÐ°ÑÑ
+<span style = "background-color:#dfd">    for (size_t i = 0; i &lt; indexes.size(); i++)</span>
+    {
+<span style = "background-color:#dfd">        for (size_t j = i + 1; j &lt; indexes.size(); j++)</span>
+        {
+<span style = "background-color:#dfd">            if (indexes[i] == indexes[j])</span>
+            {
+<span style = "background-color:#fdd">                return false;</span>
+            }
+<span style = "background-color:#dfd">        }
+    }</span>
+
+<span style = "background-color:#dfd">    return true;
+}</span>
+
+string getMulOperationTeX(Node* node, const Config&amp; config)
+<span style = "background-color:#dfd">{</span>
+    // 1. ÐÐ¾Ð»ÑÑÐµÐ½Ð¸Ðµ Ð½Ð°ÑÑÑÐ¾ÐµÐº ÐºÐ¾Ð½ÑÐ¸Ð³ÑÑÐ°ÑÐ¸Ð¸
+<span style = "background-color:#dfd">    string mulIdenVarVal = config.paramMap.at("mulIdenVar");
+    string arrMulVal = config.paramMap.at("arrMul");</span>
+
+    // 2. ÐÑÐ¾Ð²ÐµÑÐºÐ° Ð½Ð° mulIdenVar (ÑÐµÐ¿Ð¾ÑÐºÐ° Ð¾Ð´Ð¸Ð½Ð°ÐºÐ¾Ð²ÑÑ ÑÐ¼Ð½Ð¾Ð¶ÐµÐ½Ð¸Ð¹)
+<span style = "background-color:#dfd">    if (mulIdenVarVal == "powVarN")</span>
+    {
+<span style = "background-color:#dfd">        string operandStr;
+        int varCount = 0;
+        if (isMulIdenVar(node, operandStr, varCount, config))</span>
+        {
+<span style = "background-color:#dfd">            return operandStr + "^{" + to_string(varCount) + "}";</span>
+        }
+<span style = "background-color:#dfd">    }</span>
+
+    // 3. ÐÑÐ¾Ð²ÐµÑÐºÐ° Ð½Ð° arrMul (Ð¿ÑÐ¾Ð¸Ð·Ð²ÐµÐ´ÐµÐ½Ð¸Ðµ ÑÐ»ÐµÐ¼ÐµÐ½ÑÐ¾Ð² Ð¼Ð°ÑÑÐ¸Ð²Ð°)
+<span style = "background-color:#dfd">    if (arrMulVal == "combineInMul")</span>
+    {
+<span style = "background-color:#dfd">        string arrayName;
+        vector&lt;int&gt; indexes;
+        bool arrayNameFound = false;</span>
+
+<span style = "background-color:#dfd">        if (isArrOperation(node, MUL, arrayName, indexes, arrayNameFound))</span>
+        {
+<span style = "background-color:#dfd">            int startIndex = *min_element(indexes.begin(), indexes.end());
+            int endIndex = *max_element(indexes.begin(), indexes.end());</span>
+
+<span style = "background-color:#dfd">            if (isValidIndexRange(indexes, startIndex, endIndex))</span>
+            {
+<span style = "background-color:#dfd">                return "\\prod_{i=" + to_string(startIndex) + "}^{" + to_string(endIndex) + "} " + arrayName + "_{i}";</span>
+            }
+        }
+<span style = "background-color:#dfd">    }</span>
+
+    // 4. ÐÐ±ÑÑÐ½Ð¾Ðµ ÑÐ¼Ð½Ð¾Ð¶ÐµÐ½Ð¸Ðµ
+<span style = "background-color:#dfd">    string leftStr = getChildTexWithParens(node, node-&gt;left, false, config);
+    string rightStr = getChildTexWithParens(node, node-&gt;right, true, config);
+    return leftStr + " \\cdot " + rightStr;
+}</span>
+
+string getPlusOperationTeX(Node* node, const Config&amp; config)
+<span style = "background-color:#dfd">{</span>
+    // 1. ÐÐ¾Ð»ÑÑÐµÐ½Ð¸Ðµ Ð½Ð°ÑÑÑÐ¾Ð¹ÐºÐ¸ Ð´Ð»Ñ ÑÑÐ¼Ð¼Ñ Ð¼Ð°ÑÑÐ¸Ð²Ð°
+<span style = "background-color:#dfd">    string arrSumVal = config.paramMap.at("arrSum");</span>
+
+    // 2. ÐÑÐ¾Ð²ÐµÑÐºÐ° Ð½Ð° arrSum (ÑÑÐ¼Ð¼Ð° ÑÐ»ÐµÐ¼ÐµÐ½ÑÐ¾Ð² Ð¼Ð°ÑÑÐ¸Ð²Ð°)
+<span style = "background-color:#dfd">    if (arrSumVal == "combineInSum")</span>
+    {
+<span style = "background-color:#dfd">        string arrayName;
+        vector&lt;int&gt; indexes;
+        bool arrayNameFound = false;</span>
+
+<span style = "background-color:#dfd">        if (isArrOperation(node, PLUS, arrayName, indexes, arrayNameFound))</span>
+        {
+            // 2.1. ÐÐ°Ð¹ÑÐ¸ Ð¼Ð¸Ð½Ð¸Ð¼Ð°Ð»ÑÐ½ÑÐ¹ Ð¸ Ð¼Ð°ÐºÑÐ¸Ð¼Ð°Ð»ÑÐ½ÑÐ¹ Ð¸Ð½Ð´ÐµÐºÑÑ
+<span style = "background-color:#dfd">            int startIndex = *min_element(indexes.begin(), indexes.end());
+            int endIndex = *max_element(indexes.begin(), indexes.end());</span>
+
+            // 2.2. ÐÑÐ¾Ð²ÐµÑÐ¸ÑÑ Ð½ÐµÐ¿ÑÐµÑÑÐ²Ð½Ð¾ÑÑÑ Ð¸Ð½Ð´ÐµÐºÑÐ¾Ð²
+<span style = "background-color:#dfd">            if (isValidIndexRange(indexes, startIndex, endIndex))</span>
+            {
+<span style = "background-color:#dfd">                return "\\sum_{i=" + to_string(startIndex) + "}^{" + to_string(endIndex) + "} " + arrayName + "_{i}";</span>
+            }
+        }
+<span style = "background-color:#dfd">    }</span>
+
+    // 3. ÐÐ±ÑÑÐ½Ð¾Ðµ ÑÐ»Ð¾Ð¶ÐµÐ½Ð¸Ðµ 
+<span style = "background-color:#dfd">    string leftStr = getChildTexWithParens(node, node-&gt;left, false, config);
+    string rightStr = getChildTexWithParens(node, node-&gt;right, true, config);
+    return leftStr + " + " + rightStr;
+}</span>
+
+string getDivOperationTeX(Node* node, const Config&amp; config, TokenType type)
+<span style = "background-color:#dfd">{</span>
+    // 1. ÐÐ¾Ð»ÑÑÐµÐ½Ð¸Ðµ Ð½Ð°ÑÑÑÐ¾Ð¹ÐºÐ¸ Ð´Ð»Ñ Ð¿ÑÐµÐ¾Ð±ÑÐ°Ð·Ð¾Ð²Ð°Ð½Ð¸Ñ Ð»Ð¾Ð³Ð°ÑÐ¸ÑÐ¼Ð¾Ð²
+<span style = "background-color:#dfd">    string logDivVal = config.paramMap.at("logDiv");</span>
+
+    // 2. ÐÑÐ¾Ð²ÐµÑÐºÐ° Ð½Ð° logDiv (Ð´ÐµÐ»ÐµÐ½Ð¸Ðµ Ð»Ð¾Ð³Ð°ÑÐ¸ÑÐ¼Ð¾Ð² Ñ Ð¾Ð´Ð¸Ð½Ð°ÐºÐ¾Ð²ÑÐ¼ Ð¾ÑÐ½Ð¾Ð²Ð°Ð½Ð¸ÐµÐ¼)
+<span style = "background-color:#dfd">    if (logDivVal == "logConverting")</span>
+    {
+<span style = "background-color:#dfd">        string base, argument;
+        if (isLogDiv(node, base, argument, config))</span>
+        {
+<span style = "background-color:#dfd">            return "\\log_{" + base + "}(" + argument + ")";</span>
+        }
+<span style = "background-color:#dfd">    }</span>
+
+    // 3. ÐÐ±ÑÑÐ½Ð¾Ðµ Ð´ÐµÐ»ÐµÐ½Ð¸Ðµ
+<span style = "background-color:#dfd">    string leftStr = cToTex(node-&gt;left, type, false, config);
+    string rightStr = cToTex(node-&gt;right, type, true, config);
+    return "\\frac{" + leftStr + "}{" + rightStr + "}";
+}</span></pre>
+        <hr />
+        <table width="100%">
+            <thead>
+                <tr>
+                    <th align="center">
+                        <small>Generated by</small>
+                        <a href="https://github.com/OpenCppCoverage/OpenCppCoverage/releases">
+                            <strong>OpenCppCoverage (Version: 0.9.9.0)</strong>
+                        </a>
+                    </th>
+                </tr>
+            </thead>
+        </table>
+    </body>
+</html>

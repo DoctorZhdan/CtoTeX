@@ -122,27 +122,207 @@ Success! TeX string written to temp.txt
 40. Complex mixed  
 Success! TeX string written to temp.txt
 [PASS] 40. Complex mixed  
-41. Not enough operands 
+41. Minus_Standard  
+Success! TeX string written to temp.txt
+[PASS] 41. Minus_Standard  
+42. Mul_Standard  
+Success! TeX string written to temp.txt
+[PASS] 42. Mul_Standard  
+43. Div_Standard  
+Success! TeX string written to temp.txt
+[PASS] 43. Div_Standard  
+44. UnaryMinus_Standard  
+Success! TeX string written to temp.txt
+[PASS] 44. UnaryMinus_Standard  
+45. Mul_PowVarN  
+Success! TeX string written to temp.txt
+[PASS] 45. Mul_PowVarN  
+46. Mul_CombineInMul  
+Success! TeX string written to temp.txt
+[PASS] 46. Mul_CombineInMul  
+47. Pow_Standard  
+Success! TeX string written to temp.txt
+[PASS] 47. Pow_Standard  
+48. Pow_ZeroPointFive_ToSqrt  
+Success! TeX string written to temp.txt
+[PASS] 48. Pow_ZeroPointFive_ToSqrt  
+49. Pow_OneDivN_ToSqrt  
+Success! TeX string written to temp.txt
+[PASS] 49. Pow_OneDivN_ToSqrt  
+50. Pow_OneDivN_ToSqrt  
+Success! TeX string written to temp.txt
+[PASS] 50. Pow_OneDivN_ToSqrt  
+51. Sqrt_Standard  
+Success! TeX string written to temp.txt
+[PASS] 51. Sqrt_Standard  
+52. Sqrt_ToPow  
+Success! TeX string written to temp.txt
+[PASS] 52. Sqrt_ToPow  
+53. Cbrt_Standard  
+Success! TeX string written to temp.txt
+[PASS] 53. Cbrt_Standard  
+54. Sin_Standard  
+Success! TeX string written to temp.txt
+[PASS] 54. Sin_Standard  
+55. Cos_Standard  
+Success! TeX string written to temp.txt
+[PASS] 55. Cos_Standard  
+56. Tan_Standard  
+Success! TeX string written to temp.txt
+[PASS] 56. Tan_Standard  
+57. Asin_Standard  
+Success! TeX string written to temp.txt
+[PASS] 57. Asin_Standard  
+58. Acos_Standard  
+Success! TeX string written to temp.txt
+[PASS] 58. Acos_Standard  
+59. Atan_Standard  
+Success! TeX string written to temp.txt
+[PASS] 59. Atan_Standard  
+60. Trig_PowAfterFun  
+Success! TeX string written to temp.txt
+[PASS] 60. Trig_PowAfterFun  
+61. Trig_PowAfterVar  
+Success! TeX string written to temp.txt
+[PASS] 61. Trig_PowAfterVar  
+62. Trig_MinusOne_ReverseFun  
+Success! TeX string written to temp.txt
+[PASS] 62. Trig_MinusOne_ReverseFun  
+63. Trig_NegPow_DivNoNegPow  
+Success! TeX string written to temp.txt
+[PASS] 63. Trig_NegPow_DivNoNegPow  
+64. Log_Standard  
+Success! TeX string written to temp.txt
+[PASS] 64. Log_Standard  
+65. Log10_Standard  
+Success! TeX string written to temp.txt
+[PASS] 65. Log10_Standard  
+66. Exp_Standard  
+Success! TeX string written to temp.txt
+[PASS] 66. Exp_Standard  
+67. LogDiv_Converting  
+Success! TeX string written to temp.txt
+[PASS] 67. LogDiv_Converting  
+68. Abs_Standard 
+Success! TeX string written to temp.txt
+[PASS] 68. Abs_Standard 
+ 
+69. Eq_Standard  
+Success! TeX string written to temp.txt
+[PASS] 69. Eq_Standard  
+70. Neq_Standard  
+Success! TeX string written to temp.txt
+[PASS] 70. Neq_Standard  
+71. Lt_Standard 
+Success! TeX string written to temp.txt
+[PASS] 71. Lt_Standard 
+ 
+72. Gt_Standard 
+Success! TeX string written to temp.txt
+[PASS] 72. Gt_Standard 
+ 
+73. Le_Standard  
+Success! TeX string written to temp.txt
+[PASS] 73. Le_Standard  
+74. Ge_Standard  
+Success! TeX string written to temp.txt
+[PASS] 74. Ge_Standard  
+75. Land_Standard  
+Success! TeX string written to temp.txt
+[PASS] 75. Land_Standard  
+76. Lor_Standard  
+Success! TeX string written to temp.txt
+[PASS] 76. Lor_Standard  
+77. Lnot_Standard  
+Success! TeX string written to temp.txt
+[PASS] 77. Lnot_Standard  
+78. ArrayIndex_Standard  
+Success! TeX string written to temp.txt
+[PASS] 78. ArrayIndex_Standard  
+79. ArrSum_CombineInSum  
+Success! TeX string written to temp.txt
+[PASS] 79. ArrSum_CombineInSum  
+80. Number  
+Success! TeX string written to temp.txt
+[PASS] 80. Number  
+81. Variable  
+Success! TeX string written to temp.txt
+[PASS] 81. Variable  
+82. ConstantPi  
+Success! TeX string written to temp.txt
+[PASS] 82. ConstantPi  
+83. Complex_Test  
+Success! TeX string written to temp.txt
+[PASS] 83. Complex_Test  
+84. Not enough operands 
 ¬ выражении не хватает операндов.
  
-42. Too many operands 
+85. Too many operands 
 ¬ выражении содержатс€ лишние операнды.
  
-43. Invalid symbol 
+86. Invalid symbol 
 ¬ выражении содержитс€ недопустимый символ.
 @
 ^
  
-44. Operator not separated by spaces 
+87. Operator not separated by spaces 
 ќператор должен быть окружен пробелами.
 a+b
 ^^^
  
-45. Too many decimals 
+88. Too many decimals 
  оличество знаков после зап€той превышает допустимое значение.
 1.123456789123
 --^^^^^^^^^^^^
  
+89. The expression parsing tree file contains more than one line 
+¬ файле с деревом разбора выражени€ содержитс€ больше одной строки.
+ 
+90. Sequence of invalid characters 
+¬ выражении содержитс€ последовательность недопустимых символов.
+$$$
+^^^
+ 
+91. Going beyond the range of integers 
+¬ыход за диапазон целых чисел [-2*10^9, +2*10^9].
+ 
+92. The size of the variable name is too large 
+–азмер имени переменной превышает допустимое количество символов (255).
+ 
+93. Assigning an invalid value to a parameter 
+ѕрисвоение параметру недопустимого значени€.
+ 
+94. The parameter value is missing 
+ќтсутствует присваиваемое значение параметра.
+ 
+95. The record contains a non-existent parameter 
+¬ записи содержитс€ несуществующий параметр.
+ 
+96. You cannot assign a value to a parameter more than once 
+Ќельз€ присваивать значение параметру более одного раза.
+ 
+97. The number of spaces exceeds the allowed value 
+ оличество пробелов превышает допустимое значение.
+a  b +
+-^^
+ 
+98. The number of words in the string exceeds the allowed value (2) 
+ оличество слов в строке превышает допустимое значение (2).
+ 
+99. Incompatible operand and operation types 
+Ќесовместимый тип операндов.
+¬ выражении не хватает операндов.
+ 
+100. Incompatible operand types 
+Ќесовместимый тип операндов.
+¬ выражении не хватает операндов.
+ 
+101. The record contains an empty string 
+¬ записи содержитс€ пуста€ строка.
+ 
+102. Log10_Div  
+Success! TeX string written to temp.txt
+[PASS] 102. Log10_Div  
 ======================================== 
-Results: Passed=40 Failed=0 
+Results: Passed=84 Failed=0 
 ======================================== 

@@ -1,0 +1,641 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>CtoTeX.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+    <body onload="prettyPrint()">
+        <h4></h4>
+        <pre class="prettyprint lang-cpp linenums">
+#pragma once
+using namespace std;
+#include &lt;string&gt;  
+#include &lt;map&gt;
+#include &lt;set&gt;
+#include &lt;vector&gt;
+#include &lt;stack&gt;
+
+
+
+/// @brief Êîäû îøèáîê ïðîãðàììû
+enum ErrorCode {
+    // ôàéëîâûå îøèáêè
+    InputFileNotExist,          ///&lt; Âõîäíîé ôàéë íå ñóùåñòâóåò
+    OutputFileNotCreate,        ///&lt; Íå óäàëîñü ñîçäàòü âûõîäíîé ôàéë
+
+    // îøèáêè äåðåâà ðàçáîðà
+    MultipleLinesInTreeFile,    ///&lt; Â ôàéëå áîëüøå îäíîé ñòðîêè
+    NotEnoughOperands,          ///&lt; Íå õâàòàåò îïåðàíäîâ
+    TooManyOperands,            ///&lt; Ëèøíèå îïåðàíäû
+
+    // ëåêñè÷åñêèå îøèáêè
+    InvalidSymbol,              ///&lt; Íåäîïóñòèìûé ñèìâîë
+    InvalidSymbolSequence,      ///&lt; Ïîñëåäîâàòåëüíîñòü íåäîïóñòèìûõ ñèìâîëîâ
+    IntegerOverflow,            ///&lt; Âûõîä çà äèàïàçîí öåëûõ ÷èñåë
+
+    // îãðàíè÷åíèÿ
+    TooManyNodes,               ///&lt; Ïðåâûøåíî êîëè÷åñòâî óçëîâ
+    VariableNameTooLong,        ///&lt; Èìÿ ïåðåìåííîé ñëèøêîì äëèííîå
+    TooManyDecimalDigits,       ///&lt; Ñëèøêîì ìíîãî çíàêîâ ïîñëå çàïÿòîé
+
+    // îøèáêè êîíôèãóðàöèè
+    InvalidCharInParamFile,     ///&lt; Íåäîïóñòèìûé ñèìâîë â ôàéëå ïàðàìåòðîâ
+    InvalidParamValue,          ///&lt; Íåäîïóñòèìîå çíà÷åíèå ïàðàìåòðà
+    MissingParamValue,          ///&lt; Îòñóòñòâóåò çíà÷åíèå ïàðàìåòðà
+    NonexistentParam,           ///&lt; Íåñóùåñòâóþùèé ïàðàìåòð
+    DuplicateParamValue,        ///&lt; Ïîâòîðíîå ïðèñâîåíèå ïàðàìåòðó
+    TooManySpaces,              ///&lt; Ëèøíèå ïðîáåëû
+    TooManyWords,               ///&lt; Ñëèøêîì ìíîãî ñëîâ â ñòðîêå
+    EmptyLine,                  ///&lt; Ïóñòàÿ ñòðîêà
+
+    // îøèáêè òèïîâ
+    ArithmeticWithLogical,      ///&lt; Àðèôìåòè÷åñêàÿ îïåðàöèÿ ñ ëîãè÷åñêèìè îïåðàíäàìè
+    MismatchedOperandTypes,     ///&lt; Íåñîâìåñòèìûå òèïû îïåðàíäîâ
+
+    // îïåðàòîð íå îêðóæåí ïðîáåëàìè
+    OperatorNotSeparatedBySpaces ///&lt; Îïåðàòîð íå îòäåë¸í ïðîáåëàìè
+};
+
+/// @brief Ñëîâàðü ñîîáùåíèé îá îøèáêàõ
+<span style = "background-color:#dfd">const map&lt;ErrorCode, string&gt; errorMessages = {</span>
+{InputFileNotExist,       "Íåâåðíî óêàçàí ôàéë ñ âõîäíûìè äàííûìè. Âîçìîæíî, ôàéë íå ñóùåñòâóåò."},
+{OutputFileNotCreate,     "Íåâåðíî óêàçàí ôàéë äëÿ âûõîäíûõ äàííûõ. Âîçìîæíî óêàçàííîãî ðàñïîëîæåíèÿ íå ñóùåñòâóåò èëè íåò ïðàâ íà çàïèñü."},
+
+{MultipleLinesInTreeFile, "Â ôàéëå ñ äåðåâîì ðàçáîðà âûðàæåíèÿ ñîäåðæèòñÿ áîëüøå îäíîé ñòðîêè."},
+{NotEnoughOperands,       "Â âûðàæåíèè íå õâàòàåò îïåðàíäîâ."},
+{TooManyOperands,         "Â âûðàæåíèè ñîäåðæàòñÿ ëèøíèå îïåðàíäû."},
+
+{InvalidSymbol,           "Â âûðàæåíèè ñîäåðæèòñÿ íåäîïóñòèìûé ñèìâîë."},
+{InvalidSymbolSequence,   "Â âûðàæåíèè ñîäåðæèòñÿ ïîñëåäîâàòåëüíîñòü íåäîïóñòèìûõ ñèìâîëîâ."},
+{IntegerOverflow,         "Âûõîä çà äèàïàçîí öåëûõ ÷èñåë [-2*10^9, +2*10^9]."},
+
+{TooManyNodes,            "Êîëè÷åñòâî óçëîâ â äåðåâå ïðåâûøàåò äîïóñòèìîå çíà÷åíèå (1000)."},
+{VariableNameTooLong,     "Ðàçìåð èìåíè ïåðåìåííîé ïðåâûøàåò äîïóñòèìîå êîëè÷åñòâî ñèìâîëîâ (255)."},
+{TooManyDecimalDigits,    "Êîëè÷åñòâî çíàêîâ ïîñëå çàïÿòîé ïðåâûøàåò äîïóñòèìîå çíà÷åíèå."},
+
+{InvalidCharInParamFile,  "Â çàïèñè ñîäåðæèòñÿ íåäîïóñòèìûé ñèìâîë."},
+{InvalidParamValue,       "Ïðèñâîåíèå ïàðàìåòðó íåäîïóñòèìîãî çíà÷åíèÿ."},
+{MissingParamValue,       "Îòñóòñòâóåò ïðèñâàèâàåìîå çíà÷åíèå ïàðàìåòðà."},
+{NonexistentParam,        "Â çàïèñè ñîäåðæèòñÿ íåñóùåñòâóþùèé ïàðàìåòð."},
+{DuplicateParamValue,     "Íåëüçÿ ïðèñâàèâàòü çíà÷åíèå ïàðàìåòðó áîëåå îäíîãî ðàçà."},
+{TooManySpaces,           "Êîëè÷åñòâî ïðîáåëîâ ïðåâûøàåò äîïóñòèìîå çíà÷åíèå."},
+{TooManyWords,            "Êîëè÷åñòâî ñëîâ â ñòðîêå ïðåâûøàåò äîïóñòèìîå çíà÷åíèå (2)."},
+{EmptyLine,               "Â çàïèñè ñîäåðæèòñÿ ïóñòàÿ ñòðîêà."},
+
+{ArithmeticWithLogical,   "Íåñîâìåñòèìûé òèï îïåðàíäîâ è îïåðàöèè."},
+{MismatchedOperandTypes,  "Íåñîâìåñòèìûé òèï îïåðàíäîâ."},
+{OperatorNotSeparatedBySpaces, "Îïåðàòîð äîëæåí áûòü îêðóæåí ïðîáåëàìè."}
+<span style = "background-color:#dfd">};</span>
+
+/// @brief Ñòðóêòóðà äëÿ õðàíåíèÿ äàííûõ îá îøèáêå
+struct Error {
+    ErrorCode code = InputFileNotExist; ///&lt; Êîä îøèáêè èç ïåðå÷èñëåíèÿ
+    int position = -1;       ///&lt; Èíäåêñ ñèìâîëà, ñîäåðæàùåãî îøèáêó, â ñòðîêå 
+    int length = 1;          ///&lt; Äëèíà ïîñëåäîâàòåëüíîñòè íåêîððåêòíûõ ñèìâîëîâ 
+    string line;             ///&lt; Ñòðîêà, ñîäåðæàùàÿ îøèáêó
+
+    /// @brief Ìåòîä ãåíåðàöèè ñîîáùåíèÿ îá îøèáêå
+    /// @return ñôîðìèðîâàííîå ñîîáùåíèå îá îøèáêå
+<span style = "background-color:#dfd">    string generateErrorMessage() const {</span>
+        // 1. Âçÿòü áàçîâîå ñîîáùåíèå îá îøèáêå, ñîîòâåòñòâóþùåå êîäó îøèáêè
+<span style = "background-color:#dfd">        string result = errorMessages.at(code);</span>
+
+        // 2. Åñëè èçâåñòíà ïîçèöèÿ îøèáêè â ñòðîêå è ñàìà ñòðîêà íå ïóñòàÿ
+<span style = "background-color:#dfd">        if (position != -1 &amp;&amp; !line.empty()) {</span>
+            // 2.1. Äîáàâèòü ê áàçîâîìó ñîîáùåíèþ ñèìâîë ïåðåõîäà íà íîâóþ ñòðîêó è èñõîäíóþ ñòðîêó
+<span style = "background-color:#dfd">            result += "\n" + line;</span>
+
+            // 2.2. Ñîçäàòü ïóñòóþ ñòðîêó-óêàçàòåëü
+<span style = "background-color:#dfd">            string pointer;</span>
+
+            // 2.3. Äîáàâèòü â ñòðîêó-óêàçàòåëü ñòîëüêî ñèìâîëîâ '-', ñêîëüêî ïîçèöèé íóæíî ïðîïóñòèòü äî ìåñòà îøèáêè
+<span style = "background-color:#dfd">            for (int i = 0; i &lt; position; ++i) {
+                pointer += '-';
+            }</span>
+
+            // 2.4. Äîáàâèòü â ñòðîêó-óêàçàòåëü ñòîëüêî ñèìâîëîâ '^', êàêîâà äëèíà ïîñëåäîâàòåëüíîñòè íåêîððåêòíûõ ñèìâîëîâ
+<span style = "background-color:#dfd">            for (int i = 0; i &lt; length; ++i) {
+                pointer += '^';
+            }</span>
+
+            // 2.5. Äîáàâèòü ê ñîîáùåíèþ ñèìâîë ïåðåõîäà íà íîâóþ ñòðîêó è ñòðîêó-óêàçàòåëü
+<span style = "background-color:#dfd">            result += "\n" + pointer;
+        }</span>
+
+        // 3. Âåðíóòü ïîëó÷åííîå ñîîáùåíèå
+<span style = "background-color:#dfd">        return result;
+    }</span>
+};
+
+/// @brief Ñëîâàðü äîïóñòèìûõ çíà÷åíèé ïàðàìåòðîâ îòîáðàæåíèÿ
+<span style = "background-color:#dfd">const map&lt;string, set&lt;string&gt;&gt; allowedConfigParams = {</span>
+    {"mulIdenVar",       {"withoutChanges", "powVarN"}},  // ïðîèçâåäåíèå îäèíàêîâûõ ïåðåìåííûõ
+    {"trigFunNoNegPow",  {"powAfterVar", "powAfterFun"}}, // òðèã ôóíêöèè â íåîòðèöàòåëüíîé ñòåïåíè
+    {"trigFunNegPow",    {"negPow", "divNoNegPow"}},      // òðèã ôóíêöèè â îòðèöàòåëüíîé ñòåïåíè (êðîìå -1)
+    {"trigFunMinusOnePow", {"negPow", "divNoNegPow", "reverseFun"}}, // ñòåïåíü -1
+    {"zeroPointFivePow", {"withoutChanges", "powToSqrt"}}, // âîçâåäåíèå â 0.5
+    {"oneDivNPow",       {"withoutChanges", "powToSqrt"}}, // âîçâåäåíèå â 1/n
+    {"abPow",            {"withoutChanges", "powToSqrt"}}, // âîçâåäåíèå â a/b
+    {"squareRoot",       {"withoutChanges", "sqrtToPow"}}, // èçâëå÷åíèå êâàäðàòíîãî êîðíÿ
+    {"logDiv",           {"logConverting", "withoutChanges"}}, // äåëåíèå ëîãàðèôìîâ
+    {"arrSum",           {"withoutChanges", "combineInSum"}},  // ñóììà ìàññèâà
+    {"arrMul",           {"withoutChanges", "combineInMul"}}   // ïðîèçâåäåíèå ìàññèâà
+<span style = "background-color:#dfd">};</span>
+
+/// @brief Òèïû òîêåíîâ
+enum TokenType {
+    NUMBER,                             ///&lt; ÷èñëî (öåëîå èëè âåùåñòâåííîå)
+    VARIABLE,                           ///&lt; ïåðåìåííàÿ
+    CONSTANT,                           ///&lt; êîíñòàíòà (pi, e, phi, i, true, false)
+    PLUS,                               ///&lt; áèíàðíîå ñëîæåíèå (+)
+    MINUS,                              ///&lt; áèíàðíîå âû÷èòàíèå (-)
+    MUL,                                ///&lt; áèíàðíîå óìíîæåíèå (*)
+    DIV,                                ///&lt; áèíàðíîå äåëåíèå (/)
+    UMINUS,                             ///&lt; óíàðíûé ìèíóñ (-_)
+    POW,                                ///&lt; âîçâåäåíèå â ñòåïåíü (#pow)
+    SQRT,                               ///&lt; êâàäðàòíûé êîðåíü (#sqrt)
+    CBRT,                               ///&lt; êóáè÷åñêèé êîðåíü (#cbrt)
+    SIN,                                ///&lt; ñèíóñ (#sin)
+    COS,                                ///&lt; êîñèíóñ (#cos)
+    TAN,                                ///&lt; òàíãåíñ (#tan)
+    ASIN,                               ///&lt; àðêñèíóñ (#asin)
+    ACOS,                               ///&lt; àðêêîñèíóñ (#acos)
+    ATAN,                               ///&lt; àðêòàíãåíñ (#atan)
+    LOG,                                ///&lt; íàòóðàëüíûé ëîãàðèôì (#log)
+    LOG10,                              ///&lt; äåñÿòè÷íûé ëîãàðèôì (#log10)
+    EXP,                                ///&lt; ýêñïîíåíòà (#exp)
+    ABS,                                ///&lt; ìîäóëü (#abs)
+    FABS,                               ///&lt; ìîäóëü (#fabs)
+    EQ,                                 ///&lt; ðàâíî (==)
+    NEQ,                                ///&lt; íå ðàâíî (!=)
+    LT,                                 ///&lt; ìåíüøå (&lt;)
+    GT,                                 ///&lt; áîëüøå (&gt;)
+    LE,                                 ///&lt; ìåíüøå èëè ðàâíî (&lt;=)
+    GE,                                 ///&lt; áîëüøå èëè ðàâíî (&gt;=)
+    LAND,                               ///&lt; ëîãè÷åñêîå È (&amp;&amp;)
+    LOR,                                ///&lt; ëîãè÷åñêîå ÈËÈ (||)
+    LNOT,                               ///&lt; ëîãè÷åñêîå ÍÅ (!)
+    ARRAY_INDEX,                        ///&lt; èíäåêñàöèÿ ìàññèâà (a[i])
+    UNKNOWN                             ///&lt; íåîïðåäåë¸ííûé òèï (äëÿ êîðíåâîãî óçëà)
+};
+
+/// @brief Òèïû îïåðàíäîâ
+enum OperandType {
+    ARITHMETIC, ///&lt; àðèôìåòè÷åñêèé îïåðàíä
+    LOGICAL     ///&lt; ëîãè÷åñêèé îïåðàíä
+};
+
+/// @brief Ñòðóêòóðà òîêåíà (ëåêñåìû)
+struct Token {
+    TokenType type = UNKNOWN; ///&lt; òèï òîêåíà
+    string value;            ///&lt; òåêñòîâîå ïðåäñòàâëåíèå òîêåíà
+    OperandType operandType = ARITHMETIC; ///&lt; òèï îïåðàíäîâ (àðèôìåòè÷åñêèé èëè ëîãè÷åñêèé)
+};
+
+/// @brief Êëàññ óçëà äåðåâà ðàçáîðà
+class Node {
+public:
+    Token token;             ///&lt; òîêåí óçëà
+<span style = "background-color:#dfd">    Node* left = nullptr;    ///&lt; óêàçàòåëü íà ëåâûé ïîòîìîê (åäèíñòâåííûé äëÿ óíàðíûõ îïåðàöèé) 
+    Node* right = nullptr;   ///&lt; óêàçàòåëü íà ïðàâûé ïîòîìîê (nullptr äëÿ óíàðíûõ îïåðàöèé)</span>
+
+    /// @brief Êîíñòðóêòîð äëÿ ëèñòà (÷èñëî, ïåðåìåííàÿ, êîíñòàíòà)
+    /// @param t òîêåí
+<span style = "background-color:#dfd">    Node(const Token&amp; t) : token(t) {}</span>
+
+    /// @brief Êîíñòðóêòîð äëÿ áèíàðíîé îïåðàöèè
+    /// @param t òîêåí îïåðàöèè
+    /// @param l ëåâûé îïåðàíä
+    /// @param r ïðàâûé îïåðàíä
+<span style = "background-color:#dfd">    Node(const Token&amp; t, Node* l, Node* r) : token(t), left(l), right(r) {}</span>
+
+    /// @brief Êîíñòðóêòîð äëÿ óíàðíîé îïåðàöèè
+    /// @param t òîêåí îïåðàöèè
+    /// @param l åäèíñòâåííûé îïåðàíä
+<span style = "background-color:#dfd">    Node(const Token&amp; t, Node* l) : token(t), left(l) {}</span>
+
+    /// @brief Äåñòðóêòîð, ðåêóðñèâíî óäàëÿþùèé äî÷åðíèå óçëû
+<span style = "background-color:#dfd">    ~Node() {
+        delete left;
+        delete right;
+    }</span>
+
+    /// @brief Çàïðåò êîíñòðóêòîðà êîïèðîâàíèÿ
+    Node(const Node&amp;) = delete;
+
+    /// @brief Çàïðåò îïåðàòîðà ïðèñâàèâàíèÿ
+    Node&amp; operator=(const Node&amp;) = delete;
+
+};
+
+/// @brief Ñòðóêòóðà ïàðàìåòðîâ îòîáðàæåíèÿ
+struct Config {
+    map&lt;string, string&gt; paramMap; ///&lt; ñëîâàðü ïàðàìåòðîâ è èõ çíà÷åíèé
+
+    /// @brief Êîíñòðóêòîð, èíèöèàëèçèðóþùèé ïàðàìåòðû çíà÷åíèÿìè ïî óìîë÷àíèþ
+<span style = "background-color:#dfd">    Config() {
+        paramMap["mulIdenVar"] = "withoutChanges";
+        paramMap["trigFunNoNegPow"] = "powAfterVar";
+        paramMap["trigFunNegPow"] = "negPow";
+        paramMap["trigFunMinusOnePow"] = "negPow";
+        paramMap["zeroPointFivePow"] = "withoutChanges";
+        paramMap["oneDivNPow"] = "withoutChanges";
+        paramMap["abPow"] = "withoutChanges";
+        paramMap["squareRoot"] = "withoutChanges";
+        paramMap["logDiv"] = "logConverting";
+        paramMap["arrSum"] = "withoutChanges";
+        paramMap["arrMul"] = "withoutChanges";
+    }</span>
+};
+
+/// @brief Ìíîæåñòâî äîïóñòèìûõ îïåðàöèé
+<span style = "background-color:#dfd">const set&lt;string&gt; allowedOperations = {</span>
+    "+", "-", "*", "/", "-_",      // àðèôìåòèêà
+    "#pow", "#sqrt", "#cbrt",      // ñòåïåíü è êîðíè
+    "a[i]",                         // èíäåêñû
+    "#sin", "#cos", "#tan", "#asin", "#acos", "#atan", // òðèãîíîìåòðèÿ
+    "#log", "#log10", "#exp",      // ëîãàðèôìû è ýêñïîíåíòà
+    "#abs", "#fabs",                // ìîäóëü
+    "==", "!=", "&lt;", "&gt;", "&lt;=", "&gt;=", // ñðàâíåíèÿ
+    "&amp;&amp;", "||", "!"                 // ëîãè÷åñêèå
+<span style = "background-color:#dfd">};</span>
+
+/// @brief Ìíîæåñòâî äîïóñòèìûõ êîíñòàíò
+<span style = "background-color:#dfd">const set&lt;string&gt; allowedConstants = {</span>
+    "pi", "e", "phi", "i", "true", "false"
+<span style = "background-color:#dfd">};</span>
+
+/// @brief Ñòðóêòóðà äëÿ õðàíåíèÿ èíôîðìàöèè î äîïóñòèìûõ òèïàõ îïåðàíäîâ äëÿ îïåðàöèè
+struct OperationTypeInfo {
+    vector&lt;vector&lt;OperandType&gt;&gt; allowedSignatures; ///&lt; ñïèñîê äîïóñòèìûõ ñèãíàòóð
+};
+
+/// @brief Ñëîâàðü äîïóñòèìûõ òèïîâ îïåðàíäîâ äëÿ êàæäîé îïåðàöèè
+<span style = "background-color:#dfd">const map&lt;TokenType, OperationTypeInfo&gt; operationTypes = {</span>
+    // Àðèôìåòèêà
+    {PLUS,  {{{OperandType::ARITHMETIC, OperandType::ARITHMETIC}}}},
+    {MINUS, {{{OperandType::ARITHMETIC, OperandType::ARITHMETIC}}}},
+    {MUL,   {{{OperandType::ARITHMETIC, OperandType::ARITHMETIC}}}},
+    {DIV,   {{{OperandType::ARITHMETIC, OperandType::ARITHMETIC}}}},
+    {UMINUS, {{{OperandType::ARITHMETIC}}}},
+
+    // Ñòåïåíü è êîðíè
+    {POW,  {{{OperandType::ARITHMETIC, OperandType::ARITHMETIC}}}},
+    {SQRT, {{{OperandType::ARITHMETIC}}}},
+    {CBRT, {{{OperandType::ARITHMETIC}}}},
+
+    // Òðèãîíîìåòðèÿ
+    {SIN,  {{{OperandType::ARITHMETIC}}}},
+    {COS,  {{{OperandType::ARITHMETIC}}}},
+    {TAN,  {{{OperandType::ARITHMETIC}}}},
+    {ASIN, {{{OperandType::ARITHMETIC}}}},
+    {ACOS, {{{OperandType::ARITHMETIC}}}},
+    {ATAN, {{{OperandType::ARITHMETIC}}}},
+
+    // Ëîãàðèôìû è ýêñïîíåíòà
+    {LOG,   {{{OperandType::ARITHMETIC}}}},
+    {LOG10, {{{OperandType::ARITHMETIC}}}},
+    {EXP,   {{{OperandType::ARITHMETIC}}}},
+
+    // Ìîäóëü
+    {ABS,  {{{OperandType::ARITHMETIC}}}},
+    {FABS, {{{OperandType::ARITHMETIC}}}},
+
+    // Ñðàâíåíèÿ
+    {EQ,  {{{OperandType::ARITHMETIC, OperandType::ARITHMETIC},
+            {OperandType::LOGICAL, OperandType::LOGICAL}}}},
+
+    {NEQ, {{{OperandType::ARITHMETIC, OperandType::ARITHMETIC},
+            {OperandType::LOGICAL, OperandType::LOGICAL}}}},
+
+    {LT,  {{{OperandType::ARITHMETIC, OperandType::ARITHMETIC}}}},
+    {GT,  {{{OperandType::ARITHMETIC, OperandType::ARITHMETIC}}}},
+    {LE,  {{{OperandType::ARITHMETIC, OperandType::ARITHMETIC}}}},
+    {GE,  {{{OperandType::ARITHMETIC, OperandType::ARITHMETIC}}}},
+
+    // Ëîãè÷åñêèå
+    {LAND, {{{OperandType::LOGICAL, OperandType::LOGICAL}}}},
+    {LOR,  {{{OperandType::LOGICAL, OperandType::LOGICAL}}}},
+    {LNOT, {{{OperandType::LOGICAL}}}}
+<span style = "background-color:#dfd">};</span>
+
+/// @brief Ñòðóêòóðà ñ èíôîðìàöèåé îá îïåðàòîðå
+struct OperatorInfo {
+    int precedence = 0;   ///&lt; óðîâåíü ïðèîðèòåòà (÷åì ìåíüøå ÷èñëî, òåì âûøå ïðèîðèòåò)
+    bool leftAssoc = true;   ///&lt; àññîöèàòèâíîñòü (true  ëåâàÿ, false  ïðàâàÿ)
+    int arity = 0;        ///&lt; êîëè÷åñòâî îïåðàíäîâ (1 èëè 2)
+    string tex;       ///&lt; TeX-ïðåäñòàâëåíèå îïåðàòîðà
+};
+
+/// @brief Ñëîâàðü îïåðàòîðîâ ñ èíôîðìàöèåé î íèõ (ïðèîðèòåò, àññîöèàòèâíîñòü, àðíîñòü, TeX-ñòðîêà)
+<span style = "background-color:#dfd">const map&lt;TokenType, OperatorInfo&gt; operatorInfo = {</span>
+    // èíäåêñàöèÿ 
+    {ARRAY_INDEX, {1, true, 2, ""}},
+
+    // ôóíêöèè 
+    {SIN,   {2, false, 1, "\\sin"}},
+    {COS,   {2, false, 1, "\\cos"}},
+    {TAN,   {2, false, 1, "\\tan"}},
+    {ASIN,  {2, false, 1, "\\arcsin"}},
+    {ACOS,  {2, false, 1, "\\arccos"}},
+    {ATAN,  {2, false, 1, "\\arctan"}},
+    {SQRT,  {2, false, 1, "\\sqrt"}},
+    {CBRT,  {2, false, 1, "\\sqrt[3]"}},
+    {LOG,   {2, false, 1, "\\log"}},
+    {LOG10, {2, false, 1, "\\log_{10}"}},
+    {EXP,   {2, false, 1, "\\exp"}},
+    {ABS,   {2, false, 1, "\\left|"}},
+    {FABS,  {2, false, 1, "\\left|"}},
+
+    // óíàðíûå
+    {UMINUS, {3, false, 1, "-"}},
+    {LNOT,   {3, false, 1, "\\lnot"}},
+
+    // ñòåïåíü 
+    {POW, {4, false, 2, "^"}},
+
+    // óìíîæåíèå / äåëåíèå 
+    {MUL, {5, true, 2, "\\cdot"}},
+    {DIV, {5, true, 2, "/"}},
+
+    // ñëîæåíèå / âû÷èòàíèå 
+    {PLUS,  {6, true, 2, "+"}},
+    {MINUS, {6, true, 2, "-"}},
+
+    // ñðàâíåíèÿ 
+    {LT,  {7, true, 2, "&lt;"}},
+    {GT,  {7, true, 2, "&gt;"}},
+    {LE,  {7, true, 2, "\\le"}},
+    {GE,  {7, true, 2, "\\ge"}},
+    {EQ,  {7, true, 2, "="}},
+    {NEQ, {7, true, 2, "\\neq"}},
+
+    // ëîãè÷åñêèå
+    {LAND, {8, true, 2, "\\land"}},
+    {LOR,  {9, true, 2, "\\lor"}}
+<span style = "background-color:#dfd">};</span>
+
+/// @brief Ôóíêöèÿ âàëèäàöèè ôàéëà êîíôèãóðàöèè ñ ïàðàìåòðàìè îòîáðàæåíèÿ
+/// @param[in] filename ïóòü ê ôàéëó ñ ïàðàìåòðàìè îòîáðàæåíèÿ
+/// @param[out] config ñòðóêòóðà äëÿ ñîõðàíåíèÿ ïàðàìåòðîâ è èõ çíà÷åíèé
+/// @param[out] errors âåêòîð äëÿ ñáîðà îøèáîê
+/// @return true ïðè óñïåøíîé âàëèäàöèè, false ïðè íàëè÷èè îøèáîê
+bool validateConfigFile(const string&amp; filename, Config&amp; config, vector&lt;Error&gt;&amp; errors);
+
+/// @brief Ôóíêöèÿ ÷òåíèÿ âõîäíûõ ôàéëîâ (âûðàæåíèÿ è êîíôèãóðàöèè)
+/// @param[in] exprFilename ïóòü ê ôàéëó ñ âûðàæåíèåì
+/// @param[in] configFilename ïóòü ê ôàéëó êîíôèãóðàöèè
+/// @param[out] expression ñòðîêà äëÿ ñîõðàíåíèÿ ïðî÷èòàííîãî âûðàæåíèÿ
+/// @param[out] config îáúåêò äëÿ ñîõðàíåíèÿ ïàðàìåòðîâ îòîáðàæåíèÿ
+/// @param[out] errors âåêòîð äëÿ ñáîðà îøèáîê
+/// @return true ïðè óñïåøíîì ÷òåíèè, false ïðè íàëè÷èè îøèáîê
+bool readInputFiles(const string&amp; exprFilename, const string&amp; configFilename, string&amp; expression, Config&amp; config, vector&lt;Error&gt;&amp; errors);
+
+/// @brief Ôóíêöèÿ âûâîäà îøèáîê èç âåêòîðà â êîíñîëü
+/// @param[in] errors âåêòîð ñ îøèáêàìè
+void printErrors(const vector&lt;Error&gt;&amp; errors);
+
+/// @brief Ôóíêöèÿ ðàçáèåíèÿ ñòðîêè âûðàæåíèÿ íà òîêåíû
+/// @param[in] expression ñòðîêà ñ âûðàæåíèåì â îáðàòíîé ïîëüñêîé çàïèñè
+/// @param[out] tokens âåêòîð äëÿ çàïîëíåíèÿ òîêåíàìè
+/// @param[out] errors âåêòîð äëÿ ñáîðà îøèáîê
+/// @return true ïðè óñïåøíîé òîêåíèçàöèè, false ïðè íàëè÷èè îøèáîê
+bool tokenizeExpression(const string&amp; expression, vector&lt;Token&gt;&amp; tokens, vector&lt;Error&gt;&amp; errors);
+
+/// @brief Ôóíêöèÿ ïîñòðîåíèÿ äåðåâà ðàçáîðà èç ñòðîêè âûðàæåíèÿ
+/// @param[in] expression ñòðîêà ñ âûðàæåíèåì â îáðàòíîé ïîëüñêîé çàïèñè
+/// @param[out] root óêàçàòåëü íà êîðåíü ïîñòðîåííîãî äåðåâà
+/// @param[in] operatorInfo ñëîâàðü îïåðàòîðîâ ñ èíôîðìàöèåé î íèõ 
+/// @param[out] errors âåêòîð äëÿ ñáîðà îøèáîê
+/// @return true ïðè óñïåøíîì ïîñòðîåíèè äåðåâà, false ïðè íàëè÷èè îøèáîê
+bool buildTree(const string&amp; expression, Node*&amp; root, const map&lt;TokenType, OperatorInfo&gt;&amp; operatorInfo, vector&lt;Error&gt;&amp; errors);
+
+/// @brief Ôóíêöèÿ ñîõðàíåíèÿ TeX-ñòðîêè â âûõîäíîé ôàéë
+/// @param[in] filename ïóòü ê âûõîäíîìó ôàéëó
+/// @param[in] texString ñãåíåðèðîâàííàÿ TeX-ñòðîêà
+/// @param[out] errors âåêòîð äëÿ ñáîðà îøèáîê
+/// @return true ïðè óñïåøíîé çàïèñè, false ïðè íàëè÷èè îøèáîê
+bool saveToOutFile(const string&amp; filename, const string&amp; texString, vector&lt;Error&gt;&amp; errors);
+
+/// @brief Ôóíêöèÿ îïðåäåëåíèÿ íåîáõîäèìîñòè äîáàâëåíèÿ ñêîáîê âîêðóã äî÷åðíåãî óçëà
+/// @param[in] parent óêàçàòåëü íà òåêóùèé óçåë (òåêóùàÿ îïåðàöèÿ)
+/// @param[in] child óêàçàòåëü íà äî÷åðíèé óçåë (ïîòîìîê, äëÿ êîòîðîãî ïðîâåðÿåì)
+/// @param[in] isRightChild true, åñëè ïîòîìîê ÿâëÿåòñÿ ïðàâûì, false  åñëè ëåâûì
+/// @return true, åñëè âîêðóã ñòðîêè äî÷åðíåãî óçëà íåîáõîäèìî äîáàâèòü êðóãëûå ñêîáêè, false  åñëè ñêîáêè íå òðåáóþòñÿ
+bool needsParentheses(Node* parent, Node* child, bool isRightChild);
+
+/// @brief Ôóíêöèÿ ïîëó÷åíèÿ TeX-ñòðîêè äî÷åðíåãî óçëà ñ äîáàâëåíèåì ñêîáîê ïðè íåîáõîäèìîñòè
+/// @param[in] parent óêàçàòåëü íà òåêóùèé óçåë (òåêóùàÿ îïåðàöèÿ)
+/// @param[in] child óêàçàòåëü íà äî÷åðíèé óçåë (ïîòîìîê, äëÿ êîòîðîãî ïîëó÷àåì ñòðîêó)
+/// @param[in] isRightChild true, åñëè ïîòîìîê ÿâëÿåòñÿ ïðàâûì, false  åñëè ëåâûì
+/// @param[in] config îáúåêò ñòðóêòóðû Config, ñîäåðæàùèé ïàðàìåòðû îòîáðàæåíèÿ
+/// @return TeX-ñòðîêà äî÷åðíåãî óçëà, äîïîëíåííàÿ êðóãëûìè ñêîáêàìè ïðè íåîáõîäèìîñòè
+string getChildTexWithParens(Node* parent, Node* child, bool isRightChild, const Config&amp; config);
+
+/// @brief Ôóíêöèÿ ïðîâåðêè, ÿâëÿåòñÿ ëè ïîääåðåâî öåïî÷êîé óìíîæåíèé îäèíàêîâûõ îïåðàíäîâ
+/// @param[in] node óêàçàòåëü íà òåêóùèé óçåë äåðåâà (ïðîâåðÿåìîå ïîääåðåâî)
+/// @param[out] operandStr ñòðîêà äëÿ ñîõðàíåíèÿ ñòðîêîâîãî ïðåäñòàâëåíèÿ îïåðàíäà
+/// @param[out] varCount öåëîå ÷èñëî äëÿ ñîõðàíåíèÿ êîëè÷åñòâà îäèíàêîâûõ îïåðàíäîâ â öåïî÷êå óìíîæåíèé
+/// @param[in] config îáúåêò ñòðóêòóðû Config, ñîäåðæàùèé ïàðàìåòðû îòîáðàæåíèÿ
+/// @return true, åñëè ïîääåðåâî ÿâëÿåòñÿ öåïî÷êîé óìíîæåíèé îäèíàêîâûõ îïåðàíäîâ, èíà÷å false
+bool isMulIdenVar(Node* node, string&amp; operandStr, int&amp; varCount, const Config&amp; config);
+
+/// @brief Ôóíêöèÿ ïðîâåðêè, ÿâëÿåòñÿ ëè óçåë äåëåíèåì äâóõ ëîãàðèôìîâ ñ îäèíàêîâûì îñíîâàíèåì
+/// @param[in] node óêàçàòåëü íà òåêóùèé óçåë äåðåâà (îïåðàòîð äåëåíèÿ)
+/// @param[out] base ñòðîêà äëÿ ñîõðàíåíèÿ îñíîâàíèÿ ëîãàðèôìà (àðãóìåíò ëîãàðèôìà èç çíàìåíàòåëÿ)
+/// @param[out] argument ñòðîêà äëÿ ñîõðàíåíèÿ àðãóìåíòà ëîãàðèôìà (àðãóìåíò ëîãàðèôìà èç ÷èñëèòåëÿ)
+/// @param[in] config îáúåêò ñòðóêòóðû Config, ñîäåðæàùèé ïàðàìåòðû îòîáðàæåíèÿ
+/// @return true, åñëè óçåë ÿâëÿåòñÿ äåëåíèåì äâóõ ëîãàðèôìîâ ñ îäèíàêîâûì îñíîâàíèåì, èíà÷å false
+bool isLogDiv(Node* node, string&amp; base, string&amp; argument, const Config&amp; config);
+
+/// @brief Ôóíêöèÿ ïðîâåðêè, ÿâëÿåòñÿ ëè ïîääåðåâî öåïî÷êîé îïåðàöèé ñ ýëåìåíòàìè ìàññèâà
+/// @param[in] node óêàçàòåëü íà òåêóùèé óçåë äåðåâà (ïðîâåðÿåìîå ïîääåðåâî)
+/// @param[in] opType îæèäàåìûé òèï îïåðàòîðà (MUL äëÿ óìíîæåíèÿ, PLUS äëÿ ñëîæåíèÿ)
+/// @param[out] arrayName ñòðîêà äëÿ ñîõðàíåíèÿ èìåíè ìàññèâà
+/// @param[out] indexes âåêòîð äëÿ ñáîðà èíäåêñîâ ýëåìåíòîâ ìàññèâà 
+/// @param[in,out] arrayNameFound ôëàã, óêàçûâàþùèé, áûëî ëè óæå íàéäåíî èìÿ ìàññèâà (äëÿ ïðîâåðêè ñîâïàäåíèÿ)
+/// @return true, åñëè ïîääåðåâî ÿâëÿåòñÿ öåïî÷êîé îïåðàöèé opType ñ ýëåìåíòàìè ìàññèâà, èíà÷å false
+bool isArrOperation(Node* node, TokenType opType, string&amp; arrayName, vector&lt;int&gt;&amp; indexes, bool&amp; arrayNameFound);
+
+/// @brief Ðåêóðñèâíàÿ ôóíêöèÿ ãåíåðàöèè TeX-ñòðîêè èç äåðåâà âûðàæåíèÿ
+/// @param[in] node óêàçàòåëü íà òåêóùèé óçåë äåðåâà, äëÿ êîòîðîãî ãåíåðèðóåòñÿ TeX-ñòðîêà
+/// @param[in] parentType òèï îïåðàöèè ðîäèòåëüñêîãî óçëà (çíà÷åíèå UNKNOWN, åñëè óçåë  êîðåíü)
+/// @param[in] isRightChild ôëàã, óêàçûâàþùèé, ÿâëÿåòñÿ ëè òåêóùèé óçåë ïðàâûì ïîòîìêîì (true) èëè ëåâûì/êîðíåì (false)
+/// @param[in] config îáúåêò ñòðóêòóðû Config, ñîäåðæàùèé ïàðàìåòðû îòîáðàæåíèÿ 
+/// @return ñãåíåðèðîâàííàÿ TeX-ñòðîêà
+string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config&amp; config);
+
+/// @brief Ïðîâåðÿåò, ÿâëÿåòñÿ ëè ñëîâî îïåðàòîðîì è äîáàâëÿåò ñîîòâåòñòâóþùèé òîêåí
+/// @param[in] word òåêóùåå ñëîâî
+/// @param[out] tokens âåêòîð òîêåíîâ
+/// @param[in,out] nodeCount ñ÷¸ò÷èê óçëîâ 
+/// @return true, åñëè ñëîâî ðàñïîçíàíî êàê îïåðàòîð; false â ïðîòèâíîì ñëó÷àå
+bool parseOperator(const string&amp; word, vector&lt;Token&gt;&amp; tokens, int&amp; nodeCount);
+
+/// @brief Ïðîâåðÿåò êîððåêòíîñòü ðàñïîëîæåíèÿ îïåðàòîðîâ â ñëîâå 
+/// @param[in] word òåêóùåå ñëîâî 
+/// @param[out] errors âåêòîð îøèáîê
+/// @param[in] allowedOperations ìíîæåñòâî äîïóñòèìûõ îïåðàòîðîâ
+/// @return true, åñëè ñëîâî ñîäåðæèò îøèáêó, ñâÿçàííóþ ñ îïåðàòîðàìè; false â ïðîòèâíîì ñëó÷àå
+bool checkOperatorSpacing(const string&amp; word, vector&lt;Error&gt;&amp; errors, const set&lt;string&gt;&amp; allowedOperations);
+
+/// @brief Ïðîâåðÿåò, ÿâëÿåòñÿ ëè ñëîâî ÷èñëîì è äîáàâëÿåò òîêåí
+/// @param[in] word òåêóùåå ñëîâî 
+/// @param[out] tokens âåêòîð òîêåíîâ 
+/// @param[out] errors âåêòîð îøèáîê
+/// @param[in,out] nodeCount ñ÷¸ò÷èê óçëîâ 
+/// @return true, åñëè ñëîâî îáðàáîòàíî êàê ÷èñëî, èíà÷å false
+bool parseNumber(const string&amp; word, vector&lt;Token&gt;&amp; tokens, vector&lt;Error&gt;&amp; errors, int&amp; nodeCount);
+
+/// @brief Ïðîâåðÿåò, ÿâëÿåòñÿ ëè ñëîâî ïåðåìåííîé è äîáàâëÿåò òîêåí
+/// @param[in] word òåêóùåå ñëîâî 
+/// @param[out] tokens âåêòîð òîêåíîâ 
+/// @param[out] errors âåêòîð îøèáîê 
+/// @param[in,out] nodeCount ñ÷¸ò÷èê óçëîâ 
+/// @return true, åñëè ñëîâî îáðàáîòàíî êàê ïåðåìåííàÿ, èíà÷å false
+bool parseVariable(const string&amp; word, vector&lt;Token&gt;&amp; tokens, vector&lt;Error&gt;&amp; errors, int&amp; nodeCount);
+
+/// @brief Ïðîâåðÿåò, ÿâëÿåòñÿ ëè ñëîâî êîíñòàíòîé è äîáàâëÿåò òîêåí
+/// @param[in] word òåêóùåå ñëîâî
+/// @param[out] tokens âåêòîð òîêåíîâ
+/// @param[in,out] nodeCount ñ÷¸ò÷èê óçëîâ
+/// @return true, åñëè ñëîâî îáðàáîòàíî êàê êîíñòàíòà, èíà÷å false
+bool parseConstant(const string&amp; word, vector&lt;Token&gt;&amp; tokens, int&amp; nodeCount);
+
+/// @brief Ïðîâåðÿåò, ÿâëÿåòñÿ ëè ñëîâî èíäåêñàöèåé ìàññèâà è äîáàâëÿåò ñîîòâåòñòâóþùèå òîêåíû
+/// @param[in] word òåêóùåå ñëîâî 
+/// @param[out] tokens âåêòîð òîêåíîâ 
+/// @param[out] errors âåêòîð îøèáîê
+/// @param[in,out] nodeCount ñ÷¸ò÷èê óçëîâ 
+/// @return true, åñëè ñëîâî îáðàáîòàíî êàê ýëåìåíò ìàññèâà, èíà÷å false
+bool parseArray(const string&amp; word, vector&lt;Token&gt;&amp; tokens, vector&lt;Error&gt;&amp; errors, int&amp; nodeCount);
+
+/// @brief Ðàçáèâàåò ñòðîêó âûðàæåíèÿ íà ñëîâà ïî ïðîáåëàì
+/// @param[in] expression âõîäíàÿ ñòðîêà
+/// @param[out] wordList âåêòîð äëÿ çàïîëíåíèÿ ñëîâàìè 
+void splitIntoWords(const string&amp; expression, vector&lt;string&gt;&amp; wordList);
+
+/// @brief Îáðàáàòûâàåò áèíàðíûé îïåðàòîð: èçâëåêàåò äâà îïåðàíäà èç ñòåêà, ïðîâåðÿåò òèïû, ñîçäà¸ò óçåë
+/// @param[in] token òîêåí îïåðàòîðà
+/// @param[in,out] nodeStack ñòåê óçëîâ
+/// @param[out] errors âåêòîð îøèáîê
+/// @return óêàçàòåëü íà íîâûé óçåë èëè nullptr ïðè îøèáêå
+Node* processBinaryOperator(const Token&amp; token, stack&lt;Node*&gt;&amp; nodeStack, vector&lt;Error&gt;&amp; errors);
+
+/// @brief Îáðàáàòûâàåò óíàðíûé îïåðàòîð: èçâëåêàåò îäèí îïåðàíä èç ñòåêà, ïðîâåðÿåò òèï, ñîçäà¸ò óçåë
+/// @param[in] token òîêåí îïåðàòîðà
+/// @param[in,out] nodeStack ñòåê óçëîâ
+/// @param[out] errors âåêòîð îøèáîê
+/// @return óêàçàòåëü íà íîâûé óçåë èëè nullptr ïðè îøèáêå
+Node* processUnaryOperator(const Token&amp; token, stack&lt;Node*&gt;&amp; nodeStack, vector&lt;Error&gt;&amp; errors);
+
+/// @brief Îáðàáàòûâàåò òîêåí-îïåðàíä 
+/// @param[in] token òîêåí äëÿ îáðàáîòêè
+/// @param[in,out] nodeStack ñòåê óçëîâ
+/// @param[in,out] nodeCount ñ÷¸ò÷èê óçëîâ
+/// @param[out] errors âåêòîð îøèáîê
+void processOperand(const Token&amp; token, stack&lt;Node*&gt;&amp; nodeStack, int&amp; nodeCount, vector&lt;Error&gt;&amp; errors);
+
+/// @brief Ïðîâåðÿåò ñîñòîÿíèå ñòåêà ïîñëå îáðàáîòêè âñåõ òîêåíîâ
+/// @param[in] nodeStack ñòåê óçëîâ
+/// @param[out] errors âåêòîð îøèáîê
+void checkStackState(stack&lt;Node*&gt;&amp; nodeStack, vector&lt;Error&gt;&amp; errors);
+
+/// @brief Ñðàâíèâàåò ïðèîðèòåòû parent è child, îïðåäåëÿåò íåîáõîäèìîñòü ñêîáîê
+/// @param[in] parentPrec ïðèîðèòåò ðîäèòåëüñêîé îïåðàöèè
+/// @param[in] childPrec ïðèîðèòåò äî÷åðíåé îïåðàöèè
+/// @param[in] parentLeftAssoc àññîöèàòèâíîñòü ðîäèòåëüñêîé îïåðàöèè
+/// @param[in] isRightChild ôëàã ïðàâîãî ïîòîìêà
+/// @return true åñëè ñêîáêè íóæíû, false åñëè íåò
+bool comparePrecedence(int parentPrec, int childPrec, bool parentLeftAssoc, bool isRightChild);
+
+/// @brief Ïðåîáðàçóåò èìÿ êîíñòàíòû â TeX-ïðåäñòàâëåíèå
+/// @param[in] value èìÿ êîíñòàíòû 
+/// @return TeX-ïðåäñòàâëåíèå êîíñòàíòû
+string getConstantTeX(const string&amp; value);
+
+/// @brief Ãåíåðèðóåò TeX-ïðåäñòàâëåíèå òðèãîíîìåòðè÷åñêîé ôóíêöèè
+/// @param[in] node óêàçàòåëü íà óçåë òðèãîíîìåòðè÷åñêîé ôóíêöèè
+/// @param[in] config îáúåêò ñ íàñòðîéêàìè îòîáðàæåíèÿ
+/// @return TeX-ñòðîêà òðèãîíîìåòðè÷åñêîé ôóíêöèè
+string getTrigFunctionTeX(Node* node, const Config&amp; config);
+
+/// @brief Ãåíåðèðóåò TeX-ïðåäñòàâëåíèå ëîãàðèôìà
+/// @param[in] node óêàçàòåëü íà óçåë ëîãàðèôìà
+/// @param[in] config îáúåêò ñ íàñòðîéêàìè îòîáðàæåíèÿ
+/// @return TeX-ñòðîêà ëîãàðèôìà 
+string getLogFunctionTeX(Node* node, const Config&amp; config);
+
+/// @brief Ãåíåðèðóåò TeX äëÿ òðèãîíîìåòðè÷åñêîé ôóíêöèè, âîçâåä¸ííîé â ñòåïåíü
+/// @param[in] node óêàçàòåëü íà óçåë POW (ëåâûé ïîòîìîê  òðèãîíîìåòðè÷åñêàÿ ôóíêöèÿ)
+/// @param[in] config îáúåêò ñ íàñòðîéêàìè îòîáðàæåíèÿ
+/// @return TeX-ñòðîêà 
+string getTrigPowerTeX(Node* node, const Config&amp; config);
+
+/// @brief Ãåíåðèðóåò TeX äëÿ äðîáíîé ñòåïåíè 
+/// @param[in] node óêàçàòåëü íà óçåë POW
+/// @param[in] config îáúåêò ñ íàñòðîéêàìè îòîáðàæåíèÿ
+/// @return TeX-ñòðîêà
+string* getFractionPowerTeX(Node* node, const Config&amp; config, TokenType type);
+
+/// @brief Ãåíåðèðóåò TeX äëÿ ïîëîæèòåëüíîé ñòåïåíè
+/// @param[in] node óêàçàòåëü íà óçåë POW
+/// @param[in] config îáúåêò ñ íàñòðîéêàìè îòîáðàæåíèÿ
+/// @return TeX-ñòðîêà 
+string getRegularPowerTeX(Node* node, const Config&amp; config, TokenType type);
+
+/// @brief Âîçâðàùàåò TeX-èìÿ òðèãîíîìåòðè÷åñêîé ôóíêöèè
+/// @param[in] type òèï óçëà
+/// @return TeX-èìÿ ôóíêöèè
+string getTrigFunctionName(TokenType type);
+
+/// @brief Èçâëåêàåò ÷èñëèòåëü è çíàìåíàòåëü èç óçëà-äåëåíèÿ â ïîêàçàòåëå ñòåïåíè
+/// @param[in] node óêàçàòåëü íà óçåë POW
+/// @param[out] numerator âûõîäíîé ïàðàìåòð äëÿ ÷èñëèòåëÿ
+/// @param[out] denominator âûõîäíîé ïàðàìåòð äëÿ çíàìåíàòåëÿ
+/// @return true, åñëè ïðàâûé ïîòîìîê ÿâëÿåòñÿ äåëåíèåì äâóõ ÷èñåë, èíà÷å false
+bool getExponentFraction(Node* node, string&amp; numerator, string&amp; denominator);
+
+/// @brief Ïðîâåðÿåò, ÷òî èíäåêñû ìàññèâà îáðàçóþò êîððåêòíóþ íåïðåðûâíóþ ïîñëåäîâàòåëüíîñòü
+/// @param[in] indexes âåêòîð èíäåêñîâ
+/// @param[in] startIndex ìèíèìàëüíûé èíäåêñ
+/// @param[in] endIndex ìàêñèìàëüíûé èíäåêñ
+/// @return true, åñëè èíäåêñû íåïðåðûâíû, íåò ïðîïóñêîâ è äóáëèêàòîâ
+bool isValidIndexRange(const vector&lt;int&gt;&amp; indexes, int startIndex, int endIndex);
+
+/// @brief Ãåíåðèðóåò TeX äëÿ îïåðàöèè óìíîæåíèÿ
+/// @param[in] node óêàçàòåëü íà óçåë MUL
+/// @param[in] config îáúåêò ñ íàñòðîéêàìè îòîáðàæåíèÿ
+/// @return TeX-ñòðîêà óìíîæåíèÿ
+string getMulOperationTeX(Node* node, const Config&amp; config);
+
+/// @brief Ãåíåðèðóåò TeX äëÿ îïåðàöèè ñëîæåíèÿ
+/// @param[in] node óêàçàòåëü íà óçåë PLUS
+/// @param[in] config îáúåêò ñ íàñòðîéêàìè îòîáðàæåíèÿ
+/// @return TeX-ñòðîêà ñëîæåíèÿ
+string getPlusOperationTeX(Node* node, const Config&amp; config);
+
+/// @brief Ãåíåðèðóåò TeX äëÿ îïåðàöèè äåëåíèÿ
+/// @param[in] node óêàçàòåëü íà óçåë DIV
+/// @param[in] config îáúåêò ñ íàñòðîéêàìè îòîáðàæåíèÿ
+/// @param[in] type òèï óçëà 
+/// @return TeX-ñòðîêà äåëåíèÿ
+string getDivOperationTeX(Node* node, const Config&amp; config, TokenType type);
+</pre>
+        <hr />
+        <table width="100%">
+            <thead>
+                <tr>
+                    <th align="center">
+                        <small>Generated by</small>
+                        <a href="https://github.com/OpenCppCoverage/OpenCppCoverage/releases">
+                            <strong>OpenCppCoverage (Version: 0.9.9.0)</strong>
+                        </a>
+                    </th>
+                </tr>
+            </thead>
+        </table>
+    </body>
+</html>

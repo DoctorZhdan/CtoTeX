@@ -1,0 +1,1 @@
+zeroPointFivePow powToSqrt

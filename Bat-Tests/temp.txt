@@ -1,1 +1,1 @@
-\frac{\sin x^{2} + \cos x^{2}}{y}
+\log_{b}(a)

@@ -1,0 +1,3 @@
+mulIdenVar withoutChanges
+arrSum combineInSum
+trigFunNoNegPow powAfterVar
