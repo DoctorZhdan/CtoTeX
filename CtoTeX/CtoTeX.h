@@ -212,12 +212,60 @@ public:
         delete right;
     }
 
-    /// @brief Запрет конструктора копирования
-    Node(const Node&) = delete;
 
-    /// @brief Запрет оператора присваивания
-    Node& operator=(const Node&) = delete;
+    /// @brief Конструктор копирования 
+    /// @param other узел, который копируем
+    Node(const Node& other) : token(other.token) {
 
+        // Если левое поддерево существует
+        if (other.left) {
+            // Копируем левого потомка
+            left = new Node(*other.left);
+        }
+        else {
+            left = nullptr;
+        }
+
+        // Если правое поддерево существует
+        if (other.right) {
+            // Копируем правого потомка
+            right = new Node(*other.right);
+        }
+        else {
+            right = nullptr;
+        }
+    }
+
+    /// @brief Оператор присваивания 
+    /// @param other узел, который копируем
+    /// @return ссылка на текущий объект 
+    Node& operator=(const Node& other) {
+        // Если нет самоприсваивания 
+        if (this != &other) {
+            // Удаляем текущие дочерние узлы
+            delete left;
+            delete right;
+
+            // Обнуляем указатели
+            left = nullptr;
+            right = nullptr;
+
+            // Копируем токен
+            token = other.token;
+
+            // Копируем левое поддерево 
+            if (other.left) {
+                left = new Node(*other.left);
+            }
+
+            // Копируем правое поддерево 
+            if (other.right) {
+                right = new Node(*other.right);
+            }
+        }
+        // Возвращаем текущий объект 
+        return *this;
+    }
 };
 
 /// @brief Структура параметров отображения
