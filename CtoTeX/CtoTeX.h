@@ -474,7 +474,7 @@ bool tokenizeExpression(const string& expression, vector<Token>& tokens, unorder
 /// @param[in] operatorInfo словарь операторов с информацией о них 
 /// @param[out] errors вектор для сбора ошибок
 /// @return true при успешном построении дерева, false при наличии ошибок
-bool buildTree(const string& expression, Node*& root, const map<TokenType, OperatorInfo>& operatorInfo, unordered_set<Error, ErrorHash, ErrorEqual>& errors);
+bool buildTree(const string& expression, Node*& root, const map<TokenType, OperatorInfo>& operatorInfo_loc, unordered_set<Error, ErrorHash, ErrorEqual>& errors);
 
 /// @brief Функция сохранения TeX-строки в выходной файл
 /// @param[in] filename путь к выходному файлу

@@ -345,7 +345,7 @@ bool tokenizeExpression(const string& expression, vector<Token>& tokens, unorder
     }
 }
 
-bool buildTree(const string& expression, Node*& root, const map<TokenType, OperatorInfo>& operatorInfo, unordered_set<Error, ErrorHash, ErrorEqual>& errors) {
+bool buildTree(const string& expression, Node*& root, const map<TokenType, OperatorInfo>& operatorInfo_loc, unordered_set<Error, ErrorHash, ErrorEqual>& errors) {
     // 1. Разбить строку на токены (tokenizeExpression)
     vector<Token> tokens;
     if (!tokenizeExpression(expression, tokens, errors)) {
@@ -371,10 +371,10 @@ bool buildTree(const string& expression, Node*& root, const map<TokenType, Opera
         else {
 
             // 4.2.1. Получить арность оператора из operatorInfo
-            auto it = operatorInfo.find(token.type);
+            auto it = operatorInfo_loc.find(token.type);
 
             int arity = 0;
-            bool operatorFound = (it != operatorInfo.end());
+            bool operatorFound = (it != operatorInfo_loc.end());
 
             if (operatorFound) {
                 arity = it->second.arity;
