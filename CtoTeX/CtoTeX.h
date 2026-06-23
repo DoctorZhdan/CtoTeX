@@ -194,7 +194,7 @@ public:
 
     /// @brief Конструктор для листа (число, переменная, константа)
     /// @param t токен
-    Node(const Token& t) : token(t) {}
+    explicit Node(const Token& t) : token(t) {}
 
     /// @brief Конструктор для бинарной операции
     /// @param t токен операции

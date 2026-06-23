@@ -764,7 +764,6 @@ string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config&
     string squareRootVal = config.paramMap.at("squareRoot");
 
     string result;
-    string temp;  // временная переменная для хранения результата вызова функции
 
     switch (type) {
 
