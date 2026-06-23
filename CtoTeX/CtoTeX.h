@@ -543,7 +543,7 @@ bool parseOperator(const string& word, vector<Token>& tokens, int& nodeCount);
 /// @param[out] errors вектор ошибок
 /// @param[in] allowedOperations множество допустимых операторов
 /// @return true, если слово содержит ошибку, связанную с операторами; false в противном случае
-bool checkOperatorSpacing(const string& word, unordered_set<Error, ErrorHash, ErrorEqual>& errors, const set<string>& allowedOperations);
+bool checkOperatorSpacing(const string& word, unordered_set<Error, ErrorHash, ErrorEqual>& errors, const set<string>& allowedOperations_loc);
 
 /// @brief Проверяет, является ли слово числом и добавляет токен
 /// @param[in] word текущее слово 

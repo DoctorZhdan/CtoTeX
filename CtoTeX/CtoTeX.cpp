@@ -1087,12 +1087,12 @@ bool parseOperator(const string& word, vector<Token>& tokens, int& nodeCount)
     return false;
 }
 
-bool checkOperatorSpacing(const string& word, unordered_set<Error, ErrorHash, ErrorEqual>& errors, const set<string>& allowedOperations)
+bool checkOperatorSpacing(const string& word, unordered_set<Error, ErrorHash, ErrorEqual>& errors, const set<string>& allowedOperations_loc)
 {
     // 1. Подсчёт количества операторов в слове 
     int opCounter = 0;
 
-    for (const string& op : allowedOperations) {
+    for (const string& op : allowedOperations_loc) {
         size_t pos = 0;
         while ((pos = word.find(op, pos)) != string::npos) {
             opCounter++;
@@ -1101,7 +1101,7 @@ bool checkOperatorSpacing(const string& word, unordered_set<Error, ErrorHash, Er
     }
 
     // 2. Проверка на наличие оператора внутри слова 
-    if (opCounter > 1 || (opCounter == 1 && allowedOperations.find(word) == allowedOperations.end()))
+    if (opCounter > 1 || (opCounter == 1 && allowedOperations_loc.find(word) == allowedOperations_loc.end()))
     {
         //  3. Проверка, не является ли слово отрицательным числом 
         bool isNegativeNumber = false;
