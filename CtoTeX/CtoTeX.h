@@ -6,6 +6,7 @@ using namespace std;
 #include <vector>
 #include <stack>
 #include <unordered_set>
+#include <algorithm>
 
 
 
@@ -605,7 +606,7 @@ void processOperand(const Token& token, stack<Node*>& nodeStack, int& nodeCount,
 /// @brief Проверяет состояние стека после обработки всех токенов
 /// @param[in] nodeStack стек узлов
 /// @param[out] errors вектор ошибок
-void checkStackState(stack<Node*>& nodeStack, unordered_set<Error, ErrorHash, ErrorEqual>& errors);
+void checkStackState(const stack<Node*>& nodeStack, unordered_set<Error, ErrorHash, ErrorEqual>& errors);
 
 /// @brief Сравнивает приоритеты parent и child, определяет необходимость скобок
 /// @param[in] parentPrec приоритет родительской операции

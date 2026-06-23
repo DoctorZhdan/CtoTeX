@@ -978,7 +978,7 @@ string cToTex(Node* node, TokenType parentType, bool isRightChild, const Config&
 /// @param[in] argc количество аргументов командной строки
 /// @param[in] argv массив аргументов командной строки
 /// @return 0 при успешном завершении, 1 при ошибке
-int main(int argc, char* argv[]) {
+int main(int argc, const char* argv[]) {
 
     setlocale(LC_ALL, "");
     system("chcp 65001 > nul");
@@ -1467,7 +1467,7 @@ void processOperand(const Token& token, stack<Node*>& nodeStack, int& nodeCount,
     }
 }
 
-void checkStackState(stack<Node*>& nodeStack, unordered_set<Error, ErrorHash, ErrorEqual>& errors)
+void checkStackState(const stack<Node*>& nodeStack, unordered_set<Error, ErrorHash, ErrorEqual>& errors)
 {
     // 1. Если стек пуст, в выражении не было операндов
     if (nodeStack.empty())
@@ -1774,15 +1774,10 @@ bool isValidIndexRange(const vector<int>& indexes, int startIndex, int endIndex)
     // 2. Проверка непрерывности (все индексы от startIndex до endIndex присутствуют)
     for (int i = startIndex; i <= endIndex; i++)
     {
-        bool found = false;
-        for (int val : indexes)
-        {
-            if (val == i)
-            {
-                found = true;
-                break;
-            }
-        }
+        bool found = any_of(indexes.begin(), indexes.end(),
+            [i](int val) {
+                return val == i;
+            });
         if (!found)
         {
             return false;
@@ -1792,12 +1787,13 @@ bool isValidIndexRange(const vector<int>& indexes, int startIndex, int endIndex)
     // 3. Проверка на дубликаты
     for (size_t i = 0; i < indexes.size(); i++)
     {
-        for (size_t j = i + 1; j < indexes.size(); j++)
+        bool hasDuplicate = any_of(indexes.begin() + i + 1, indexes.end(),
+            [&, i](int val) {
+                return val == indexes[i];
+            });
+        if (hasDuplicate)
         {
-            if (indexes[i] == indexes[j])
-            {
-                return false;
-            }
+            return false;
         }
     }
 
